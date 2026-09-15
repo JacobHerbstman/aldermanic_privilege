@@ -1,28 +1,28 @@
 File: raw_log_summary.csv
 Rows: 21
 Columns: 18
-SHA-256 (saved bytes): 435019276a23aeecd1c4af9757017613d540e62fe63e2f103b6e72a05e2595ab
+SHA-256 (saved bytes): 6b0634880f51ac0b147ba0f69dcd378d12d54585364fbd96427936f708e98ebf
 Key: analysis, outcome, scenario
 Types: DuckDB inference from the complete saved CSV.
 Distinct counts: exact (exact up to 100,000 rows).
 Row counts, non-missing counts, and declared-key checks: exact.
 
-               column inferred_type non_missing distinct                  min                  max                 mean                  sd
-             analysis       VARCHAR          21        5                    -                    -                    -                   -
-              outcome       VARCHAR          21        5                    -                    -                    -                   -
-             scenario       VARCHAR          21        3                    -                    -                    -                   -
-             estimate        DOUBLE          21       21  -0.1906915724078157  0.04393139651347396 -0.05678678232652529  0.0760043943449366
-            std_error        DOUBLE          21       21 0.013388133368538292  0.11249880494680896 0.056961662994113586 0.03398707774087279
-              p_value        DOUBLE          21       21 0.009869612289499057   0.8504950459244126  0.25260204972611866 0.30225998389891356
-               ci_low        DOUBLE          21       21 -0.40538920415053314 0.009998179844737816  -0.1698692140043613 0.12694221346319362
-              ci_high        DOUBLE          21       21 -0.03271052103883701  0.24496726073369013  0.05629564935131073 0.06770667295347263
-       percent_effect        DOUBLE          21       21  -17.361257046578082    4.491066791455653   -5.260847156298592   7.173488666183424
-          percent_low        DOUBLE          21       21   -33.32827287743936     1.00483286377145  -14.970039057416345  10.864822781580157
-         percent_high        DOUBLE          21       21  -3.2181317811009547   27.757948550517824    6.027375707831097   7.428538604577891
-              input_n        BIGINT          21       11                  539               240713    42647.04761904762   72465.92199680909
-                    n        BIGINT          21       10                  539               240713    42630.90476190476    72467.2410754713
-           ward_pairs        BIGINT          21       10                   74                  141   109.57142857142857  22.624260051041293
-       selected_pairs        BIGINT          21        6                    0                  101   40.666666666666664  37.199910394157314
-selected_observations        BIGINT          21        6                    0               119098              13306.0   35530.74896902681
-                label       VARCHAR          21        7                    -                    -                    -                   -
-        display_order        BIGINT          21        7                    1                    7                  4.0    2.04939015319192
+               column inferred_type non_missing distinct                  min                  max                  mean                   sd
+             analysis       VARCHAR          21        5                    -                    -                     -                    -
+              outcome       VARCHAR          21        5                    -                    -                     -                    -
+             scenario       VARCHAR          21        3                    -                    -                     -                    -
+             estimate        DOUBLE          21       21 -0.13714951852510507  0.04393139651347396 -0.060730874726957505  0.06846373246944387
+            std_error        DOUBLE          21       21 0.013388133368538292  0.10195040666280145  0.053711186595768776  0.03006298910791776
+              p_value        DOUBLE          21       21 0.009869612289499057   0.9061055184881432   0.22128962050232687  0.26292244920910063
+               ci_low        DOUBLE          21       21 -0.33650999094609013 0.009998179844737816  -0.16735585499018568  0.11896936209317635
+              ci_high        DOUBLE          21       21 -0.03271052103883701  0.13818148308970976   0.04589410553627066 0.048768853998476434
+       percent_effect        DOUBLE          21       21  -12.816013982373178    4.491066791455653    -5.680799366213263    6.514916412756291
+          percent_low        DOUBLE          21       21  -28.574125258013687     1.00483286377145   -14.829667257341104   10.356225684355378
+         percent_high        DOUBLE          21       21  -3.2181317811009547   14.818390733002296     4.814908962803254    5.107638353649689
+              input_n        BIGINT          21       11                  537               240713    42644.857142857145    72467.17075703018
+                    n        BIGINT          21       10                  537               240713     42628.71428571428    72468.48930062144
+           ward_pairs        BIGINT          21       10                   74                  141    109.57142857142857   22.624260051041293
+       selected_pairs        BIGINT          21        6                    0                  101    40.666666666666664   37.199910394157314
+selected_observations        BIGINT          21        6                    0               119098    13306.380952380952    35530.60282837345
+                label       VARCHAR          21        7                    -                    -                     -                    -
+        display_order        BIGINT          21        7                    1                    7                   4.0     2.04939015319192

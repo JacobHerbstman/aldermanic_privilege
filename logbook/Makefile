@@ -96,6 +96,7 @@ logbook.pdf: logbook.tex \
 	../tasks/audits/price_score_uncertainty/output/price_score_draws.pdf \
 	../tasks/audits/score_robustness_review/output/raw_processing_comparison.pdf \
 	../tasks/audits/raw_log_score_sensitivity/output/raw_log_effects.pdf \
+	../tasks/audits/raw_log_score_sensitivity/records/raw_log_effects_before_corrections.pdf \
 	../tasks/audits/density_ordering_drivers/output/density_drivers.pdf \
 	../tasks/audits/construction_review_history/records/natchez_parcel_coverage.pdf \
 	../tasks/audits/density_window_comparison/output/density_windows.pdf \

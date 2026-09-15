@@ -68,11 +68,23 @@ detail <- summary[, .(Outcome = label, Comparison = comparison, `Effect (%)` = r
   `Affected observations (reassigned blocks for permits)` = selected_observations)]
 pretrends <- permits[specification == "pooled", .(Comparison = scenario_labels[scenario],
   `Pretrend joint p-value` = round(pretrend_p_value, 3), Blocks = blocks, `Reassigned blocks` = reassigned_blocks)]
+before <- rbindlist(list(fread("../records/density_all_before_corrections.csv"),
+  fread("../records/density_multifamily_before_corrections.csv")))
+stopifnot(!anyDuplicated(before[, .(analysis, outcome, scenario)]))
+changes <- merge(summary[analysis %in% c("density_all", "density_multifamily")],
+  before[, .(analysis, outcome, scenario, previous_effect = percent_effect, previous_n = n)],
+  by = c("analysis", "outcome", "scenario"), all.x = TRUE, sort = FALSE)
+stopifnot(nrow(changes) == 12L, !anyNA(changes$previous_effect))
+setorder(changes, display_order, scenario)
+changes <- changes[, .(Outcome = label, Comparison = comparison,
+  `Before corrections (%)` = round(previous_effect, 2), `After corrections (%)` = round(percent_effect, 2),
+  `Previous projects` = previous_n, `Current projects` = n)]
 writeLines(paste0('<!doctype html><meta charset="utf-8"><title>Results using raw log permit times</title><style>body{font:16px/1.5 system-ui;max-width:1200px;margin:35px auto;padding:0 20px;color:#183445}table{border-collapse:collapse;width:100%;font-size:14px;margin:20px 0}th,td{text-align:left;border-bottom:1px solid #d9e2e7;padding:9px}th{background:#edf3f6}img{width:100%}.wide{overflow-x:auto}a{color:#176184}</style>',
   '<h1>Results using raw log permit times</h1><p>Original score uses the paper’s adjusted ordering. Drop disagreements keeps comparisons where that ordering agrees with each alderman’s average log processing time. Order by raw log time keeps the original fitted observations and reverses every disagreement. It is exactly the result of using raw average log processing time to order all local pairs.</p>',
-  '<p>Both measures use the same permit sample: through 2014 for the remap and through 2022 for boundary outcomes. Outcome-regression controls, fixed effects, clustering and distance restrictions are unchanged. No manuscript or production input is changed.</p>',
+  '<p>Construction includes the September 15 measurement corrections. Sales, rents, permits and both score orderings use their preserved inputs. Outcome-regression controls, fixed effects, clustering and distance restrictions are unchanged. The manuscript has not been updated.</p>',
   html_table(table), '<p>Effects are 100 × (exp(coefficient) − 1). Boundary results compare the first 100 feet on each side, fitting the existing distance-bin model within 500 feet. Permit results are the pooled signed effect during 2015–2020, allowing equal-and-opposite effects of reassignment toward slower and faster processing. A positive value means a higher outcome on the side, or following reassignment toward the alderman, classified as slower by the column’s ordering.</p>',
   '<img src="raw_log_effects.png" alt="Seven outcome estimates and conditional confidence intervals">',
+  '<h2>What the construction corrections changed</h2>', html_table(changes),
   '<h2>Fitted sample sizes</h2>', html_table(samples),
   '<p>Construction counts are projects, sales and rents count their recorded observations, and permit counts are block-years. Dropping a permit comparison removes both reassigned blocks and its unchanged comparison blocks. Reversal keeps unchanged blocks at direction zero. Fixed-effect estimation can remove additional observations after a deletion; the full table records both input and fitted counts.</p>',
   '<h2>Permit event-study paths</h2><img src="raw_log_permit_events.png" alt="Permit event-study estimates for each ordering">', html_table(pretrends),

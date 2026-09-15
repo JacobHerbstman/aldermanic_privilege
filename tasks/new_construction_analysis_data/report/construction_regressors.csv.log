@@ -1,72 +1,72 @@
 File: construction_regressors.csv
-Rows: 9493
+Rows: 9480
 Columns: 62
-SHA-256 (saved bytes): 574938460b9b6321d3ae992abe69845cf9bec3a85de17ba6abc78f13d85a7023
+SHA-256 (saved bytes): ad8f59bd44fd7c4d09f32c8c95da2d08422572cf50c9ec6d20007baa117a049e
 Key: project_id
 Types: DuckDB inference from the complete saved CSV.
 Distinct counts: exact (exact up to 100,000 rows).
 Row counts, non-missing counts, and declared-key checks: exact.
 
-                     column inferred_type non_missing distinct                 min                max                 mean                  sd
-                 project_id       VARCHAR        9493     9493                   -                  -                    -                   -
-              source_family       VARCHAR        9493        2                   -                  -                    -                   -
-         source_project_ids       VARCHAR        9493     9447                   -                  -                    -                   -
-           source_addresses       VARCHAR         592      548                   -                  -                    -                   -
-             component_pins       VARCHAR        9493     9493                   -                  -                    -                   -
-               project_kind       VARCHAR        9493        7                   -                  -                    -                   -
-          construction_year        BIGINT        9493       17                2006               2022    2012.659011903508   5.351303954855216
-             dwelling_units        BIGINT        9491      175                   1                848    5.762090401432936   33.49763183068486
-              building_sqft        BIGINT        9477     3577                 246            1252885      8413.3178220956   42507.02586673805
-                  land_sqft        BIGINT        9491     3207                 176            1540260    4766.358866294384  18946.576456230054
-                  allow_far       BOOLEAN        9493        2                   -                  -                    -                   -
-                allow_dupac       BOOLEAN        9493        2                   -                  -                    -                   -
-                density_far        DOUBLE        9466     7968 0.02537027717286499 32.509535794909056   1.2105834477163244  1.2856264790096084
-              density_dupac        DOUBLE        9483     3448  0.3027417729436703  905.9747899159664    28.49087274339716   44.68681100419131
-             source_row_ids       VARCHAR        9450     9408                   -                  -                    -                   -
-                   tax_year        BIGINT        9450       20                2007               2026   2021.6412698412698    2.85701711670672
-               evidence_ids       VARCHAR         154      142                   -                  -                    -                   -
-        decision_references       VARCHAR         362      331                   -                  -                    -                   -
-            decision_reason       VARCHAR         362      242                   -                  -                    -                   -
-            geometry_source       VARCHAR        9493        9                   -                  -                    -                   -
-          geometry_evidence       VARCHAR        9493     7817                   -                  -                    -                   -
-                     x_3435        DOUBLE        9493     9451  1123387.8196637768  1195008.331350098   1162582.3900137905  11186.951867657526
-                     y_3435        DOUBLE        9493     9451  1819796.2082802316 1948499.0587283256   1903242.6336194766  22985.978309660382
-          location_resolved       BOOLEAN        9493        1                   -                  -                    -                   -
-               zoning_group       VARCHAR          10        4                   -                  -                    -                   -
-                zoning_year        BIGINT          10        7                2006               2019               2010.8   4.237399621885546
-              zoning_source       VARCHAR          10        3                   -                  -                    -                   -
-                zoning_note       VARCHAR          10        9                   -                  -                    -                   -
-          construction_date          DATE        9493       17                   -                  -                    -                   -
-              boundary_year        BIGINT        9493        2                2003               2015     2007.50774254714  5.8117747513924325
-                        era       VARCHAR        9493        2                   -                  -                    -                   -
-                       ward        BIGINT        9493       49                   1                 50    23.66691246181397  15.235926534149753
-              neighbor_ward        BIGINT        9493       49                   1                 50    23.61740229642895  15.584889832849239
-                  ward_pair       VARCHAR        9493      133                   -                  -                    -                   -
-    distance_to_boundary_ft        DOUBLE        9493     9451  1.0214899430226334 1498.6502188053703    649.7064238524857  399.30358322639336
-              within_1500ft       BOOLEAN        9493        1                   -                  -                    -                   -
-               within_500ft       BOOLEAN        9493        2                   -                  -                    -                   -
-               class_values       VARCHAR        8901       19                   -                  -                    -                   -
-       external_multifamily       BOOLEAN        9493        2                   -                  -                    -                   -
-         multifamily_source       VARCHAR        9493        2                   -                  -                    -                   -
-                 segment_id       VARCHAR        9493     1254                   -                  -                    -                   -
-               alderman_own       VARCHAR        9478      103                   -                  -                    -                   -
-          alderman_neighbor       VARCHAR        9489      103                   -                  -                    -                   -
-             strictness_own        DOUBLE        9478      103  -3.445576092831627  3.335724428970233  0.27927361549344726  0.8122138359506668
-        strictness_neighbor        DOUBLE        9489      103  -3.445576092831627  3.335724428970233   0.2749124394326489   0.838907980061199
-            share_white_own        DOUBLE        9493      428 0.00358238087470588  0.872029224787542   0.3966590201945342  0.2616266413018844
-            share_black_own        DOUBLE        9493      428 0.00606358527153015 0.9760814204807162  0.23783934564477413  0.3069291765541379
-       median_hh_income_own        DOUBLE        9493      428   17794.77018835824 156816.80301053703     59787.7903837229  28559.582057540265
-        share_bach_plus_own        DOUBLE        9493      402 0.05282434878746028 0.8917022350312006   0.4042044918806342 0.24143956762129617
-     homeownership_rate_own        DOUBLE        9493      428 0.18817021270261344 0.8254221558463539   0.4026106422584359 0.11116255081537318
-       share_white_neighbor        DOUBLE        9493      445 0.00358238087470588  0.872029224787542   0.3973269564256912  0.2657133276343166
-       share_black_neighbor        DOUBLE        9493      445 0.00606358527153015 0.9760814204807162  0.24751217780074408 0.31038440307400134
-  median_hh_income_neighbor        DOUBLE        9493      445   17794.77018835824 156816.80301053703   59301.813292629864   28247.88940676876
-   share_bach_plus_neighbor        DOUBLE        9493      416 0.05282434878746028 0.8956085911763237  0.40650709571431953 0.24066979917744308
-homeownership_rate_neighbor        DOUBLE        9493      445 0.18817021270261344 0.8331291977771729  0.39694616548175937 0.12086855630870032
- alderman_assignment_status       VARCHAR        9493        2                   -                  -                    -                   -
-          signed_distance_m        DOUBLE        9474     9432  -456.7885866918769  456.7582004518269   1.4865533496345413   232.5238967529433
-               lenient_dist        DOUBLE        9474     4775                 0.0  456.7885866918769    98.30811535110739  130.47955125117517
-                strict_dist        DOUBLE        9474     4659                 0.0  456.7582004518269    99.79466870074194   131.9815380295391
-                       side        BIGINT        9474        2                   0                  1  0.49493350221659277   0.500000718684841
-continuous_score_difference        DOUBLE        9474      518 -2.2543181677748247   1.94744310539838 0.002195137407678826  0.5158969986653243
-         pair_average_score        DOUBLE        9474      292 -2.9558717070870704  3.060883503542533   0.2767228108599147  0.6449926369926743
+                     column inferred_type non_missing distinct                 min                max                  mean                  sd
+                 project_id       VARCHAR        9480     9480                   -                  -                     -                   -
+              source_family       VARCHAR        9480        2                   -                  -                     -                   -
+         source_project_ids       VARCHAR        9480     9434                   -                  -                     -                   -
+           source_addresses       VARCHAR         590      546                   -                  -                     -                   -
+             component_pins       VARCHAR        9480     9480                   -                  -                     -                   -
+               project_kind       VARCHAR        9480        7                   -                  -                     -                   -
+          construction_year        BIGINT        9480       17                2006               2022    2012.6636075949368    5.35255858318753
+             dwelling_units        BIGINT        9477      174                   1                848     5.735253772290809   33.47054227938999
+              building_sqft        BIGINT        9462     3570                 246            1252885     8404.373811033609  42513.101308557416
+                  land_sqft        BIGINT        9477     3200                 176            1540260     4744.689458689459   18842.42066600728
+                  allow_far       BOOLEAN        9480        2                   -                  -                     -                   -
+                allow_dupac       BOOLEAN        9480        2                   -                  -                     -                   -
+                density_far        DOUBLE        9449     7952 0.03451367411474441 32.509535794909056     1.210418064542621  1.2853677267618457
+              density_dupac        DOUBLE        9467     3440  0.3027417729436703  905.9747899159664    28.358382872482462   43.85895320560876
+             source_row_ids       VARCHAR        9437     9395                   -                  -                     -                   -
+                   tax_year        BIGINT        9437       20                2007               2026     2021.643000953693  2.8516423618538367
+               evidence_ids       VARCHAR         174      163                   -                  -                     -                   -
+        decision_references       VARCHAR         384      353                   -                  -                     -                   -
+            decision_reason       VARCHAR         384      264                   -                  -                     -                   -
+            geometry_source       VARCHAR        9480       10                   -                  -                     -                   -
+          geometry_evidence       VARCHAR        9480     7806                   -                  -                     -                   -
+                     x_3435        DOUBLE        9480     9438  1123387.8196637768  1195008.331350098    1162572.1200894085  11191.628358521497
+                     y_3435        DOUBLE        9480     9438  1819796.2082802316 1948499.0587283256      1903244.51351939   22995.00940631399
+          location_resolved       BOOLEAN        9480        1                   -                  -                     -                   -
+               zoning_group       VARCHAR          10        4                   -                  -                     -                   -
+                zoning_year        BIGINT          10        7                2006               2019                2010.8   4.237399621885546
+              zoning_source       VARCHAR          10        3                   -                  -                     -                   -
+                zoning_note       VARCHAR          10        9                   -                  -                     -                   -
+          construction_date          DATE        9480       17                   -                  -                     -                   -
+              boundary_year        BIGINT        9480        2                2003               2015     2007.513924050633  5.8133590256615255
+                        era       VARCHAR        9480        2                   -                  -                     -                   -
+                       ward        BIGINT        9480       49                   1                 50    23.672995780590718   15.23434512304948
+              neighbor_ward        BIGINT        9480       49                   1                 50    23.628164556962027  15.586965889830278
+                  ward_pair       VARCHAR        9480      133                   -                  -                     -                   -
+    distance_to_boundary_ft        DOUBLE        9480     9438  1.0214899430226334 1498.6502188053703     649.5697097713413   399.2086566161019
+              within_1500ft       BOOLEAN        9480        1                   -                  -                     -                   -
+               within_500ft       BOOLEAN        9480        2                   -                  -                     -                   -
+               class_values       VARCHAR        8890       18                   -                  -                     -                   -
+       external_multifamily       BOOLEAN        9480        2                   -                  -                     -                   -
+         multifamily_source       VARCHAR        9480        2                   -                  -                     -                   -
+                 segment_id       VARCHAR        9480     1253                   -                  -                     -                   -
+               alderman_own       VARCHAR        9465      103                   -                  -                     -                   -
+          alderman_neighbor       VARCHAR        9476      103                   -                  -                     -                   -
+             strictness_own        DOUBLE        9465      103  -3.445576092831627  3.335724428970233    0.2791905421612617  0.8123161730483872
+        strictness_neighbor        DOUBLE        9476      103  -3.445576092831627  3.335724428970233    0.2742334821616526  0.8385997994612028
+            share_white_own        DOUBLE        9480      428 0.00358238087470588  0.872029224787542    0.3966105633353977  0.2616107704577482
+            share_black_own        DOUBLE        9480      428 0.00606358527153015 0.9760814204807162   0.23773481529205506  0.3069344018805741
+       median_hh_income_own        DOUBLE        9480      428   17794.77018835824 156816.80301053703     59792.40366819656  28562.448915481124
+        share_bach_plus_own        DOUBLE        9480      402 0.05282434878746028 0.8917022350312006   0.40409031313698535 0.24142823880672537
+     homeownership_rate_own        DOUBLE        9480      428 0.18817021270261344 0.8254221558463539   0.40269541221700256 0.11121876938130658
+       share_white_neighbor        DOUBLE        9480      444 0.00358238087470588  0.872029224787542   0.39749285294385484  0.2657127476764511
+       share_black_neighbor        DOUBLE        9480      444 0.00606358527153015 0.9760814204807162   0.24715615894622228  0.3102662274382402
+  median_hh_income_neighbor        DOUBLE        9480      444   17794.77018835824 156816.80301053703    59320.011903106686   28245.35567751231
+   share_bach_plus_neighbor        DOUBLE        9480      416 0.05282434878746028 0.8956085911763237   0.40658347361803465  0.2407067606948781
+homeownership_rate_neighbor        DOUBLE        9480      444 0.18817021270261344 0.8331291977771729   0.39708289329240554 0.12090920604999594
+ alderman_assignment_status       VARCHAR        9480        2                   -                  -                     -                   -
+          signed_distance_m        DOUBLE        9461     9419  -456.7885866918769  456.7582004518269    1.6780469786871541  232.47197476673122
+               lenient_dist        DOUBLE        9461     4765                 0.0  456.7885866918769      98.1915411174117  130.39741961728038
+                strict_dist        DOUBLE        9461     4656                 0.0  456.7582004518269     99.86958809609884   132.0036410612369
+                       side        BIGINT        9461        2                   0                  1     0.495296480287496  0.5000043016065276
+continuous_score_difference        DOUBLE        9461      518 -2.2543181677748247   1.94744310539838 0.0024936200360815984   0.516184466116447
+         pair_average_score        DOUBLE        9461      292 -2.9558717070870704  3.060883503542533    0.2763407310680966  0.6446265443689942

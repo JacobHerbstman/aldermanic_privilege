@@ -26,7 +26,7 @@ all: ../output/density_drivers.html
 ../input/commercial_valuation_data.csv: ../../../../data_raw/construction_review/commercial_valuation_data.csv | ../input
 	ln -sf $< $@
 
-../input/density_%_results.csv: ../../raw_log_score_sensitivity/output/density_%_results.csv | ../input
+../input/density_%_results.csv: ../../raw_log_score_sensitivity/records/density_%_before_corrections.csv | ../input
 	ln -sf $< $@
 
 link-inputs: ../input/new_construction_analysis_data.csv ../input/raw_processing_pairs.csv ../input/commercial_valuation_data.csv ../input/density_all_results.csv ../input/density_multifamily_results.csv

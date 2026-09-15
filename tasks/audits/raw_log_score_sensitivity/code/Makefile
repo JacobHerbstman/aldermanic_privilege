@@ -20,7 +20,7 @@ PERMIT_CLUSTER := ward_pair_id
 
 all: ../output/raw_log_results.html
 
-../output/raw_log_results.html ../output/raw_log_summary.csv ../output/raw_log_effects.pdf ../output/raw_log_effects.png ../output/raw_log_permit_events.pdf ../output/raw_log_permit_events.png: render_raw_log_results.R Makefile ../output/density_all_results.csv ../output/density_multifamily_results.csv ../output/sales_results.csv ../output/rent_results.csv ../output/permit_results.csv ../../../shared/code/save_data.R ../../../shared/code/report.py | ../output ../report
+../output/raw_log_results.html ../output/raw_log_summary.csv ../output/raw_log_effects.pdf ../output/raw_log_effects.png ../output/raw_log_permit_events.pdf ../output/raw_log_permit_events.png: render_raw_log_results.R Makefile ../output/density_all_results.csv ../output/density_multifamily_results.csv ../output/sales_results.csv ../output/rent_results.csv ../output/permit_results.csv ../records/density_all_before_corrections.csv ../records/density_multifamily_before_corrections.csv ../../../shared/code/save_data.R ../../../shared/code/report.py | ../output ../report
 	$(R) $<
 
 ../output/density_%_results.csv: estimate_boundary_results.R Makefile ../input/new_construction_analysis_data.csv ../input/raw_processing_pairs.csv ../../../shared/code/save_data.R ../../../shared/code/report.py | ../output ../report
@@ -38,7 +38,7 @@ all: ../output/raw_log_results.html
 ../input/raw_processing_pairs.csv: ../../score_robustness_review/output/raw_processing_pairs.csv | ../input
 	ln -sf $< $@
 
-../input/new_construction_analysis_data.csv: ../../../../data_raw/score_robustness/new_construction_analysis_data.csv | ../input
+../input/new_construction_analysis_data.csv: ../../../new_construction_analysis_data/output/new_construction_analysis_data.csv | ../input
 	ln -sf $< $@
 
 ../input/sales_with_hedonics_amenities.parquet: ../../../../data_raw/score_robustness/sales_with_hedonics_amenities.parquet | ../input

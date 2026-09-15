@@ -4,7 +4,7 @@ Run `make` in `code/`; open `output/density_drivers.html`. This audit diagnoses 
 
 ## Comparisons
 
-The source is the preserved `data_raw/score_robustness/new_construction_analysis_data.csv`. Raw pair orderings come from `score_robustness_review`; baseline and fully reversed estimates come from `raw_log_score_sensitivity` (revision `78239a53`). All construction uses 4,023 projects; multifamily uses 863. FAR and DUPAC share the same observations. The original 500-foot, ten-bin specification, controls, fixed effects and ward-pair clustering remain unchanged. Each original and raw-ordering coefficient, standard error and sample count must match the preceding audit.
+The source is the preserved `data_raw/score_robustness/new_construction_analysis_data.csv`. Raw pair orderings come from `score_robustness_review`; baseline and fully reversed estimates are preserved in `raw_log_score_sensitivity/records/density_*_before_corrections.csv` (originally revision `78239a53`). All construction uses 4,023 projects; multifamily uses 863. FAR and DUPAC share the same observations. The original 500-foot, ten-bin specification, controls, fixed effects and ward-pair clustering remain unchanged. Each original and raw-ordering coefficient, standard error and sample count must match the preceding audit.
 
 `estimate_density_drivers.R` performs four trials for every disagreeing pair and every alderman involved in a disagreement. Switching starts from the original ordering and changes only the named pair's direction, or every disagreeing pair involving the named alderman. Restoring starts from raw ordering and puts those comparisons back in their original direction. The two deletion trials instead remove all observations belonging to that pair or alderman, under original and raw ordering separately. An alderman deletion includes their agreeing comparisons too.
 
@@ -64,3 +64,8 @@ The [measurement review](../construction_measurement_review/count_land_review.md
 records all 87 decisions and the verified construction rebuild. The estimates
 above describe the preserved pre-correction data; adoption does not silently
 rewrite those historical findings.
+
+The corrected-data estimates are in
+[the raw-log comparison](../raw_log_score_sensitivity/output/raw_log_results.html).
+This driver report retains its original construction data and reference
+estimates so its pre-correction diagnosis remains reproducible.

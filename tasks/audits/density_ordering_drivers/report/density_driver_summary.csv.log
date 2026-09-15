@@ -1,28 +1,28 @@
 File: density_driver_summary.csv
 Rows: 514
 Columns: 18
-SHA-256 (saved bytes): c3c8793b3528972abcfa1fd6cd7e9145999c2a94dd4183ebe724ec8745e50710
+SHA-256 (saved bytes): cf17b6e1128f295c347f02fb9d6869e9435c66266f9f1bf11c1b549a8f14cf5c
 Key: sample, outcome, kind, name
 Types: DuckDB inference from the complete saved CSV.
 Distinct counts: exact (exact up to 100,000 rows).
 Row counts, non-missing counts, and declared-key checks: exact.
 
-                column inferred_type non_missing distinct                   min                  max                   mean                   sd
-                sample       VARCHAR         514        2                     -                    -                      -                    -
-               outcome       VARCHAR         514        2                     -                    -                      -                    -
-                  kind       VARCHAR         514        2                     -                    -                      -                    -
-                  name       VARCHAR         514      150                     -                    -                      -                    -
-     involved_projects        BIGINT         514       92                     1                  683      41.46692607003891    79.08842163140291
-     switched_projects        BIGINT         514       59                     1                  288      19.72762645914397    36.51552762467152
-        switched_pairs        BIGINT         514        8                     1                    8     1.4591439688715953   1.1339540984366232
-         near_projects        BIGINT         514       37                     0                  132      7.361867704280155   15.555139464380986
-near_switched_projects        BIGINT         514       24                     0                   64     3.3385214007782102    7.780504610917969
-     original_estimate        DOUBLE         514        4  -0.19069157240781529 -0.09695099688116084   -0.13963542179810534  0.03308860069693381
-          raw_estimate        DOUBLE         514        4 -0.019727357910866185  0.02136370435253924 -0.0015722830004609458 0.017778369926141645
-    drop_from_original        DOUBLE         514      494    -22.25144635711078   -5.432311979579855    -12.954840027820408   3.0489558361067393
-         drop_from_raw        DOUBLE         514      494    -8.450527785080116    10.44580437591062   -0.19260391181358255    2.275703028889539
-      restore_from_raw        DOUBLE         514      364    -16.38451949971861   11.661845801332673     -0.463755980737572    2.587040243215747
-  switch_from_original        DOUBLE         514      364    -24.70459128065972    1.048153654608034    -12.674287345866361    3.277022463000922
-       original_effect        DOUBLE         514        4   -17.361257046578046   -9.239951970222812    -12.985025899449113    2.872285843251335
-            raw_effect        DOUBLE         514        4   -1.9534046844975703   2.1593542094871316   -0.14134681665633064   1.7767624295235716
-      switch_change_pp        DOUBLE         514      364    -7.343334234081674    18.40941070118608     0.3107385535828242   1.8256273391319773
+                column inferred_type non_missing distinct                   min                  max                  mean                  sd
+                sample       VARCHAR         514        2                     -                    -                     -                   -
+               outcome       VARCHAR         514        2                     -                    -                     -                   -
+                  kind       VARCHAR         514        2                     -                    -                     -                   -
+                  name       VARCHAR         514      150                     -                    -                     -                   -
+     involved_projects        BIGINT         514       92                     1                  683     41.46692607003891   79.08842163140291
+     switched_projects        BIGINT         514       59                     1                  288     19.72762645914397   36.51552762467152
+        switched_pairs        BIGINT         514        8                     1                    8    1.4591439688715953  1.1339540984366232
+         near_projects        BIGINT         514       37                     0                  132     7.361867704280155  15.555139464380986
+near_switched_projects        BIGINT         514       24                     0                   64    3.3385214007782102   7.780504610917969
+     original_estimate        DOUBLE         514        4   -0.1906915724078155 -0.09695099688116034  -0.13963542179810426 0.03308860069693397
+          raw_estimate        DOUBLE         514        4 -0.019727357910866227  0.02136370435253878 -0.001572283000461119 0.01777836992614159
+    drop_from_original        DOUBLE         514      494   -22.251446357110886   -5.432311979579888     -12.9548400278204   3.048955836106741
+         drop_from_raw        DOUBLE         514      494    -8.450527785080062   10.445804375910534  -0.19260391181358003   2.275703028889536
+      restore_from_raw        DOUBLE         514      364    -16.38451949971859   11.661845801332714  -0.46375598073757884  2.5870402432157418
+  switch_from_original        DOUBLE         514      364   -24.704591280659663    1.048153654608058   -12.674287345866343  3.2770224630009244
+       original_effect        DOUBLE         514        4   -17.361257046578064   -9.239951970222766   -12.985025899449093  2.8722858432513445
+            raw_effect        DOUBLE         514        4    -1.953404684497574   2.1593542094870846  -0.14134681665634646  1.7767624295235658
+      switch_change_pp        DOUBLE         514      364    -7.343334234081599   18.409410701186122   0.31073855358278785  1.8256273391319797

@@ -27,7 +27,7 @@ stopifnot(analysis_name %in% c("density_all", "density_multifamily", "sales", "r
 setFixest_nthreads(1)
 setDTthreads(1)
 
-# Reconstruct each existing outcome sample from its preserved source.
+# Use corrected construction data and the preserved sales and rent sources.
 if (analysis_name %in% c("density_all", "density_multifamily")) {
   data <- fread("../input/new_construction_analysis_data.csv", colClasses = c(project_id = "character", ward_pair = "character", segment_id = "character"))
   stopifnot(!anyDuplicated(data$project_id))
@@ -67,7 +67,10 @@ data <- data[year >= start_year & year <= end_year & is.finite(paper_distance) &
   Reduce(`&`, lapply(data[, ..numeric_controls], is.finite))]
 data[, `:=`(alderman_a = pmin(alderman_own, alderman_neighbor), alderman_b = pmax(alderman_own, alderman_neighbor))]
 data[, pair := paste(alderman_a, alderman_b, sep = " / ")]
-raw <- fread("../input/raw_processing_pairs.csv")[market == analysis_name & cutoff == end_year & measure == "mean_log_days"]
+# Construction corrections change which alderman pairs enter the sample.
+# The citywide table supplies the same fixed scores and raw times for every pair.
+raw_market <- if (analysis_name %in% c("density_all", "density_multifamily")) "all_citywide_pairs" else analysis_name
+raw <- fread("../input/raw_processing_pairs.csv")[market == raw_market & cutoff == end_year & measure == "mean_log_days"]
 stopifnot(!anyDuplicated(raw$pair), nrow(raw) > 0L, !any(raw$agreement == "tie"))
 index <- match(data$pair, raw$pair)
 stopifnot(!anyNA(index))
@@ -107,7 +110,9 @@ fit <- fit_boundary(data, data$paper_distance)
 baseline <- fit$results
 data <- data[fit$observations]
 counts <- data[, .(observations = .N), by = pair]
-stopifnot(setequal(counts$pair, raw$pair), all(counts$observations == raw$observations[match(counts$pair, raw$pair)]))
+if (!analysis_name %in% c("density_all", "density_multifamily")) {
+  stopifnot(setequal(counts$pair, raw$pair), all(counts$observations == raw$observations[match(counts$pair, raw$pair)]))
+}
 reversed <- fit_boundary(data, -data$paper_distance)$results
 stopifnot(max(abs(baseline$estimate + reversed$estimate)) < 1e-6,
   max(abs(baseline$std_error - reversed$std_error)) < 1e-6)
