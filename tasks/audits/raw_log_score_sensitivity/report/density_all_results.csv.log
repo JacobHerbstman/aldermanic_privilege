@@ -1,0 +1,27 @@
+File: density_all_results.csv
+Rows: 6
+Columns: 17
+SHA-256 (saved bytes): 769ed1b5241407e54f57f89daaff3fc4c3cc5248003a7b9997f0056be52160e0
+Key: analysis, outcome, scenario
+Types: DuckDB inference from the complete saved CSV.
+Distinct counts: exact (exact up to 100,000 rows).
+Row counts, non-missing counts, and declared-key checks: exact.
+
+               column inferred_type non_missing distinct                   min                 max                 mean                   sd
+             analysis       VARCHAR           6        1                     -                   -                    -                    -
+              outcome       VARCHAR           6        2                     -                   -                    -                    -
+             estimate        DOUBLE           6        6  -0.14737632674372206 0.01196670852390507 -0.07548969939105689 0.060071366513939815
+            std_error        DOUBLE           6        6   0.04246559721093749  0.0986164881417298  0.06468139165799293 0.020418678881547418
+              p_value        DOUBLE           6        6   0.03433721595204362  0.8504950459244126   0.3375458668904549   0.3407962342669662
+               ci_low        DOUBLE           6        6   -0.3068594314660259 -0.1025935092452412 -0.20359845364734655   0.0862535866448126
+              ci_high        DOUBLE           6        6 -0.007272130199275792 0.13738988998113646  0.05261905486523277  0.05528616497610742
+              input_n        BIGINT           6        2                  2657                4023   3567.6666666666665    705.3993667892441
+                    n        BIGINT           6        2                  2657                4023   3567.6666666666665    705.3993667892441
+       alderman_pairs        BIGINT           6        2                   183                 256   231.66666666666666   37.697037903085516
+           ward_pairs        BIGINT           6        2                   111                 122   118.33333333333333    5.680375574437544
+             scenario       VARCHAR           6        3                     -                   -                    -                    -
+       selected_pairs        BIGINT           6        2                     0                  73   48.666666666666664    37.69703790308553
+selected_observations        BIGINT           6        2                     0                1366    910.6666666666666    705.3993667892443
+       percent_effect        DOUBLE           6        6   -13.703084207211289   1.203859604651159    -7.13049550241687   5.6419396927052246
+          percent_low        DOUBLE           6        6   -26.424598249787074  -9.750624570268984   -18.16793971425558   7.0496485488038605
+         percent_high        DOUBLE           6        6   -0.7245752240505374  14.727537250400147    5.537813906943497    5.880419821570382

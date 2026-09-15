@@ -1,0 +1,28 @@
+File: raw_log_summary.csv
+Rows: 21
+Columns: 18
+SHA-256 (saved bytes): 435019276a23aeecd1c4af9757017613d540e62fe63e2f103b6e72a05e2595ab
+Key: analysis, outcome, scenario
+Types: DuckDB inference from the complete saved CSV.
+Distinct counts: exact (exact up to 100,000 rows).
+Row counts, non-missing counts, and declared-key checks: exact.
+
+               column inferred_type non_missing distinct                  min                  max                 mean                  sd
+             analysis       VARCHAR          21        5                    -                    -                    -                   -
+              outcome       VARCHAR          21        5                    -                    -                    -                   -
+             scenario       VARCHAR          21        3                    -                    -                    -                   -
+             estimate        DOUBLE          21       21  -0.1906915724078157  0.04393139651347396 -0.05678678232652529  0.0760043943449366
+            std_error        DOUBLE          21       21 0.013388133368538292  0.11249880494680896 0.056961662994113586 0.03398707774087279
+              p_value        DOUBLE          21       21 0.009869612289499057   0.8504950459244126  0.25260204972611866 0.30225998389891356
+               ci_low        DOUBLE          21       21 -0.40538920415053314 0.009998179844737816  -0.1698692140043613 0.12694221346319362
+              ci_high        DOUBLE          21       21 -0.03271052103883701  0.24496726073369013  0.05629564935131073 0.06770667295347263
+       percent_effect        DOUBLE          21       21  -17.361257046578082    4.491066791455653   -5.260847156298592   7.173488666183424
+          percent_low        DOUBLE          21       21   -33.32827287743936     1.00483286377145  -14.970039057416345  10.864822781580157
+         percent_high        DOUBLE          21       21  -3.2181317811009547   27.757948550517824    6.027375707831097   7.428538604577891
+              input_n        BIGINT          21       11                  539               240713    42647.04761904762   72465.92199680909
+                    n        BIGINT          21       10                  539               240713    42630.90476190476    72467.2410754713
+           ward_pairs        BIGINT          21       10                   74                  141   109.57142857142857  22.624260051041293
+       selected_pairs        BIGINT          21        6                    0                  101   40.666666666666664  37.199910394157314
+selected_observations        BIGINT          21        6                    0               119098              13306.0   35530.74896902681
+                label       VARCHAR          21        7                    -                    -                    -                   -
+        display_order        BIGINT          21        7                    1                    7                  4.0    2.04939015319192

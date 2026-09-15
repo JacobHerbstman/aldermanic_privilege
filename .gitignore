@@ -193,3 +193,8 @@ tasks/audits/score_robustness_review/input/
 tasks/audits/score_robustness_review/output/
 tasks/audits/score_robustness_review/temp/
 !tasks/audits/score_robustness_review/report/*.log
+!tasks/audits/raw_log_score_sensitivity/
+tasks/audits/raw_log_score_sensitivity/input/
+tasks/audits/raw_log_score_sensitivity/output/
+tasks/audits/raw_log_score_sensitivity/temp/
+!tasks/audits/raw_log_score_sensitivity/report/*.log

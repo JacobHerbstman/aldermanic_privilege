@@ -1,0 +1,27 @@
+# Outcome estimates using raw log processing times
+
+Run `make` in `code/` and open `output/raw_log_results.html`. This exploratory audit estimates the existing outcome specifications under three comparisons: original adjusted-score ordering, deletion of all pairs that disagree with raw average log processing time, and reversal of every disagreement. The last comparison is exactly the ordering implied by raw average log processing time for all observed local pairs. No production or manuscript files consume these results.
+
+## Inputs and definition
+
+The existing raw-time audit supplies `score_robustness_review/output/raw_processing_pairs.csv`. It averages the log of each permit's application-to-issuance days over exactly the retained permit sample used by the score estimator. It is not the log of average days. Both measures use permits from 2006 through 2014 for the event study and through 2022 for the boundary analyses. No mean-log tie occurs in these local pairs. The source archive and raw-time audit document the permit vintage, eligibility rules and equal permit weights.
+
+Outcome inputs are the preserved files in `data_raw/score_robustness/`: construction analysis data, sales with hedonics, the rental characteristics panel and the 2015 permit block-year panel. Their recorded-source provenance is documented in the score-pair reliability audit. The task uses the same definitions as the preceding multifamily, permit and price score-uncertainty audits. Its baseline coefficients, standard errors, p-values and fitted counts were checked against those results; all-construction estimates were checked against the recorded common-density-sample audit. All original event-study coefficients and the joint pretrend test also match.
+
+The selected pairs are determined by processing times, without examining outcome estimates. The disagreeing counts are 6 of 44 permit pairs, 73 of 256 all-construction pairs, 52 of 161 multifamily pairs, 101 of 367 sales pairs and 70 of 244 rent pairs. These represent 57 reassigned blocks, 1,366 construction projects, 324 multifamily projects, 17,178 sales and 119,098 rental observations. Sample definitions overlap; these counts should not be added together.
+
+## Estimation
+
+`estimate_boundary_results.R` preserves the common FAR/DUPAC construction sample, sale and rent eligibility, covariates, property-type controls, fixed effects and ward-pair clustering. It estimates the existing logged-outcome distance-bin model within 500 feet. The reported coefficient compares the 0–100-foot band with the −100–0-foot band. Dropping removes all records belonging to a disagreeing named alderman pair. Reversal changes the sign of their distance, retaining every original fitted record. Both density measures use identical fitted rows in each scenario.
+
+`estimate_permit_results.R` preserves the stable-incumbent, positive-pre-period-volume block panel and fits the same pooled and annual signed Poisson specifications, with block and ward-pair-by-year fixed effects. It uses all available event years from 2010 through 2020, clusters by ward pair, and permits equal-and-opposite effects of reassignment toward slower and faster processing. Dropping removes the entire geographic comparison, including unchanged control blocks: 226 blocks and 2,444 fitted block-years for these six pairs. Reversal changes reassigned blocks' direction and keeps unchanged blocks at zero. The estimator's original all-zero fixed-effect omissions are retained. Counts of both input and fitted records are saved.
+
+Both estimators verify the exact fitted pair counts against the raw comparison. Both verify that reversing every original label negates the coefficient and preserves its standard error. Reversing only disagreements is separately checked against the raw-log direction for every retained observation. No source records, locations or outcome values change.
+
+`render_raw_log_results.R` assembles all seven outcomes into a table and effect plot, and retains the complete permit event-study paths and pretrend tests. Each saved CSV generates its standard key, count, missingness and fingerprint report. The summary has 21 rows; permit estimates have 33 rows. Make declares concrete sources and outputs; reports are side effects of saving the data.
+
+## Interpretation
+
+Original, drop and raw-ordering permit effects are −11.88%, −12.42% and −11.80%; all have conditional p-values below .05. Corresponding sale-price estimates are +3.04%, +4.49% and +3.17%, also below .05. The four density coefficients become small and statistically imprecise under raw ordering. Dropping disagreements leaves negative density point estimates but all conditional p-values exceed .10. Rent estimates are +1.76%, +3.20% and +1.30%; only the agreement-only sample is significant at .05.
+
+This is a change in ordering, not a test establishing which ordering captures alderman behavior correctly. The raw measure mixes permit composition, calendar time and neighborhood conditions, and both measures use the same permits. Dropping changes the represented sample, especially for rentals. Reversing all disagreements gives a coherent alternative ranking; it does not have the inconsistent-pair-ordering issue of arbitrary selective reversals. Conditional p-values and intervals treat rankings and selected samples as fixed, and exclude score-estimation uncertainty. These findings remain exploratory.
