@@ -1,0 +1,43 @@
+File: recorded_changes_before_adoption.csv
+Rows: 742
+Columns: 33
+SHA-256 (saved bytes): 710fd00c5232d9e64d6cba49a4190670b31b3e54a255fde5046c60a380760b4a
+Key: project_id
+Types: DuckDB inference from the complete saved CSV.
+Distinct counts: exact (exact up to 100,000 rows).
+Row counts, non-missing counts, and declared-key checks: exact.
+
+                    column inferred_type non_missing distinct            min            max               mean                 sd
+                project_id       VARCHAR         742      742              -              -                  -                  -
+                    action       VARCHAR         742        3              -              -                  -                  -
+        source_project_ids       VARCHAR         742      689              -              -                  -                  -
+             source_family       VARCHAR         526        2              -              -                  -                  -
+           assessment_rows       VARCHAR         147      147              -              -                  -                  -
+      defer_to_residential       BOOLEAN           4        1              -              -                  -                  -
+            component_pins       VARCHAR         192      192              -              -                  -                  -
+         construction_year        BIGINT         443       19           2004           2022  2013.020316027088  5.482761375264375
+            dwelling_units        BIGINT         252       96              1            812  63.84126984126984  115.9791788360337
+             building_sqft        BIGINT         235      211           2524         896277  82810.30212765957 149709.41701974272
+                 land_sqft        DOUBLE         254      239          929.0       341770.0 25900.485826771655  43605.85789601061
+                 allow_far       BOOLEAN         258        2              -              -                  -                  -
+               allow_dupac       BOOLEAN         257        2              -              -                  -                  -
+               multifamily       BOOLEAN          56        2              -              -                  -                  -
+            units_unusable       BOOLEAN           6        1              -              -                  -                  -
+    building_area_unusable       BOOLEAN          21        1              -              -                  -                  -
+        land_area_unusable       BOOLEAN           8        1              -              -                  -                  -
+reported_construction_year        BIGINT         191       16           2005           2022 2011.1884816753927   4.82821458756837
+        reported_land_sqft        BIGINT           2        1         143807         143807           143807.0                0.0
+              evidence_ids       VARCHAR         195      177              -              -                  -                  -
+           location_source       VARCHAR          76        3              -              -                  -                  -
+               location_id        BIGINT          76       76      100073282 20021180640000 14294274876789.197  5788784602763.886
+             location_year        BIGINT          66        3           2008           2025 2022.5454545454545  5.928242230548203
+      location_target_year        BIGINT          76       12           2007           2022 2011.5131578947369 3.9513488702894786
+         corrected_address       VARCHAR           1        1              -              -                  -                  -
+   historical_location_pin        BIGINT           4        4 13164300360000 17271290690000   14640938050000.0 1804138111048.2515
+  historical_location_year        BIGINT           2        1           2021           2021             2021.0                0.0
+              zoning_group       VARCHAR          12        4              -              -                  -                  -
+               zoning_year        BIGINT          12        8           2006           2019 2011.6666666666667   4.33449867780333
+             zoning_source       VARCHAR          12        3              -              -                  -                  -
+               zoning_note       VARCHAR          12       10              -              -                  -                  -
+       decision_references       VARCHAR         742      706              -              -                  -                  -
+           decision_reason       VARCHAR         742      441              -              -                  -                  -

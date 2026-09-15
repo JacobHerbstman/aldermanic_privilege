@@ -1,0 +1,120 @@
+\clearpage
+\section*{Apartment counts for original construction and later assessments}
+\textit{September 15, 2026. Agent-drafted population review requested by Jacob.}
+
+The Madison errors expose a weakness in the earlier review: selecting an
+Assessor vintage did not establish that apartment counts, floor area and
+land described the same building. The 2024 source gives both 1100 and
+1048 W Madison 81 apartments while preserving their individual building
+and lot measurements. The 2021 counts are 9 and 24. Independent building
+reports support 9 and 18, within an 81-apartment community. Both records
+enter the main 500-foot sample on Burnett's side. The earlier review
+accepted the newer count when permit evidence did not support the older
+one, and called a positive selected count resolved. That branch did not
+require evidence supporting the newer count. The active producer also
+selects the latest commercial assessment without resolving these count
+changes. Neither the bedroom summation nor a join created the raw 81s.
+
+The citywide screen covers all 13,677 retained projects dated 2006--2022,
+including 4,023 in the current main sample. It finds 218 projects meeting
+at least one review criterion, including 60 in the main sample. These
+are flags, not 218 errors. Criteria concern changes in apartment counts
+on unchanged buildings and lots, historical reviews cleared without unit
+evidence, development counts inconsistent with available permits,
+nearby repeated counts or large lot measurements, extreme floor area per
+apartment, and overlapping parcel identifiers. They were applied to the
+population without using scores or estimated effects to select cases.
+
+Eight reviewed records have supported count errors, five of them in the
+main sample. Besides Madison, 1607 W Waveland is assigned eight apartments
+although its original permit specifies six; an October 2023 permit
+creates two more by converting its restaurant. At 922 W Washington,
+the selected 149 includes 45 pre-existing lofts alongside 104 new
+apartments. The developer and original permit explicitly distinguish
+these components. Its floor/lot coverage and selected construction year
+still require reconciliation. Conversely, 2051 N Clifton has two
+apartments in the selected assessment, while the original permit,
+original sale and later same-building assessment support three.
+
+Three development assessments also understate apartment counts. At
+550 N Ogden the selected source says Six, whereas the original permit
+and completed condo listings report eight. At 5914 N Lincoln the
+selected count is four against six in the permit and completed listings.
+At 1400 W Monroe the selected count is six. Its original permit says
+42, but a March 2021 revision reduces the count to 38, matching the
+current developer description. The builder's completion announcement
+still says 42; it should not override the explicit revision. The
+recommended count is 38, with floor-area coverage and the selected 2021
+year still to be reconciled. These development records prioritize a
+positive Assessor apartment field over a conflicting permit count.
+The preserved apartment field contains decoded words; a numeric
+category-code parsing error was considered and ruled out.
+
+A further strong conflict concerns 3408 N Milwaukee: two tied parcels
+report six apartments in earlier same-building assessments and two in
+later ones. The original new-building permit specifies six, but its
+July 2013 issuance conflicts with the selected 2012 construction year.
+This is not yet a fully resolved observation. Ten other reviewed records
+have evidence supporting their current count despite a flag, including
+321 W Evergreen (15) and 2109 S Halsted (18). At 3332 W Irving Park,
+three original apartments should remain three even though a 2023
+conversion creates a fourth. Blanket preference for either old or new
+counts would therefore introduce errors.
+
+The review records seven other unresolved measurement cases and eight
+projects with large lot areas repeated on nearby records. Separate tax
+parcels do not establish separate reported land coverage. In the strict
+residential history comparison, 12,054 projects have a comparable card
+and measurements without a count conflict, 35 have a conflict, and 778
+have no comparable history. Passing these screens does not independently
+validate every building, year or area. The remaining flagged population
+has not received complete individual adjudication.
+
+No production corrections or estimates were changed. The next data work
+must distinguish the original construction from later conversions,
+resolve the consequential count and area conflicts, and apply adopted
+corrections once in the ordinary cleaning path. The magnitude of the
+resulting regression change is unknown because no re-estimation was run.
+
+\textit{Reproduction.} The audit is
+\path{tasks/audits/construction_measurement_review/}. Its two scripts
+produce the population screen, exact commercial source rows, full-date
+permit candidates and HTML evidence report; \path{review_notes.csv}
+contains 34 documented findings or unresolved questions. Source links
+and permit identifiers appear there and in the README. The audit uses
+preserved production outputs following commit \texttt{32c094b8} on
+\texttt{score\_robustness}; Make held those outputs fixed to avoid a
+production rebuild during review. The saved analysis snapshot matches
+the current analysis file byte for byte, and all its observations match
+the citywide ledger on units, floor area, land and year. These are
+checks of the reviewed inputs, not a fresh production replication.
+
+\paragraph{Coverage assessment before more manual review.}
+Jacob asked whether 218 represents the universe of potential problems.
+It does not. Of the flagged records, 126 have a source disagreement or an
+earlier count review cleared without supporting evidence; 92 trigger
+only the nearby-repeat or unusual-ratio checks. Sixty-four already have
+a recorded decision and 146 have an earlier commercial count review;
+these groups overlap. Their evidence should be reused for the particular
+variable it addresses. None of the eight confirmed count-error projects
+has a case-specific entry in the current correction table. These errors
+point to gaps in ordinary source selection and its automated review,
+rather than evidence that all previous manual adjudications were wrong.
+
+The current screens leave 771 unflagged residential projects without a
+comparable historical assessment and 113 unflagged commercial projects
+without a positive older count. They also leave 62 commercial projects
+unflagged despite changes in floor or lot measurements, because area
+changes alone are not a comprehensive criterion. Fifty development
+records lack an available positive permit count. These groups overlap;
+the counts describe missing comparison coverage, not new errors. Stable
+but incorrect source values can pass, and the retained-project screen
+cannot establish that construction was not incorrectly omitted.
+
+Before further individual adjudication, the checks should cover all
+required measurements and relevant source branches, reuse the existing
+decisions, and be assessed against an independently selected sample of
+unflagged records. Catching the eight known errors does not validate the
+screen's miss rate, because some checks were added after seeing those
+cases. No such independent validation has yet been completed. The
+coverage assessment changes no production values, estimates or flags.

@@ -203,3 +203,8 @@ tasks/audits/density_ordering_drivers/input/
 tasks/audits/density_ordering_drivers/output/
 tasks/audits/density_ordering_drivers/temp/
 !tasks/audits/density_ordering_drivers/report/*.log
+!tasks/audits/construction_measurement_review/
+tasks/audits/construction_measurement_review/input/
+tasks/audits/construction_measurement_review/output/
+tasks/audits/construction_measurement_review/temp/
+!tasks/audits/construction_measurement_review/report/*.log

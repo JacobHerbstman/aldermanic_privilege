@@ -32,3 +32,9 @@ identifies a row there, counting the header as row 1. The
 [review archive](../audits/construction_review_history/README.md) preserves the
 research and superseded instructions. This CSV supplies the current building corrections. The source importer separately
 records one parcel-reference typo that must be fixed before linking cards.
+
+The September 15 [apartment-count review](../audits/construction_measurement_review/count_land_review.md)
+added 50 rows and revised two existing decisions. Another 35 reviewed records
+needed no additional override. Its evidence table identifies all 87 reviewed
+buildings, including the qualified Sawyer counts and unresolved measurements.
+The research and the pre-adoption comparison data remain in that audit task.

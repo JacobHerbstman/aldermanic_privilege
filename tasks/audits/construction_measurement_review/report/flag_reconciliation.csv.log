@@ -1,0 +1,37 @@
+File: flag_reconciliation.csv
+Rows: 218
+Columns: 27
+SHA-256 (saved bytes): 0a4e7390ff60798936e5cc4e10d91f6074d3b38780744e0866d47c607cbc4bf8
+Key: project_id
+Types: DuckDB inference from the complete saved CSV.
+Distinct counts: exact (exact up to 100,000 rows).
+Row counts, non-missing counts, and declared-key checks: exact.
+
+                       column inferred_type non_missing distinct  min    max               mean                 sd
+                   project_id       VARCHAR         218      218    -      -                  -                  -
+                      address       VARCHAR         211      189    -      -                  -                  -
+         in_main_500ft_sample       BOOLEAN         218        2    -      -                  -                  -
+               dwelling_units        BIGINT         218       72    1    698  61.62385321100918  123.3418156332306
+                building_sqft        BIGINT         216      187 1626 896277  81708.71296296296 165666.60689612548
+                    land_sqft        BIGINT         217      194 2050 422232 23128.820276497696  41630.36062100763
+            construction_year        BIGINT         218       17 2006   2022 2012.7293577981652  5.274507035777866
+                    allow_far       BOOLEAN         218        2    -      -                  -                  -
+                  allow_dupac       BOOLEAN         218        2    -      -                  -                  -
+               screen_reasons       VARCHAR         218       16    -      -                  -                  -
+        reconciliation_status       VARCHAR         218        8    -      -                  -                  -
+                       status       VARCHAR          34        5    -      -                  -                  -
+                     evidence       VARCHAR          34       30    -      -                  -                  -
+               recommendation       VARCHAR          34       27    -      -                  -                  -
+                   source_url       VARCHAR           8        8    -      -                  -                  -
+        prior_flag_assessment       VARCHAR          64        4    -      -                  -                  -
+                   assessment       VARCHAR          64       13    -      -                  -                  -
+             earlier_decision       VARCHAR          64       45    -      -                  -                  -
+        original_count_source       VARCHAR          62       29    -      -                  -                  -
+            original_evidence       VARCHAR          64       44    -      -                  -                  -
+                original_urls       VARCHAR          16       14    -      -                  -                  -
+              original_caveat       VARCHAR          26       16    -      -                  -                  -
+             record_reference       VARCHAR          64       46    -      -                  -                  -
+        previous_count_source       VARCHAR         140        5    -      -                  -                  -
+        previous_count_review       VARCHAR         146        4    -      -                  -                  -
+            recommended_units        BIGINT         140       70    1    698  89.51428571428572 145.51557980887142
+earlier_review_still_selected       BOOLEAN         218        2    -      -                  -                  -
