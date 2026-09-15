@@ -1,0 +1,22 @@
+File: all_pair_sides.csv
+Rows: 184
+Columns: 12
+SHA-256 (saved bytes): d39be7d20d57e188c238cd8cf445ff26934e3c921553896f02417d6d902f04dd
+Key: pair, alderman_own, band
+Types: DuckDB inference from the complete saved CSV.
+Distinct counts: exact (exact up to 100,000 rows).
+Row counts, non-missing counts, and declared-key checks: exact.
+
+        column inferred_type non_missing distinct                 min                max                mean                 sd
+          pair       VARCHAR         184       73                   -                  -                   -                  -
+  alderman_own       VARCHAR         184       70                   -                  -                   -                  -
+          band       VARCHAR         184        2                   -                  -                   -                  -
+      projects        BIGINT         184       36                   1                 70               8.625 12.179693976253722
+          ward        BIGINT         184       43                   1                 50   24.46195652173913 14.527481719584213
+    first_year        BIGINT         184       17                2006               2022  2012.6684782608695  5.179181304331305
+     last_year        BIGINT         184       16                2006               2022   2014.983695652174  5.793793120792278
+  median_units        DOUBLE         184       31                 1.0              367.0  11.361413043478262  40.55585206588823
+    median_far        DOUBLE         184      179 0.16939582156973462 21.520872363933325  1.4936237067260618 2.2915319961652156
+  median_dupac        DOUBLE         184      144   4.683870967741935   767.955036748811   40.73414077180282    81.960132798389
+  mean_log_far        DOUBLE         184      181 -1.7755171631266324  3.069023271829464 0.03214299552973773 0.6802063993133456
+mean_log_dupac        DOUBLE         184      170  1.5441248979055495  6.643731185533809   3.141491730648225 0.7769621314276237

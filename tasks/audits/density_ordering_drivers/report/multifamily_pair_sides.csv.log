@@ -1,0 +1,22 @@
+File: multifamily_pair_sides.csv
+Rows: 110
+Columns: 12
+SHA-256 (saved bytes): 8bebfe07452694dd23fff4a6b67c98e4e8335da28bbecc40c1e6482fb2414353
+Key: pair, alderman_own, band
+Types: DuckDB inference from the complete saved CSV.
+Distinct counts: exact (exact up to 100,000 rows).
+Row counts, non-missing counts, and declared-key checks: exact.
+
+        column inferred_type non_missing distinct                 min                max               mean                 sd
+          pair       VARCHAR         110       52                   -                  -                  -                  -
+  alderman_own       VARCHAR         110       46                   -                  -                  -                  -
+          band       VARCHAR         110        2                   -                  -                  -                  -
+      projects        BIGINT         110       14                   1                 24  3.536363636363636  4.291397994510579
+          ward        BIGINT         110       33                   1                 50  22.40909090909091 15.289437173232654
+    first_year        BIGINT         110       15                2006               2022 2013.4272727272728  5.211946564303584
+     last_year        BIGINT         110       17                2006               2022 2015.3545454545454  5.836591885455465
+  median_units        DOUBLE         110       36                 2.0              367.0 25.827272727272728 57.681641155905936
+    median_far        DOUBLE         110      104             0.51776 21.520872363933325 2.5459624322908248 2.9948980056542918
+  median_dupac        DOUBLE         110       95   14.61744966442953   767.955036748811  81.06305156922194 107.53186911893738
+  mean_log_far        DOUBLE         110      104 -0.6582434645520648  3.069023271829464 0.6562949236091686 0.6507444351304539
+mean_log_dupac        DOUBLE         110       99  2.6822159975474467  6.643731185533809 4.0478230671772515 0.6891119449073001

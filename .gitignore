@@ -198,3 +198,8 @@ tasks/audits/raw_log_score_sensitivity/input/
 tasks/audits/raw_log_score_sensitivity/output/
 tasks/audits/raw_log_score_sensitivity/temp/
 !tasks/audits/raw_log_score_sensitivity/report/*.log
+!tasks/audits/density_ordering_drivers/
+tasks/audits/density_ordering_drivers/input/
+tasks/audits/density_ordering_drivers/output/
+tasks/audits/density_ordering_drivers/temp/
+!tasks/audits/density_ordering_drivers/report/*.log

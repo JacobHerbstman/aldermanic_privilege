@@ -1,0 +1,73 @@
+\clearpage
+\section*{Burnett, other local comparisons, and density sensitivity}
+\textit{September 15, 2026. Agent-drafted diagnosis requested by Jacob.}
+
+Burnett's comparisons explain most of the change in multifamily DUPAC when
+the adjusted-score ordering is replaced by raw average log processing time.
+Switching only his eight disagreeing pairs, representing 113 projects,
+moves the estimate from $-17.36\%$ to $+1.05\%$. Keeping his comparisons
+in their original direction while switching everyone else gives
+$-16.39\%$, versus $+2.16\%$ under the entirely raw ordering. The
+Burnett--Fioretti pair alone, with 27 multifamily projects, moves the
+estimate from $-17.36\%$ to $+0.14\%$ when reversed.
+
+This does not mean that the negative estimate comes entirely from Burnett's
+observations. Deleting all 157 projects in comparisons involving him,
+including comparisons where the orderings agree, leaves $-14.49\%$ under
+the original ordering. The corresponding raw-ordering estimate is
+$-8.45\%$. For multifamily FAR, both Burnett and Hopkins matter:
+switching only their respective disagreements gives $-3.46\%$ and
+$-3.54\%$, compared with the original $-12.85\%$. Burnett--Fioretti,
+Hopkins--Waguespack and Hopkins--Michele Smith are the largest individual
+FAR switches. These changes cannot be added: the regression re-estimates
+its other coefficients, and alderman groups overlap.
+
+All-construction sensitivity is more dispersed. Dowell--King is the
+largest individual switch for both FAR and DUPAC: it changes $-9.24\%$
+to $-6.57\%$ and $-13.70\%$ to $-9.13\%$, respectively. Other large
+changes involve Waguespack, Michele Smith, La Spata and Burnett--Fioretti.
+Deleting all Burnett comparisons leaves all-construction FAR at $-8.93\%$
+and DUPAC at $-12.96\%$. Thus the strong Burnett concentration is specific
+to the multifamily ordering sensitivity, especially DUPAC.
+
+\textit{A consequential unresolved data issue.} The Burnett--Fioretti
+pair has four multifamily projects within 100 feet of the boundary. Three
+are assigned to Burnett and one to Fioretti. Two of Burnett's records,
+1100 and 1048 W Madison, each carry 81 units in the current data. Their
+preserved 2021 Assessor reports have 9 and 24 units instead. Building and
+land measurements are identical across these vintages: 16,094 and 4,599
+square feet for 1100; 35,051 and 10,000 for 1048. The current DUPAC values
+are 767.20 and 352.84. The source changed the counts; the code accepted the
+newer report. The earlier review records the unit changes explicitly but
+marks them resolved without separate permit unit evidence.
+
+Recorded construction permits link these records to 4 and 3 N Aberdeen.
+A YoChicago profile reports 9 and 18 units there, plus another 54 at
+20--22 N Aberdeen. The original leasing agent confirms two 27-unit
+buildings at 20 and 22; the buyer's acquisition announcement identifies
+an 81-unit community. The evidence suggests that a community total was
+repeated on individual-building measurements. The older Assessor count
+of 24 also conflicts with the profile's 18, and the completion years need
+reconciliation. These are strong reasons for building-level review, not
+authorization to substitute unverified counts. Production values remain
+unchanged. The full ordering sensitivity should not yet be interpreted
+solely as a score-construction issue.
+
+\clearpage
+\begin{center}
+\includegraphics[width=.85\textwidth]{../tasks/audits/density_ordering_drivers/output/density_drivers.pdf}
+\end{center}
+
+\textit{Reproduction.} Run \texttt{make} in
+\path{tasks/audits/density_ordering_drivers/code/}. Inputs are the preserved
+construction sample, the raw-log pair comparison, and the prior original
+and raw-ordering fits from revision \texttt{78239a53}. The audit covers
+73 pairs and 77 alderman groups in all construction and 52 pairs and 55
+groups in multifamily, with four interventions and two outcomes each.
+All 2,056 estimates, project evidence, side summaries and extracted
+Assessor history have saved-data reports. Original and fully raw fits
+must reproduce previous estimates and sample counts. Rankings shown in
+the report are outcome-driven influence diagnostics, not exclusion rules
+or additive causal contributions. Source rows, links, caveats and the
+unresolved unit-count evidence are recorded in the task README. No
+production or manuscript file is changed.

@@ -1,0 +1,25 @@
+File: leading_pair_assessor_history.csv
+Rows: 8
+Columns: 15
+SHA-256 (saved bytes): ad04c3513f3e26b1d407eec96441a0736a5e9ed44dc38f847b83861bf2760d9f
+Key: source_row
+Types: DuckDB inference from the complete saved CSV.
+Distinct counts: exact (exact up to 100,000 rows).
+Row counts, non-missing counts, and declared-key checks: exact.
+
+     column inferred_type non_missing distinct     min      max     mean                 sd
+ project_id       VARCHAR           8        4       -        -        -                  -
+ source_row        BIGINT           8        8   60832    83215  71795.5 11651.978691560134
+     keypin       VARCHAR           8        4       -        -        -                  -
+       pins       VARCHAR           8        4       -        -        -                  -
+       year        BIGINT           8        2    2021     2024   2022.5 1.6035674514745768
+    address       VARCHAR           8        8       -        -        -                  -
+studiounits        DOUBLE           8        3     0.0     21.0    2.875 7.3569694847810805
+  _1brunits        DOUBLE           8        5     0.0    138.0    32.75  50.65499552293507
+  _2brunits        DOUBLE           8        5     0.0    216.0   42.875  74.03751462217362
+  _3brunits        DOUBLE           8        4     0.0     16.0    3.875  6.010407640085654
+  _4brunits       VARCHAR           0        0       -        -        -                  -
+  tot_units        DOUBLE           8        5     9.0    216.0   82.375  87.27450535932178
+     bldgsf        DOUBLE           8        4 16094.0 243280.0 81222.25 100303.23674132214
+     landsf        DOUBLE           8        4  4599.0  47882.0 17870.25 18650.571685990904
+  yearbuilt        DOUBLE           8        5  2006.0   2014.0 2011.375 2.9730936268953365

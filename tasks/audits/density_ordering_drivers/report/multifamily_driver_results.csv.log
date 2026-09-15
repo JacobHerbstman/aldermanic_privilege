@@ -1,0 +1,31 @@
+File: multifamily_driver_results.csv
+Rows: 856
+Columns: 21
+SHA-256 (saved bytes): 1aaa935f13f2576f6305a11d9fb46a57a41aea8bca0d04166f8bc74285386c12
+Key: sample, outcome, kind, name, action
+Types: DuckDB inference from the complete saved CSV.
+Distinct counts: exact (exact up to 100,000 rows).
+Row counts, non-missing counts, and declared-key checks: exact.
+
+                column inferred_type non_missing distinct                   min                  max                  mean                  sd
+                sample       VARCHAR         856        1                     -                    -                     -                   -
+               outcome       VARCHAR         856        2                     -                    -                     -                   -
+              estimate        DOUBLE         856      708  -0.28375102622391557  0.11030488430856672  -0.08142408418612576 0.08667794955352498
+             std_error        DOUBLE         856      707    0.0632131355962339  0.14619338312980681   0.09634520475658548 0.01711880348644081
+               p_value        DOUBLE         856      707  0.004185916122608488   0.9944627726098244    0.4475866065652843 0.37923477708083037
+                     n        BIGINT         856       36                   706                  863     854.4485981308411  20.478821989539483
+               input_n        BIGINT         856       36                   706                  863     854.4485981308411  20.478821989539483
+            ward_pairs        BIGINT         856        8                    80                   88     87.57476635514018   1.103537614666418
+                  kind       VARCHAR         856        2                     -                    -                     -                   -
+                  name       VARCHAR         856      107                     -                    -                     -                   -
+                action       VARCHAR         856        4                     -                    -                     -                   -
+     involved_projects        BIGINT         856       35                     1                  157    17.102803738317757   26.31236014164112
+     switched_projects        BIGINT         856       27                     1                  113      9.08411214953271  15.828390509188997
+        switched_pairs        BIGINT         856        7                     1                    8    1.4579439252336448  1.1303810780649437
+         near_projects        BIGINT         856       19                     0                   39     3.635514018691589   5.919368582360651
+near_switched_projects        BIGINT         856       11                     0                   19    1.8224299065420562   3.347515329908147
+        percent_effect        DOUBLE         856      708    -24.70459128065972   11.661845801332673    -7.473990927672297  7.9925458384751185
+     original_estimate        DOUBLE         856        2  -0.19069157240781526 -0.13756551413885126  -0.16412854327333423 0.02657855853021633
+          raw_estimate        DOUBLE         856        2 -0.019727357910866185 0.021363704352539238 0.0008181732208365245 0.02055754255110448
+  change_from_original        DOUBLE         856      708  -0.09305945381610031    0.300996456716382   0.08270445908720749 0.08972571683102401
+       change_from_raw        DOUBLE         856      708  -0.30511473057645483  0.08894117995602749  -0.08224225740696231 0.08981217370307866
