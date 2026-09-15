@@ -81,7 +81,9 @@ logbook.pdf: logbook.tex \
 	entries/2026-09-14-donation-stringency-switches.tex \
 	entries/2026-09-14-score-correlates.tex \
 	entries/2026-09-14-local-score-reliability.tex \
+	entries/2026-09-14-multifamily-score-uncertainty.tex \
 	../tasks/audits/score_pair_reliability/output/split_agreement.pdf \
+	../tasks/audits/multifamily_score_uncertainty/output/multifamily_score_draws.pdf \
 	../tasks/audits/construction_review_history/records/natchez_parcel_coverage.pdf \
 	../tasks/audits/density_window_comparison/output/density_windows.pdf \
 	../tasks/audits/density_window_comparison/output/density_windows_levels.pdf \

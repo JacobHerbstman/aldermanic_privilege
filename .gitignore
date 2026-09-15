@@ -173,3 +173,8 @@ tasks/audits/score_pair_reliability/input/
 tasks/audits/score_pair_reliability/output/
 tasks/audits/score_pair_reliability/temp/
 !tasks/audits/score_pair_reliability/report/*.log
+!tasks/audits/multifamily_score_uncertainty/
+tasks/audits/multifamily_score_uncertainty/input/
+tasks/audits/multifamily_score_uncertainty/output/
+tasks/audits/multifamily_score_uncertainty/temp/
+!tasks/audits/multifamily_score_uncertainty/report/*.log
