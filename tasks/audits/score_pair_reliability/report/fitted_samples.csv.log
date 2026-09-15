@@ -1,0 +1,13 @@
+File: fitted_samples.csv
+Rows: 4
+Columns: 3
+SHA-256 (saved bytes): 963d1788411c9be24de246e13decb18770952a320bacf5c9d01330a7b0b9752e
+Key: market, sample
+Types: DuckDB inference from the complete saved CSV.
+Distinct counts: exact (exact up to 100,000 rows).
+Row counts, non-missing counts, and declared-key checks: exact.
+
+column inferred_type non_missing distinct min    max     mean                 sd
+market       VARCHAR           4        3   -      -        -                  -
+sample       VARCHAR           4        2   -      -        -                  -
+     n        BIGINT           4        4 863 240713 76016.75 112936.55972676283

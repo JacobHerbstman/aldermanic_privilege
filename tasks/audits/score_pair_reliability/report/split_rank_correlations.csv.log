@@ -1,0 +1,16 @@
+File: split_rank_correlations.csv
+Rows: 204
+Columns: 6
+SHA-256 (saved bytes): 88f19e64f967eb7349f8003aa7ae92ef649804dc85d2e2d5c7e3487c5bf46c56
+Key: cutoff, method, draw
+Types: DuckDB inference from the complete saved CSV.
+Distinct counts: exact (exact up to 100,000 rows).
+Row counts, non-missing counts, and declared-key checks: exact.
+
+  column inferred_type non_missing distinct                 min                max               mean                  sd
+  cutoff        BIGINT         204        2                2014               2022             2018.0   4.009840113270155
+  method       VARCHAR         204        4                   -                  -                  -                   -
+    draw        BIGINT         204       50                   1                 50 25.019607843137255   14.72304610279281
+aldermen        BIGINT         204       13                  36                110  91.29901960784314  15.319706199822338
+ pearson        DOUBLE         204      204 0.08879921963401863 0.8347329176770495 0.6965964897441802 0.06899899286298675
+spearman        DOUBLE         204      204 0.06519677572309152  0.787669376693767 0.6334397303360437 0.07571205814890436

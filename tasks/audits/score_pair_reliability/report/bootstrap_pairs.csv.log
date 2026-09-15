@@ -1,0 +1,23 @@
+File: bootstrap_pairs.csv
+Rows: 1263
+Columns: 13
+SHA-256 (saved bytes): 9f8fd2ee47eeaec3bd4900ba117592b5ec989503a6d780e964d872066682a89c
+Key: cutoff, method, pair
+Types: DuckDB inference from the complete saved CSV.
+Distinct counts: exact (exact up to 100,000 rows).
+Row counts, non-missing counts, and declared-key checks: exact.
+
+        column inferred_type non_missing distinct                 min                  max                 mean                   sd
+          pair       VARCHAR        1263      377                   -                    -                    -                    -
+    alderman_a       VARCHAR        1263       88                   -                    -                    -                    -
+    alderman_b       VARCHAR        1263       96                   -                    -                    -                    -
+  baseline_gap        DOUBLE        1263      421  -4.616253377138877    4.508636335552829  0.07024140272811027   1.2923242175161245
+        method       VARCHAR        1263        3                   -                    -                    -                    -
+        cutoff        BIGINT        1263        2                2014                 2022   2021.1638954869359   2.4483691707015023
+         draws        BIGINT        1263        1                 499                  499                499.0                  0.0
+  retain_order        DOUBLE        1263      242 0.38877755511022044                  1.0   0.8652586249299866  0.14823752305630106
+     tie_share        BIGINT        1263        1                   0                    0                  0.0                  0.0
+       gap_low        DOUBLE        1263     1263  -2.397366340128222   3.3400488080805104 -0.06159905848829326   0.7763552424622029
+      gap_high        DOUBLE        1263     1263  0.5594592677897177    5.584165250506686   1.8848804625552418   0.8374504216133899
+      clusters        BIGINT        1263        6                   9                94662   30385.519398258115    43357.49960003202
+monte_carlo_se        DOUBLE        1263      232                 0.0 0.022383029105995808 0.011125286660047804 0.008118978252371538

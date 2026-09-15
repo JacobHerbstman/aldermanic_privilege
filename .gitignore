@@ -168,3 +168,8 @@ tasks/audits/developer_score_results/output/
 tasks/audits/developer_score_results/temp/
 !tasks/audits/developer_score_results/report/*.log
 !tasks/download_construction_historical_parcels/report/*.gpkg.log
+!tasks/audits/score_pair_reliability/
+tasks/audits/score_pair_reliability/input/
+tasks/audits/score_pair_reliability/output/
+tasks/audits/score_pair_reliability/temp/
+!tasks/audits/score_pair_reliability/report/*.log
