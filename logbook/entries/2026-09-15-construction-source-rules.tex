@@ -369,8 +369,9 @@ Effects are $100[\exp(\hat\beta)-1]$. The fitted all-construction sample falls
 from 4,023 to 4,016 projects. Multifamily remains at 863, with changed membership.
 Within the eligible 500-foot data, nine observations exit, two enter following
 location corrections, and two retained houses become multifamily after their
-original two-unit counts are restored. Fixed-effect omissions account for the
-difference between these eligible counts and fitted counts. All changes in
+original two-unit counts are restored. Nine otherwise eligible projects lack
+one endpoint's stringency score and therefore a signed distance. This accounts
+for the difference between these eligible counts and fitted counts. All changes in
 the rebuilt analysis data belong to the reviewed properties; every unreviewed
 row remains unchanged. The citywide common-density sample has 13,615 projects,
 including 2,570 multifamily projects.
@@ -418,3 +419,156 @@ was added or modified. The working-paper text and compiled PDF remain unchanged.
 \begin{center}
 \includegraphics[width=\textwidth]{../tasks/audits/raw_log_score_sensitivity/output/raw_log_effects.pdf}
 \end{center}
+
+\clearpage
+\section*{Which projects explain the DUPAC change?}
+\textit{September 15, 2026. Project-level diagnosis requested after the rerun.}
+
+The two Madison corrections explain essentially all of the latest weakening
+in multifamily DUPAC. Starting from the pre-correction estimate of $-17.36\%$,
+changing only their counts from 81 each to nine and eighteen gives $-13.11\%$.
+Applying their complete corrected records, including 2013 construction years,
+gives $-11.67\%$. Applying all adopted corrections gives $-11.68\%$.
+Every correction except Madison gives $-17.04\%$. Thus this particular change
+has an identified source; it is not unexplained variability across identical
+runs. The intermediate regressions are accounting counterfactuals, not
+alternative datasets proposed for adoption. Their contributions are not
+additive, and the year changes also carry their construction-year controls.
+
+The corresponding all-construction estimates are $-13.70\%$ before correction,
+$-12.68\%$ after changing Madison counts alone, $-12.67\%$ after changing their
+complete records, and $-12.82\%$ with all corrections. All other corrections
+without Madison give $-13.84\%$. On the corrected data, deleting 1100 W Madison
+alone gives multifamily DUPAC of $-11.55\%$, deleting 1048 alone gives
+$-11.68\%$, and deleting the complete 27-project Burnett--Fioretti comparison
+gives $-9.51\%$. The old errors explain the latest attenuation, but neither
+corrected building is necessary for the remaining negative coefficient.
+
+Every current project was then omitted once with scores and specification
+unchanged: 4,016 all-construction trials and 863 multifamily trials. Every named
+alderman comparison was also omitted once: 256 and 161 trials. No individual
+project or pair omission makes either estimate nonnegative. Individual-project
+omissions yield ranges of $-13.56\%$ to $-12.09\%$ for all construction and
+$-14.70\%$ to $-8.81\%$ for multifamily. Pair omissions yield $-16.41\%$ to
+$-10.69\%$ and $-15.98\%$ to $-8.14\%$, respectively. This sign stability does
+not establish statistical precision or measurement accuracy. The corrected
+multifamily baseline has $p=.175$.
+
+\begin{center}
+\begin{tabular}{lr}
+\hline
+Project removed from multifamily sample & DUPAC estimate (\%) \\
+\hline
+1938 W North or 1551 N Milwaukee & $-8.81$ \\
+2030 or 1943 N California & $-9.22$ \\
+4183 W Belmont & $-9.31$ \\
+1219 W Madison & $-9.62$ \\
+\hline
+\end{tabular}
+\end{center}
+
+Each of the first two address pairs shares a boundary segment containing only
+those two multifamily observations. Dropping either removes that segment's
+within-segment comparison. The surviving singleton remains counted; no extra
+observation is omitted. The first pair compares 15 apartments on 3,025 square
+feet with four on 2,950; the second compares twenty on 9,128 with twelve on
+20,381. These are the recorded measurements, not newly verified values. None
+of these five leading records was part of the 87-case unchanged-area count
+review. They are influential observations, not newly established data errors.
+Removing those five together changes the multifamily estimate to $-3.33\%$
+($p=.663$, 858 projects). The joint check selects the five largest upward
+individual-deletion effects separately in each sample; it therefore removes
+a different set in all construction, yielding $-9.79\%$ ($p=.131$,
+4,011 projects). These are deliberately outcome-selected influence checks,
+not proposed samples or independent hypothesis tests. Despite the negative
+sign in every single-deletion trial, a few local comparisons account for much
+of the multifamily coefficient. This is substantial concentration of influence.
+
+Reviewing their measurements would be a targeted next check; no fresh manual
+adjudication or sample of unflagged buildings was undertaken here.
+
+\textit{Reproduction.} The existing
+\path{tasks/audits/density_ordering_drivers/} task now includes
+\texttt{diagnose\_dupac\_changes.R}. Its Make targets save the correction trials,
+every project deletion and every pair deletion, with SaveData reports. The
+estimator verifies both before and after baseline coefficients, standard errors
+and counts against the previous reruns. Both FAR and DUPAC remain required for
+sample eligibility; the outcome here is log DUPAC. The HTML report opens with
+these corrected-data checks and explicitly labels its preserved score-ordering
+results as pre-correction. The preceding rerun entry was also corrected: nine
+otherwise eligible projects lack a score for one boundary endpoint; their
+omission was not a fixed-effect singleton removal. This documentary correction
+changes no estimate. Production data, recorded decisions, scores and the
+manuscript remain unchanged by this diagnosis.
+
+
+\clearpage
+\section*{Evidence review of 13 influential construction observations}
+\textit{September 15, 2026. Requested follow-up after the correction rerun; recommendations not adopted.}
+
+Jacob requested a check of the five observations most strongly supporting
+the current negative multifamily DUPAC estimate and several other influential
+observations. The review covers thirteen records: the original five, seven
+additional multifamily records (including three whose removal makes the
+estimate more negative), and one single-family record influential in the
+all-construction result. None was in the earlier 87-case review, which
+selected changing counts with unchanged areas. This influence-selected set
+cannot estimate the error rate of the population.
+
+Two observations fail the agreed wholly new building definition as currently
+represented. At 1938--42 W North, the original permit and builder describe
+an addition beside an existing building; all fifteen homes cannot simply
+be treated as wholly new construction. At 1219 W Madison, the record of
+three homes in 2008 conflicts with a 2009 second-floor addition and a 2024
+conversion of commercial space to one dwelling. Exclusion of these combined
+records is recommended, without inventing measurements for a new portion.
+
+At 1551 N Milwaukee the City zoning application specifies three dwellings
+and a shop on 2,950 square feet of land; the Assessor's four appears to
+include commercial space. At 1451 W Belmont the new-building permit similarly
+specifies two dwellings plus an office rather than three dwellings. An
+October 2019 new-construction rental listing supports 2019 instead of the
+selected 2021 as a completion proxy. Neither case justifies mechanically
+subtracting commercial units throughout the dataset.
+
+Independent accounts support 275 homes at 205 S Peoria but completion in
+2019, rather than the selected 2018. Builder Clayco explicitly dates
+AM1980 (2435 W Armitage / 1980 N Milwaukee) to summer 2018, rather than
+2017; its 132 homes are supported. These two observations push against
+the negative result. Net rentable floor area at Peoria must not replace
+the reported gross area. Approximate floor totals at AM1980 differ in
+coverage; no new exact floor-area correction is recommended.
+
+The 20 homes at 2024--30 N California are supported, but their year remains
+unresolved between the selected 2008 and evidence favoring 2010/2011.
+The grouped 1943/1929 N California record does not yet reconcile distinct
+six-home buildings and 2008 versus 2012--2013 construction evidence.
+No replacement count or allocation of its 20,381-square-foot site is
+invented. The seventeen homes at 4177/4183 W Belmont and 2022 proxy are
+supported, but the related zoning application's address range differs
+from the four selected parcels. Its 13,500-square-foot denominator remains
+a coverage question, not a confirmed error. SOBE at 1400 W Belmont has
+support for 24 homes and its reported floor size; its 2019 versus 2020
+completion year is unsettled. The 3721 N Parkview castle was reportedly
+unfinished in 2015, contradicting treatment as a completed 2008 home;
+its tied-parcel lot also remains unresolved.
+
+The five two-home cards at 500 W 66th are consistent with ten homes,
+11,050 square feet of floor and 6,251 of land. Earlier review distinguished
+the building from its neighbor, and an exact-parcel property record
+corroborates the totals, although that source may reproduce the Assessor.
+The 2006 Assessor year remains a proxy. At 1164 W Madison, permits and
+CBRE's delivery record support the existing reviewed 216 homes and 2014.
+Repeated reported areas are not labeled independently measured or certified.
+
+The existing audit task records current values, proposed changes, limits,
+source-row histories, permit evidence and source URLs in
+\path{tasks/audits/construction_measurement_review/influential_building_review.csv}.
+Its existing renderer displays all thirteen reviews and writes the data
+report. No new production script or task was added. The current analysis
+file remains unchanged (SHA-256
+\path{d78388a3713ed8224cd94bbdf5413d038902a080deb1038ceff49ccc6f2edebf}).
+No proposed corrections, new regression estimates or manuscript edits were
+made. The findings justify correcting demonstrated errors before treating
+statistical sensitivity as merely sampling variation; they do not establish
+what the corrected estimate will be.

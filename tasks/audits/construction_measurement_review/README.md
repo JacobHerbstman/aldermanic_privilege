@@ -186,3 +186,38 @@ is unchanged. The 740 unrelated earlier correction rows are unchanged.
 The ordinary producer, the audit rebuilt from its before-adoption sources,
 and the manual-decision task all passed unchanged second Make checks.
 Estimation inputs, regressions and the manuscript have not been rerun.
+
+### Follow-up: 13 influential observations
+
+After the approved corrections and density rerun at commit `35135702`, Jacob
+requested a check of the five most influential observations supporting the
+negative multifamily DUPAC result and several other influential observations.
+`influential_building_review.csv` records 13 reviews, including three observations
+whose removal makes the multifamily estimate more negative and one influential
+single-family observation. None belongs to the earlier 87-case count-disagreement
+review. These are recommendations, not adopted production changes.
+
+The review finds additions or conversions, residential counts apparently including
+commercial space, construction-start years used as completion years, and unresolved
+building/parcel groupings. It also finds support for the current 500 W 66th and
+1164 W Madison measurements. Exact counts, dates, reported areas, confidence,
+remaining questions and sources are recorded separately for each observation.
+An area repeated by the Assessor is not labeled independently verified. Selection
+by statistical influence cannot establish the population error rate or justify
+exclusion without substantive evidence.
+
+The CSV preserves current values from
+`tasks/new_construction_analysis_data/output/new_construction_analysis_data.csv`
+(SHA-256 `d78388a3713ed8224cd94bbdf5413d038902a080deb1038ceff49ccc6f2edebf`)
+and the already-produced omission results in `density_ordering_drivers/output/`.
+It includes source-row identifiers and excerpts from the preserved commercial,
+residential and permit histories. Linked web evidence was reviewed September 15,
+2026. Production files and estimates are unchanged by this follow-up.
+
+Only the report needs rebuilding to display these recorded judgments. Run `make`
+in `code/`, holding the six existing audit datasets fixed with `-o`:
+`../output/project_screen.csv`, `../output/measurement_pairs.csv`,
+`../output/commercial_source_rows.csv`, `../output/flagged_permits.csv`,
+`../output/source_rule_checks.csv`, and `../output/source_rule_summary.csv`.
+The same renderer generates the deterministic report for the new CSV. No new
+production task or script was introduced.

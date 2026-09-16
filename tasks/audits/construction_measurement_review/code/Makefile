@@ -12,7 +12,7 @@ LARGE_SQFT_PER_UNIT := 5000
 
 all: ../output/measurement_review.html ../output/flag_reconciliation.csv
 
-../output/measurement_review.html ../output/flag_reconciliation.csv: render_measurement_review.R Makefile ../output/project_screen.csv ../output/measurement_pairs.csv ../output/commercial_source_rows.csv ../output/flagged_permits.csv ../output/source_rule_checks.csv ../output/source_rule_summary.csv ../input/prior_unit_review.csv ../review_notes.csv ../prior_decision_review.csv ../count_land_review.csv ../../../shared/code/save_data.R ../../../shared/code/report.py | ../output ../report
+../output/measurement_review.html ../output/flag_reconciliation.csv: render_measurement_review.R Makefile ../output/project_screen.csv ../output/measurement_pairs.csv ../output/commercial_source_rows.csv ../output/flagged_permits.csv ../output/source_rule_checks.csv ../output/source_rule_summary.csv ../input/prior_unit_review.csv ../review_notes.csv ../prior_decision_review.csv ../count_land_review.csv ../influential_building_review.csv ../../../shared/code/save_data.R ../../../shared/code/report.py | ../output ../report
 	$(R) $<
 
 ../output/source_rule_checks.csv ../output/source_rule_summary.csv: check_source_rules.R Makefile ../output/project_screen.csv ../input/assessor_buildings.csv ../input/measurement_history.csv ../input/residential_history.parquet ../input/condominium_history.csv ../input/recorded_changes.csv ../input/commercial_valuation_data.csv ../input/building_permits_full.csv ../../../shared/code/assessor_classification.R ../../../shared/code/save_data.R ../../../shared/code/report.py | ../output ../report

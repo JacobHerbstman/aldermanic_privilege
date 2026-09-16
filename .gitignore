@@ -208,3 +208,8 @@ tasks/audits/construction_measurement_review/input/
 tasks/audits/construction_measurement_review/output/
 tasks/audits/construction_measurement_review/temp/
 !tasks/audits/construction_measurement_review/report/*.log
+!tasks/audits/density_fixed_effects/
+tasks/audits/density_fixed_effects/input/
+tasks/audits/density_fixed_effects/output/
+tasks/audits/density_fixed_effects/temp/
+!tasks/audits/density_fixed_effects/report/*.log

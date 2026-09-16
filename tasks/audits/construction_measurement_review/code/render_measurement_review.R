@@ -10,6 +10,10 @@ prior_counts <- fread("../input/prior_unit_review.csv")
 rules <- fread("../output/source_rule_summary.csv")
 rule_checks <- fread("../output/source_rule_checks.csv")
 count_land <- fread("../count_land_review.csv", na.strings = "", colClasses = list(character = "assessor_row_ids"))
+influential <- fread("../influential_building_review.csv", na.strings = "")
+stopifnot(!anyDuplicated(influential$project_id), nrow(influential) == 13,
+  all(influential$adopted == FALSE))
+ReportData("../influential_building_review.csv", "project_id")
 stopifnot(!anyDuplicated(rule_checks$project_id), setequal(rule_checks$project_id, projects$project_id))
 stopifnot(!anyDuplicated(count_land$project_id), !anyDuplicated(count_land$case_number),
   setequal(count_land$project_id, rule_checks[same_areas_unit_change_rows > 0, project_id]),
@@ -173,12 +177,38 @@ flagged <- projects[flagged == TRUE][order(-in_main_500ft_sample, -stable_area_u
     Year = construction_year, `Distance ft` = round(distance_to_boundary_ft, 1),
     Flags = screen_reasons, `Existing recorded decision` = decision_reason,
     `Follow-up status` = status, Evidence = evidence, Recommendation = recommendation)]
+influence_cases <- character(nrow(influential))
+for (i in seq_len(nrow(influential))) {
+  r <- influential[i]
+  links <- strsplit(r$source_urls, ";", fixed = TRUE)[[1]]
+  stopifnot(all(grepl("^https://", links)), all(!grepl('["<>]', links)))
+  influence_cases[i] <- paste0('<article class="review-case"><h3>', r$case_number, '. ', escape(r$address),
+    '</h3><p><strong>', escape(r$recommendation), '</strong></p><p>', escape(r$confidence),
+    '</p><p>Current data: ', r$current_units, ' homes; ', r$current_building_sqft,
+    ' square feet of floor; ', r$current_land_sqft, ' square feet of land; year ', r$current_year,
+    '; ', round(r$current_dupac, 2), ' DUPAC. Current alderman pair: ', escape(r$current_pair),
+    '.</p><p>', escape(r$evidence), '</p><p><strong>Limits:</strong> ', escape(r$remaining_issue),
+    '</p><p>', paste0('<a href="', escape(links), '">Source ', seq_along(links), '</a>', collapse = ' · '),
+    '</p><details><summary>Recorded Assessor and permit evidence</summary><p>', escape(r$project_id),
+    '</p><pre>', escape(r$assessor_history), '</pre><pre>', escape(r$permit_evidence),
+    '</pre></details></article>')
+}
 writeLines(paste0('<!doctype html><meta charset="utf-8"><title>Construction measurement review</title>',
   '<style>body{font:16px/1.5 system-ui;margin:30px;color:#203543}table{border-collapse:collapse;font-size:13px}td,th{padding:8px;border-bottom:1px solid #ccd6dc;text-align:left;vertical-align:top}th{background:#edf2f5;position:sticky;top:0}section{overflow:auto;margin:20px 0}input{font:inherit;padding:8px;width:50%}h1,h2,p{max-width:1100px}td{min-width:90px}a{color:#176184}</style>',
   '<h1>Do units, floor area and land describe the same buildings?</h1><p>The population contains ', nrow(projects),
   ' retained construction projects citywide. ', sum(projects$in_main_500ft_sample),
   ' enter the main 500-foot regression sample. This report screens measurements without estimating effects or changing production values.</p>',
   '<style>.review-case{max-width:1100px;border-top:1px solid #ccd6dc;padding:12px 0}pre{white-space:pre-wrap;font-size:12px;overflow-wrap:anywhere}.caution{color:#794718}summary{cursor:pointer;font-weight:600}</style>',
+  '<h2 id="influential">September 15: review of 13 influential observations</h2>',
+  '<p><strong>These are recommendations and open questions, not adopted corrections.</strong> ',
+  'The five largest individual influences supporting the negative multifamily DUPAC estimate are reviewed first, followed by eight additional influential observations, including three pushing against that result. ',
+  'Selection used the current post-correction estimates. This is not a random sample and cannot estimate the error rate in the full dataset.</p>',
+  '<p>None was in the earlier 87-case count-disagreement review. Repeated but incorrect counts, additions and mistaken completion years can pass that particular screen. ',
+  'The current multifamily estimate is −11.68%; no estimate incorporating these recommendations has been run. ',
+  'A supported count does not independently certify the floor area, lot coverage or exact completion date. ',
+  'All source-reported areas are distinguished from independently supported measurements below.</p>',
+  '<p><a href="../influential_building_review.csv">All 13 reviews, source records and earlier omission diagnostics</a></p>',
+  paste(influence_cases, collapse = ''),
   review_section,
   '<details><summary>Earlier population checks and reconciliation of the original 218 flags</summary><p>The sections below record earlier stages. The count-and-land review above supersedes their case recommendations for the 87 overlapping records; earlier counts have not been relabeled as new findings.</p>',
   '<h2>First stage: check the general source rules</h2><p>The population check reconstructs units, floor area, lot area and construction year from the identified assessment rows, the explicit source-combination rules and the recorded correction file. Reproducing a number establishes where it came from. It does not establish that a current assessment describes the original construction.</p>',

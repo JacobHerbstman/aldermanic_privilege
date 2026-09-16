@@ -44,6 +44,35 @@ html_table <- function(d) {
   paste0("<table><thead><tr>", paste0("<th>", escape(names(d)), "</th>", collapse = ""), "</tr></thead><tbody>",
     paste(apply(as.data.frame(d), 1, function(row) paste0("<tr>", paste0("<td>", escape(row), "</td>", collapse = ""), "</tr>")), collapse = ""), "</tbody></table>")
 }
+corrections <- rbindlist(list(fread("../output/all_dupac_corrections.csv"), fread("../output/multifamily_dupac_corrections.csv")))
+project_influence <- rbindlist(list(fread("../output/all_dupac_projects.csv"), fread("../output/multifamily_dupac_projects.csv")))
+pair_influence <- rbindlist(list(fread("../output/all_dupac_pairs.csv"), fread("../output/multifamily_dupac_pairs.csv")))
+step_labels <- c(before = "Before corrections", madison_counts_only_in_old = "Correct only Madison apartment counts",
+  madison_all_changes_in_old = "Correct Madison counts and years", all_except_madison = "All corrections except Madison",
+  after = "All adopted corrections")
+steps <- corrections[scenario %in% names(step_labels)]
+steps[, step := match(scenario, names(step_labels))]
+setorder(steps, sample, step)
+steps <- steps[, .(Sample = sample_labels[sample], Change = step_labels[scenario],
+  `DUPAC effect (%)` = round(percent_effect, 2), `p-value` = round(p_value, 3), Projects = n)]
+individual_changes <- corrections[scenario == "apply_one_to_old"][order(sample, -abs(change_from_before_pp)), head(.SD, 10), by = sample]
+individual_changes <- individual_changes[, .(Sample = sample_labels[sample], Address = address,
+  `Old units` = old_units, `New units` = new_units, `Old year` = old_year, `New year` = new_year,
+  `Apply only this correction (%)` = round(percent_effect, 2), `Change (percentage points)` = round(change_from_before_pp, 2))]
+leaders <- project_influence[order(sample, -change_pp), head(.SD, 10), by = sample]
+leaders <- leaders[, .(Sample = sample_labels[sample], Address = fifelse(is.na(address) | address == "", project_id, address), Year = construction_year,
+  Units = dwelling_units, `Lot sqft` = land_sqft, DUPAC = round(density_dupac, 2),
+  Side = fifelse(signed_distance_ft > 0, "More stringent", "Less stringent"),
+  `Distance (ft)` = round(abs(signed_distance_ft), 1),
+  `Current effect (%)` = round(current_effect, 2), `Remove this project (%)` = round(percent_effect, 2),
+  `Additional FE omissions` = additional_omitted, `In 87-case review` = in_recent_review)]
+pair_leaders <- pair_influence[order(sample, -change_pp), head(.SD, 10), by = sample]
+pair_leaders <- pair_leaders[, .(Sample = sample_labels[sample], Pair = pair, Projects = removed_projects,
+  `Current effect (%)` = round(current_effect, 2), `Remove this comparison (%)` = round(percent_effect, 2),
+  `p-value` = round(p_value, 3), `Additional FE omissions` = additional_omitted)]
+joint <- corrections[scenario == "drop_most_influential_current", .(Sample = sample_labels[sample],
+  `Current effect (%)` = round(current_effect, 2), `Remove five leading projects (%)` = round(percent_effect, 2),
+  `p-value` = round(p_value, 3), `Remaining projects` = n)]
 group_table <- top_aldermen[, .(Sample = sample_labels[sample], Outcome = outcome_labels[outcome], Alderman = name,
   `Switched pairs` = switched_pairs, `Switched projects` = switched_projects, `Original (%)` = round(original_effect, 2),
   `Switch this alderman's disagreements (%)` = round(switch_from_original, 2), `All raw (%)` = round(raw_effect, 2),
@@ -66,8 +95,16 @@ side_table <- sides[pair == leading_pair, .(Alderman = alderman_own, Band = band
   `Median FAR` = round(median_far, 2), `Median DUPAC` = round(median_dupac, 2))]
 history_table <- history[, .(Address = address, `Assessment year` = year, `Recorded units` = tot_units,
   `Building sqft` = bldgsf, `Land sqft` = landsf, `Recorded build year` = yearbuilt, `Source row` = source_row)]
-writeLines(paste0('<!doctype html><meta charset="utf-8"><title>Who drives the density ordering sensitivity?</title><style>body{font:16px/1.5 system-ui;max-width:1300px;margin:35px auto;padding:0 20px;color:#183445}table{border-collapse:collapse;width:100%;font-size:13px;margin:20px 0}th,td{text-align:left;border-bottom:1px solid #d9e2e7;padding:8px}th{background:#edf3f6}img{max-width:100%}.wide{overflow-x:auto}a{color:#176184}</style>',
-  '<h1>Who drives the density ordering sensitivity?</h1><p>Burnett’s comparisons account for most of the multifamily DUPAC change when we replace adjusted-score ordering with raw log processing-time ordering. Hopkins also matters substantially for multifamily FAR. The all-construction changes are spread across more comparisons.</p>',
+writeLines(paste0('<!doctype html><meta charset="utf-8"><title>Which projects drive DUPAC?</title><style>body{font:16px/1.5 system-ui;max-width:1300px;margin:35px auto;padding:0 20px;color:#183445}table{border-collapse:collapse;width:100%;font-size:13px;margin:20px 0}th,td{text-align:left;border-bottom:1px solid #d9e2e7;padding:8px}th{background:#edf3f6}img{max-width:100%}.wide{overflow-x:auto}a{color:#176184}</style>',
+  '<h1>Which projects drive DUPAC?</h1><p>These new checks separate the effect of the adopted measurement corrections from the influence of projects in the corrected data. Scores, controls, fixed effects, clustering and distance bins are held at the existing specification. Effects compare the first 100 feet on each side of the boundary.</p>',
+  '<h2>How the corrections changed the result</h2>', html_table(steps),
+  '<p>The Madison checks concern 1100 and 1048 W Madison. The count-only check changes only their DUPAC values in the original sample. The counts-and-years check replaces their full records, including construction-year controls. Each intermediate row is a diagnostic counterfactual, not a proposed dataset.</p>',
+  '<h2>Largest individual corrections</h2><p>Each row applies only that project’s adopted change to the old data. Missing old or new values mean the record is outside that version’s estimation sample. These effects need not add.</p><div class="wide">', html_table(individual_changes), '</div>',
+  '<h2>Projects that most support the current negative estimate</h2><p>Every fitted project was removed once and the unchanged regression was re-estimated. These are the ten largest movements toward zero in each sample. Removing a project can also leave an otherwise singleton fixed-effect group; extra omissions are shown. Influence alone does not establish a measurement error or justify exclusion.</p><div class="wide">', html_table(leaders), '</div>',
+  '<p>Removing the five leading projects together gives the following diagnostic. The group is selected for its influence on this outcome, so this is not an alternative preferred estimate or a valid exclusion rule.</p>', html_table(joint),
+  '<h2>Local comparisons that most support the current negative estimate</h2><p>Each row removes all projects for one named alderman pair. These groups overlap the individual-project checks and their effects should not be added.</p><div class="wide">', html_table(pair_leaders), '</div>',
+  '<p>Downloads: <a href="all_dupac_corrections.csv">all-construction corrections</a> · <a href="multifamily_dupac_corrections.csv">multifamily corrections</a> · <a href="all_dupac_projects.csv">every construction project</a> · <a href="multifamily_dupac_projects.csv">every multifamily project</a> · <a href="all_dupac_pairs.csv">all-construction pairs</a> · <a href="multifamily_dupac_pairs.csv">multifamily pairs</a>.</p>',
+  '<hr><h2>Earlier score-ordering diagnosis: pre-correction data</h2><p>The rest of this page preserves the earlier analysis. In that version, Burnett’s comparisons account for most of the multifamily DUPAC change when replacing adjusted-score ordering with raw log processing-time ordering. Hopkins also matters substantially for multifamily FAR. These are not the corrected-data deletion checks above.</p>',
   '<p>Every trial uses the existing common FAR/DUPAC sample, controls, fixed effects and clustering. Switching a pair keeps its projects and changes the direction of their boundary distances. Restoring starts from raw ordering and puts that comparison back in its original direction. Dropping removes all projects in the named pair, or all comparisons involving the named alderman. These are influence diagnostics selected after examining the estimates, not proposed exclusion rules.</p>',
   '<h2>Alderman comparisons jointly</h2><p>Each row changes one alderman’s comparisons. Pair membership overlaps: Burnett–Fioretti belongs to both men, so their effects must not be added.</p><div class="wide">', html_table(group_table), '</div>',
   '<h2>Largest individual pair switches</h2><p>The five largest upward movements in each density estimate are shown. All disagreements and all aldermen involved in them are in the downloadable table. Switching and restoring need not have equal effects because the other comparison directions differ.</p><div class="wide">', html_table(pair_table), '</div>',

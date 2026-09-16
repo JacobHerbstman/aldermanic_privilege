@@ -1,6 +1,22 @@
-# Which comparisons drive the density ordering sensitivity?
+# Which projects and comparisons drive the density results?
 
-Run `make` in `code/`; open `output/density_drivers.html`. This audit diagnoses the move from adjusted-score ordering to raw average log processing-time ordering. It does not change production data or propose an outcome-driven exclusion rule.
+Run `make` in `code/`; open `output/density_drivers.html`. This audit diagnoses the latest DUPAC corrections, individual-project influence, and the earlier change from adjusted-score ordering to raw average log processing-time ordering. It does not change production data or propose an outcome-driven exclusion rule.
+
+## Corrected-data project influence, September 15
+
+The report now opens with a separate diagnosis of the corrected DUPAC estimates. `diagnose_dupac_changes.R` reads the preserved pre-correction construction data and the rebuilt production analysis data. It reproduces both baseline coefficients, standard errors and fitted counts before changing anything in memory. It applies each changed project's complete record to the old sample, undoes each change in the corrected sample, and reports the two Madison buildings jointly. These counterfactual changes are not additive decompositions. A separate count-only trial changes just their DUPAC values while retaining the old dates, assignments, controls and sample.
+
+The Madison corrections explain essentially the entire latest multifamily weakening. The old estimate is −17.36%; correcting only the two counts gives −13.11%; applying their counts and construction-year records gives −11.67%; all adopted corrections give −11.68%. Applying every correction except Madison gives −17.04%. In all construction, those corresponding estimates are −13.70%, −12.68%, −12.67%, −12.82% and −13.84%. Their effects depend somewhat on which other corrections have already been applied. The two buildings still enter the corrected data, with nine and eighteen apartments and 2013 completion.
+
+The same script removes each of the 4,016 current construction projects and each of the 863 multifamily projects in turn, then removes every named alderman pair. All conditional specifications stay fixed. No single-project or single-pair deletion makes either coefficient nonnegative. Individual deletions put all-construction DUPAC between −13.56% and −12.09%, and multifamily between −14.70% and −8.81%. Pair deletions put those ranges at −16.41% to −10.69% and −15.98% to −8.14%. These checks establish the result's influence pattern, not the validity of the measurements.
+
+The largest current multifamily movements toward zero arise from 1938 W North or 1551 N Milwaukee (−8.81% after removing either), 2030 or 1943 N California (−9.22%), and 4183 W Belmont (−9.31%). The first two pairs each share a boundary segment containing only those two multifamily observations; deleting either removes that segment's local density comparison. The surviving singleton remains counted but contributes no within-segment comparison; no additional record is omitted. None of these five records was part of the 87-case unchanged-area count review. This is not a new determination that any of them is wrong.
+
+Deleting these five together gives −3.33% (p = .663; 858 projects). The joint check selects the five largest upward individual-deletion effects separately in each sample; `JOINT_PROJECTS = 5` is explicit in Make. For all construction, the corresponding five-project deletion gives −9.79% (p = .131; 4,011 projects). These are deliberately outcome-selected influence checks, not proposed exclusion rules, validated alternative samples, or independent hypothesis tests. The multifamily coefficient is concentrated in a few local comparisons even though deleting a single project does not reverse its sign.
+
+Deleting the full Burnett–Fioretti comparison now gives −9.51% for multifamily, compared with −11.68% overall. Deleting corrected 1100 W Madison alone gives −11.55%; deleting corrected 1048 alone gives −11.68%. The old errors drove the latest change, but the remaining negative estimate does not depend on retaining either corrected Madison record.
+
+The outputs `*_dupac_corrections.csv`, `*_dupac_projects.csv` and `*_dupac_pairs.csv` retain every trial, measurements, addresses from the earlier screen, recorded decisions, and previous flags. Empty addresses remain unidentified in this address source; they are not invented from nearby parcels. The `in_recent_review` column refers specifically to the 87-case review, not to all earlier manual work. Influence is selected after examining outcomes and does not supply a valid data-exclusion rule. Production data, scores, correction records and manuscript remain unchanged by this diagnostic.
 
 ## Comparisons
 

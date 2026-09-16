@@ -89,6 +89,8 @@ logbook.pdf: logbook.tex \
 	entries/2026-09-15-density-ordering-drivers.tex \
 	entries/2026-09-15-construction-measurement-review.tex \
 	entries/2026-09-15-construction-source-rules.tex \
+	entries/2026-09-16-density-fixed-effects.tex \
+	../tasks/audits/density_fixed_effects/output/density_fixed_effects.tex \
 	../tasks/audits/score_pair_reliability/output/split_agreement.pdf \
 	../tasks/audits/multifamily_score_uncertainty/output/multifamily_score_draws.pdf \
 	../tasks/audits/permit_score_uncertainty/output/permit_score_events.pdf \
