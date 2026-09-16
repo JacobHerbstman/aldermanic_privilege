@@ -1,0 +1,72 @@
+\clearpage
+\section*{Multifamily density is sensitive to uncertain local score orderings}
+\textit{September 14, 2026. Agent-drafted exploratory checks requested by Jacob.}
+
+Uncertainty about which alderman is more stringent materially changes the
+multifamily density estimates, especially DUPAC. The existing common FAR/DUPAC
+sample contains 863 buildings and 161 named alderman comparisons. Its estimated
+density differences are $-12.9\%$ for FAR and $-17.4\%$ for DUPAC, with
+conditional clustered $p$-values of 0.053 and 0.081. These estimates reproduce
+the recorded common-sample benchmark to numerical precision. All experiments
+retain the paper's two-stage score construction and original density
+specification: the comparison within 100 feet on either side, ten distance
+bins within 500 feet, five own-ward demographic controls, zoning-group,
+boundary-segment and construction-year fixed effects, and geographic ward-pair
+clustering.
+
+We first define fragile comparisons using only the permit-score draws,
+before inspecting density effects. The 43 pairs that preserve their ordering
+in fewer than 75\% of annual draws account for 210 buildings. Dropping them
+leaves 653 buildings and effects of $-10.3\%$ for FAR and $-7.7\%$ for DUPAC
+($p=0.232$ and $0.488$). Keeping the buildings but reversing all 43 orderings
+gives $-7.7\%$ and $+2.6\%$. With the broader threshold of 95\% retention,
+91 pairs and 418 buildings are affected: dropping them gives $-14.0\%$ and
+$-8.3\%$, while reversing them gives $-2.0\%$ and $+4.6\%$. All methods and
+both thresholds remain in the report. Dropping changes the represented
+population. Reversing selected pairs is a deliberate stress test and can
+conflict with a single citywide ranking; it is not an adopted alternative
+score. These conditional intervals and $p$-values treat the tested sample
+and ordering as fixed.
+
+Every pair is also dropped and reversed individually, including pairs with
+stable scores. Fioretti--Burnett, representing 27 buildings along wards 2 and
+27, is the largest sensitivity. The paper's score orders Fioretti as more
+stringent; that order persists in 64.1\% of annual draws. Dropping this pair
+gives $-9.6\%$ for FAR and $-9.7\%$ for DUPAC. Reversing it gives $-7.3\%$
+and $+0.1\%$. Neither density estimate changes sign under any single-pair
+deletion; across all 161 deletions, FAR ranges from $-15.6\%$ to $-9.6\%$
+and DUPAC from $-21.7\%$ to $-9.7\%$. Stable comparisons also have influence:
+Taliaferro--Villegas retains its order in 98.2\% of annual draws, yet
+reversing that pair moves FAR to $-7.4\%$ and DUPAC to $-10.7\%$.
+
+\clearpage
+We also carry all 499 score vectors from each of the property, quarter, and
+annual reweightings through both regressions: 2,994 refits in total. Each
+draw provides a coherent citywide ordering; buildings, outcomes, controls,
+locations, and absolute distances stay fixed. Under annual reweighting, the
+median effects are $-10.1\%$ for FAR and $-12.9\%$ for DUPAC. The middle
+95\% of draws range from $-19.2\%$ to $+3.5\%$ and from $-23.6\%$ to
+$+8.3\%$, respectively. The estimated effects remain negative in 92.4\% and
+81.4\% of annual draws. These are descriptive score-only ranges and draw
+shares, not full confidence intervals or probabilities that the causal
+effect is negative. Property and quarter reweighting give more stable FAR
+signs, while their DUPAC ranges also cross zero. Annual reweighting has only
+17 time blocks. None of these checks resolves the interpretation of permit
+delays or sensitivity to joint estimation of neighborhood and alderman effects.
+
+\begin{center}
+\includegraphics[width=\textwidth]{../tasks/audits/multifamily_score_uncertainty/output/multifamily_score_draws.pdf}
+\end{center}
+
+\textit{Reproduction and scope.} Run \texttt{make} in
+\path{tasks/audits/multifamily_score_uncertainty/code/}. The audit reads the
+recorded construction benchmark and score draws documented in
+\path{tasks/audits/score_pair_reliability/}; the upstream implementation was
+committed at \texttt{7dd04922}. Its two scripts estimate the tests and display
+them. Saved tables retain every draw, every grouped stress test, all 161
+one-pair comparisons, and source-score retention shares. Keys, missingness,
+sample equality, and a reversal of all boundaries are checked. A full
+reversal negates both baseline coefficients and preserves their standard
+errors. This work does not resample building outcomes or estimate combined
+score-and-outcome uncertainty. Production scores, data, results, and
+manuscript files are unchanged.

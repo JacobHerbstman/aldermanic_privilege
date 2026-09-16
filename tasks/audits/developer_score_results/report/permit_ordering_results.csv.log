@@ -1,0 +1,21 @@
+File: permit_ordering_results.csv
+Rows: 4
+Columns: 11
+SHA-256 (saved bytes): 22f84f9d6a6b8f607d26315d59370f2d95822ca5037f2318ef49b25182f4e157
+Key: ranking, ordering
+Types: DuckDB inference from the complete saved CSV.
+Distinct counts: exact (exact up to 100,000 rows).
+Row counts, non-missing counts, and declared-key checks: exact.
+
+             column inferred_type non_missing distinct                  min                max                mean                  sd
+            ranking       VARCHAR           4        2                    -                  -                   -                   -
+           ordering       VARCHAR           4        2                    -                  -                   -                   -
+           estimate        DOUBLE           4        3  -0.1380471415695715 0.1380471415695715 0.02673940422842156  0.1168674598922819
+          std_error        DOUBLE           4        2  0.05462042112946905 0.1122320692117182 0.08342624517059363 0.03326210052874454
+            p_value        DOUBLE           4        2 0.013626170261016445 0.6351207810972894  0.3243734756791529  0.3588200808662239
+     percent_effect        DOUBLE           4        3  -12.894237224586414 14.802966891905722   3.223914208722363  11.607052100608271
+        percent_low        DOUBLE           4        3   -21.87661158209743  2.964447910850348 -12.551062611098901  10.752592592305877
+       percent_high        DOUBLE           4        3    -2.87909853449324  31.93063260688973  22.246201787465736    16.8522372715857
+pairs_with_switches        BIGINT           4        2                   17                 20                18.5  1.7320508075688772
+    switched_blocks        BIGINT           4        2                  166                417               291.5  144.91491756659607
+ fitted_block_years        BIGINT           4        2                10476              21011             15743.5   6082.385085912708

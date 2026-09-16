@@ -1,0 +1,29 @@
+\clearpage
+\section*{Local score precision and split-sample repeatability}
+\textit{September 14, 2026. Agent-drafted exploratory checks requested by Jacob.}
+
+The submitted score contains repeatable local ordering information, but many comparisons remain uncertain. Among the 863 multifamily buildings in the current common FAR/DUPAC boundary sample, separate random property halves agree on the alderman ordering for a median 77.7\% of buildings across 50 splits. Random-quarter halves, each containing two quarters from every year, agree for 74.6\%; odd versus even years agree for 65.7\%. The corresponding shares for the 687 reassigned blocks in the permit-remap specification are 70.9\%, 71.0\%, and 70.6\%. Counts describe representation in the fitted samples, not regression leverage or additive contributions to the estimated effects. Both halves refit the neighborhood adjustment, alderman effects, and shrinkage separately.
+
+The long chronological split is a different and substantially narrower comparison. For the through-2022 score, the 2006--2014 and 2015--2022 halves have a citywide rank correlation of 0.065 among 37 adequately supported common aldermen. Multifamily local ordering agreement is 71.0\%, but those supported comparisons cover only 27.6\% of the multifamily buildings. For the frozen score, comparing 2006--2010 with 2011--2014 gives rank correlation 0.289 among 36 common aldermen and ordering agreement for 54.0\% of the supported reassigned blocks; coverage is 45.3\%. By contrast, the median property-half rank correlations are 0.670 through 2022 and 0.680 through 2014. A low citywide correlation and greater agreement in a selected set of local comparisons can coexist. Differences across these splits combine sampling variation, changes over time, and changing sample support; they do not isolate changes in alderman behavior.
+
+The audit also makes 499 positive-weight draws for each of three grouping assumptions: recorded properties, citywide calendar quarters, and citywide calendar years. Each draw refits both stages and shrinkage while retaining observed workload as a control. The all-one-weight estimator matches both submitted score vectors to within $10^{-8}$. Annual reweighting retains the baseline ordering for an average 87.2\% of multifamily buildings and 84.9\% of reassigned blocks. Only 51.6\% of multifamily buildings and 57.4\% of reassigned blocks belong to pairs that retain their baseline order in at least 95\% of annual draws. These draw frequencies measure perturbation stability, not the probability that the ordering is true. They are pointwise exploratory summaries, with only 17 annual blocks through 2022 and nine through 2014; no simultaneous confidence claim is made.
+
+Large pre-remap comparisons differ sharply in their stability. Moreno--Maldonado retains its baseline order in 97.4\% of annual draws, while Moreno--Waguespack does so in 51.7\% and Dowell--Cochran in 55.7\%. These pairs represent 58, 56, and 43 reassigned blocks respectively. The outcome estimates were not used to select these methods or their weights. This evidence supports incorporating uncertainty in local ordering into subsequent analysis; it does not establish that the measured delays are caused by aldermen or resolve the previously documented sequential-versus-joint estimation sensitivity. No production scores, housing estimates, or manuscript files were changed.
+
+\clearpage
+\textit{Reproduction and limits.} Run \texttt{make} in
+\path{tasks/audits/score_pair_reliability/code/}. The report and underlying
+pair tables cover all construction, multifamily, rents, sales, and the permit
+remap. The recorded permit snapshot contains 71,059 usable observations through
+2014 and 120,505 through 2022. Local source hashes are recorded in the audit;
+no new source release was uploaded. Split comparisons require at least 30
+permits and six observed months for each alderman in each half, and report
+coverage explicitly. Permits sharing recorded parcel roots stay together in
+property splits, including multi-parcel links; missing or malformed roots are
+singleton groups. Parcel links are especially sparse in 2006--2007. Disjoint
+records can still share shocks, and this is not the combined score-and-outcome
+bootstrap. The full range of random-split outcomes is retained.
+
+\begin{center}
+\includegraphics[width=\textwidth]{../tasks/audits/score_pair_reliability/output/split_agreement.pdf}
+\end{center}

@@ -1,0 +1,17 @@
+File: developer_coverage.csv
+Rows: 4
+Columns: 7
+SHA-256 (saved bytes): 7df712b4a779ad53f9746d1d7bc2db2ffc898258d93c34f777f47ec51f3ba994
+Key: market
+Types: DuckDB inference from the complete saved CSV.
+Distinct counts: exact (exact up to 100,000 rows).
+Row counts, non-missing counts, and declared-key checks: exact.
+
+             column inferred_type non_missing distinct  min    max     mean                 sd
+             market       VARCHAR           4        4    -      -        -                  -
+         input_rows        BIGINT           4        4 3379 240713 76645.75 112384.12342015516
+ missing_score_rows        BIGINT           4        4   60   5788  1602.75 2792.1448595419733
+    tied_score_rows        BIGINT           4        4  276  10583  5381.75  5803.123203643592
+        common_rows        BIGINT           4        4 2879 230189 69661.25 108579.88328837283
+common_ordered_rows        BIGINT           4        4  583 230189 69087.25  109055.6294875082
+      reversed_rows        BIGINT           4        4  417 108071  34202.0  50622.88216475497

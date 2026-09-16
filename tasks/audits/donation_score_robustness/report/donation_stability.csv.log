@@ -1,0 +1,17 @@
+File: donation_stability.csv
+Rows: 475
+Columns: 7
+SHA-256 (saved bytes): dbb94876f1f940f15315b7b0887ea241461a599220ca85f393dee88653de61a4
+Key: comparison, sector, left_measure, right_measure
+Types: DuckDB inference from the complete saved CSV.
+Distinct counts: exact (exact up to 100,000 rows).
+Row counts, non-missing counts, and declared-key checks: exact.
+
+       column inferred_type non_missing distinct                  min max                mean                 sd
+       sector       VARCHAR         475       20                    -   -                   -                  -
+ left_measure       VARCHAR         475       21                    -   -                   -                  -
+right_measure       VARCHAR         475       25                    -   -                   -                  -
+            n        BIGINT         475        3                   46 104              101.32  11.44085506231777
+      pearson        DOUBLE         475      269 -0.46690338149548766 1.0 0.30741037493818124  0.520489225721796
+     spearman        DOUBLE         475      260  -0.6026641491307454 1.0 0.32957728256176505 0.5351368713008748
+   comparison       VARCHAR         475        3                    -   -                   -                  -

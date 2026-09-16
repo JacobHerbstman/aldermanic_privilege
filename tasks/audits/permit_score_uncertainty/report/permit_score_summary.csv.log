@@ -1,0 +1,25 @@
+File: permit_score_summary.csv
+Rows: 33
+Columns: 15
+SHA-256 (saved bytes): df2ccd69ce78c018c84aab6c8c06643a64648fcf4885b6b1533087fd925f5265
+Key: method, specification, term
+Types: DuckDB inference from the complete saved CSV.
+Distinct counts: exact (exact up to 100,000 rows).
+Row counts, non-missing counts, and declared-key checks: exact.
+
+                column inferred_type non_missing distinct                  min                   max                 mean                  sd
+                method       VARCHAR          33        3                    -                     -                    -                   -
+         specification       VARCHAR          33        2                    -                     -                    -                   -
+                  term       VARCHAR          33       11                    -                     -                    -                   -
+                 draws        BIGINT          33        1                  499                   499                499.0                 0.0
+       median_estimate        DOUBLE          33       33  -0.2165792625020757   0.04612714397121979 -0.08885437800723144 0.07419872618214444
+         mean_estimate        DOUBLE          33       33 -0.20099644480650197  0.043155576492066076 -0.08834008898622032  0.0722489994503746
+         score_only_sd        DOUBLE          33       33 0.028909162601018456   0.10427167756666439  0.06075378308829362 0.02232237813216756
+                   low        DOUBLE          33       33  -0.3388904014468231 -0.035708554553823546 -0.19326871783466576 0.07728514010278681
+                  high        DOUBLE          33       33 -0.07294414402875996   0.15783014172528553  0.02763437488086922 0.07503158468760242
+        negative_share        DOUBLE          33       25    0.218436873747495                   1.0   0.7898827958948197 0.27639973220616004
+median_reversed_blocks        BIGINT          33        3                   96                   100    98.33333333333333  1.7260262647673223
+ median_reversed_pairs        BIGINT          33        2                    5                     6    5.666666666666667  0.4787135538781701
+        percent_median        DOUBLE          33       33  -19.473129521934755     4.720754861935507   -8.255011721965069   6.916566631689526
+           percent_low        DOUBLE          33       33   -28.74394595859542    -3.507852552367329   -17.33220245877343  6.5055514990222365
+          percent_high        DOUBLE          33       33    -7.03472447668277    17.096727933262198    3.084287081451368   7.788856563567905

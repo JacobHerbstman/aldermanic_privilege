@@ -1,0 +1,46 @@
+File: permit_comparison_panel.parquet
+Rows: 37169
+Columns: 36
+SHA-256 (saved bytes): 7710ecd6fabd28f7dac814b0593395f0167c4f51cc09f881593bf7f2f00da676
+Key: block_id, year
+Types: Stored Parquet schema.
+Distinct counts: exact (exact up to 100,000 rows).
+Row counts, non-missing counts, and declared-key checks: exact.
+
+                              column inferred_type non_missing distinct                 min                  max                 mean                   sd
+                            block_id       VARCHAR       37169     3379                   -                    -                    -                    -
+                       block_vintage        DOUBLE       37169        1              2010.0               2010.0               2010.0                  0.0
+                              cohort       VARCHAR       37169        1                   -                    -                    -                    -
+                         ward_origin        DOUBLE       37169       35                 1.0                 50.0   25.821840781296242   15.504580292710294
+                           ward_dest        DOUBLE       37169       35                 1.0                 50.0   26.388872447469666   15.264038968921476
+                            switched       BOOLEAN       37169        2                   -                    -                    -                    -
+                               treat       INTEGER       37169        2                   0                    1  0.20331459011541878   0.4024700306252513
+            strictness_origin_frozen        DOUBLE       37169       35  -1.514558701954416   1.5587271875761726  0.09436820725983398   0.6242243995886749
+              strictness_dest_frozen        DOUBLE       37169       35  -1.514558701954416   1.5587271875761726 0.038577393619892875   0.6570708396487869
+            strictness_change_frozen        DOUBLE       37169       55 -2.3057446675528075   1.8915564796947613 -0.05579081363993876   0.4421612547671797
+                alderman_origin_2014       VARCHAR       37169       35                   -                    -                    -                    -
+                alderman_origin_2015       VARCHAR       37169       35                   -                    -                    -                    -
+                  alderman_dest_2014       VARCHAR       37169       35                   -                    -                    -                    -
+                  alderman_dest_2015       VARCHAR       37169       35                   -                    -                    -                    -
+                       stable_origin       BOOLEAN       37169        1                   -                    -                    -                    -
+                         stable_dest       BOOLEAN       37169        1                   -                    -                    -                    -
+                         stable_both       BOOLEAN       37169        1                   -                    -                    -                    -
+                               valid       BOOLEAN       37169        1                   -                    -                    -                    -
+                        ward_pair_id       VARCHAR       37169       95                   -                    -                    -                    -
+                      ward_pair_side       VARCHAR       37169      149                   -                    -                    -                    -
+                 event_neighbor_ward        DOUBLE       37169       49                 1.0                 50.0   25.413435927789287   15.416608161407282
+                              dist_m        DOUBLE       37169     3379  10.865826958372809   152.39397437755315    84.67529785129628    39.40656742218096
+               point_origin_mismatch       BOOLEAN       37169        1                   -                    -                    -                    -
+                                year       INTEGER       37169       11                2010                 2020               2015.0    3.162320200208058
+                       relative_year       INTEGER       37169       11                  -5                    5                  0.0    3.162320200208087
+       n_high_discretion_application       INTEGER       37169       23                   0                   30  0.48395168016357715   1.0296492102451502
+n_low_discretion_nosigns_application       INTEGER       37169       47                   0                   65   0.9019075035647987   2.1454230203972937
+      n_new_construction_application       INTEGER       37169       11                   0                   17  0.06938577847130674   0.3709352119737175
+                          pre_volume       INTEGER       37169       29                   1                   81   2.6667653151820065    3.244397117475387
+                             outcome       INTEGER       37169       23                   0                   30  0.48395168016357715   1.0296492102451502
+                                post       INTEGER       37169        2                   0                    1   0.5454545454545454    0.497936296051071
+                          paper_sign        DOUBLE       37169        3                -1.0                  1.0 -0.05889316365788695  0.44704760621694506
+                    developer_origin        DOUBLE       37169       23                 0.0 0.020767369258835957 0.005065231180742073 0.005077766427657509
+                      developer_dest        DOUBLE       37169       23                 0.0 0.020767369258835957 0.004835334846709868 0.005010441999103228
+                         pair_status       VARCHAR       37169        3                   -                    -                    -                    -
+                       donation_sign        DOUBLE       37169        3                -1.0                  1.0  0.00976620301864457   0.4152655946576053

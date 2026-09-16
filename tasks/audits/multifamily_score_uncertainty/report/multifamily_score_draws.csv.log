@@ -1,0 +1,24 @@
+File: multifamily_score_draws.csv
+Rows: 2994
+Columns: 14
+SHA-256 (saved bytes): 0475c3dbbe995552a8b807e88e2fc4527d669f777b62084b8bad0f4e3450b4b5
+Key: method, draw, outcome
+Types: DuckDB inference from the complete saved CSV.
+Distinct counts: exact (exact up to 100,000 rows).
+Row counts, non-missing counts, and declared-key checks: exact.
+
+            column inferred_type non_missing distinct                   min                 max                mean                  sd
+           outcome       VARCHAR        2994        2                     -                   -                   -                   -
+          estimate        DOUBLE        2994     2994  -0.38800406718586444 0.17394639101983014 -0.1116148526943132 0.08201032558530089
+         std_error        DOUBLE        2994     2994   0.05641117966478901 0.15088113771646924  0.0970792697869985 0.02365048155796406
+           p_value        DOUBLE        2994     2994 6.115382829013138e-05  0.9993963899242819  0.3039759679044644 0.29311573487717413
+            ci_low        DOUBLE        2994     2994   -0.5839724878596999 -0.0616832166272646 -0.3045704132935719 0.08925452769897092
+           ci_high        DOUBLE        2994     2994  -0.19203564651202898 0.45582074710918064 0.08134070790494463 0.09952135600254113
+                 n        BIGINT        2994        1                   863                 863               863.0                 0.0
+           input_n        BIGINT        2994        1                   863                 863               863.0                 0.0
+    alderman_pairs        BIGINT        2994        1                   161                 161               161.0                 0.0
+        ward_pairs        BIGINT        2994        1                    88                  88                88.0                 0.0
+            method       VARCHAR        2994        3                     -                   -                   -                   -
+              draw        BIGINT        2994      499                     1                 499               250.0   144.0726651495732
+switched_buildings        BIGINT        2994      182                    20                 237  108.74816299265197    37.3476104677395
+    switched_pairs        BIGINT        2994       33                     7                  39  22.929859719438877    5.00848830242589

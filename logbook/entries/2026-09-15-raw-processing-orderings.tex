@@ -1,0 +1,91 @@
+\clearpage
+\section*{Raw permit delays and adjusted local score orderings}
+\textit{September 15, 2026. Agent-drafted comparison and manuscript proposal requested by Jacob.}
+
+The score adjustment changes a substantial fraction of the local orderings
+used in the paper. Raw arithmetic mean processing days agree with the
+score for 33 of 44 permit-event-study pairs (75.0\%), 90 of 161 multifamily
+pairs (55.9\%), 222 of 367 sales pairs (60.5\%), and 142 of 244 rental pairs
+(58.2\%). For all construction, agreement is 152 of 256 pairs (59.4\%).
+The permit comparison uses scores and raw times through 2014; the boundary
+outcomes use both measures through 2022. Each comparison uses the same
+retained permits as its score: 71,059 observations for 83 aldermen through
+2014 and 120,505 observations for 113 aldermen through 2022. No raw-time
+tie occurs for the arithmetic means.
+
+The share of observations represented by agreeing pairs differs from the
+unweighted pair share. Agreement covers 76.1\% of reassigned permit blocks,
+51.4\% of multifamily projects, 57.1\% of sales, and only 39.1\% of rental
+observations; the all-construction share is 53.2\%. These weights describe
+sample representation, not regression leverage or contributions to an
+estimate. The rental gap reflects several large disagreements. Reilly's
+raw mean is 37.4 days and Hopkins's is 69.4 days, yet the adjusted score
+ranks Reilly as more stringent. That pair represents 21,216 rental
+observations. Reilly--Burnett, Hopkins--Burnett, and Cappleman--Tunney also
+reverse the raw ordering and together represent another 48,631 rental
+observations. These are measured disagreements, not identified data errors.
+
+Part of the difference reflects the outcome scale. Using mean log days,
+without regression adjustment, increases agreement to 38 of 44 permit pairs
+(86.4\%), 109 of 161 multifamily pairs (67.7\%), 266 of 367 sales pairs
+(72.5\%), and 174 of 244 rental pairs (71.3\%). The corresponding
+observation shares are 91.7\%, 62.5\%, 70.6\%, and 50.5\%. Thus taking
+logs explains some disagreement, but the remaining adjustment still
+reverses the ordering for roughly half of rental observations. Median days
+and raw ties are also retained in the report. The arithmetic-mean/raw-score
+citywide rank correlation is 0.573 through 2014 and 0.286 through 2022;
+using mean log days gives 0.622 and 0.425. All-citywide comparisons include
+aldermen who did not serve together and are contextual rather than the
+paper's identifying comparisons.
+
+This exercise describes what the score construction changes. Both measures
+use the same permits, so agreement is not independent validation of
+alderman behavior. Raw averages combine permit mix, calendar time, location
+and ward characteristics. The adjusted score also changes aggregation and
+applies shrinkage. This comparison does not isolate the contribution of
+each control or determine which ordering is closer to a causal effect.
+The more closely matched mean-log comparison removes the transformation
+difference while preserving the other differences.
+
+Jacob also asked about adding score-robustness checks to the paper. The
+review proposes a short main-text pointer and an appendix section on local
+ordering stability and its consequences for the outcome estimates. A
+concrete five-outcome table reports baseline estimates, score-draw ranges,
+sign retention, deletion estimates, conditional p-values and retained
+sample shares. All three reweighting methods and both 75\% and 95\%
+thresholds are preserved, including unfavorable reversal tests. The proposed
+text distinguishes the comparatively stable permit and price signs from
+the more sensitive multifamily DUPAC estimate and the imprecise rental
+estimate. It does not establish persistence over time or substitute for the
+earlier weak chronological split. The proposal also suggests removing
+``persistent'' from the current Appendix B description of the alderman
+effect. No manuscript changes have been applied.
+
+\clearpage
+\begin{center}
+\includegraphics[width=\textwidth]{../tasks/audits/score_robustness_review/output/raw_processing_comparison.pdf}
+\end{center}
+
+\textit{Reproduction and definitions.} Run \texttt{make} in
+\path{tasks/audits/score_robustness_review/code/}. The audit reads the
+preserved permit source under \path{data_raw/score_robustness/}; the source
+hash and producer are documented in the score-reliability audit. The raw
+comparison reproduces that audit's eligibility rules, including lagged
+workload and complete controls, and verifies each alderman's retained
+permit and observed-month counts against the saved baseline. Raw averages
+weight each retained permit equally. Same-day permits remain in workload
+counts but do not enter either processing-time measure. Dates and source
+processing times are not changed or newly trimmed.
+
+One script calculates raw alderman averages, all local and citywide pair
+comparisons, agreement counts, correlations and the figure. The second
+assembles the existing outcome-sensitivity results and proposed wording
+into a review HTML. Outputs contain 196 alderman-period rows, 32,409
+pair/period/measure/sample rows, 21 agreement summaries, six correlations,
+and 30 combined robustness rows. Keys, raw-time/log consistency, score
+coverage, and agreement/reversal/tie totals are checked. A raw tie remains
+in the denominator as neither agreement nor reversal. Formal rank
+confidence sets require additional inference beyond the perturbation
+frequencies reported here; the review links to Mogstad, Romano, Shaikh and
+Wilhelm (2024) to distinguish those concepts. Production inputs, score
+estimation, outcome estimates and manuscript files are unchanged.

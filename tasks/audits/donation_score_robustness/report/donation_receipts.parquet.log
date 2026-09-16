@@ -1,0 +1,58 @@
+File: donation_receipts.parquet
+Rows: 237229
+Columns: 48
+SHA-256 (saved bytes): d3fc08da0f916e56ffaf7678a98fcb7a74ffdf235035930069ad50fe877e66da
+Key: receipt_id
+Types: Stored Parquet schema.
+Distinct counts: approximate (exact up to 100,000 rows).
+Row counts, non-missing counts, and declared-key checks: exact.
+
+                column inferred_type non_missing distinct    min       max               mean                 sd
+            donor_norm       VARCHAR      237229    65559      -         -                  -                  -
+          committee_id       INTEGER      237229      124   4269     39129 16316.547390917636  9973.559734072023
+            receipt_id       VARCHAR      237229   269488      -         -                  -                  -
+          filed_doc_id       VARCHAR      237229     3738      -         -                  -                  -
+         electronic_id       VARCHAR           0        0      -         -                  -                  -
+          receipt_type       VARCHAR      237229        3      -         -                  -                  -
+             FirstName       VARCHAR      237229    10815      -         -                  -                  -
+          LastOnlyName       VARCHAR      237229    71298      -         -                  -                  -
+            Occupation       VARCHAR       28519     3118      -         -                  -                  -
+              Employer       VARCHAR       28771     7842      -         -                  -                  -
+            source_row       INTEGER      237229   239977  14778   6521805 3432279.2742624218  1831312.706031658
+         received_date          DATE      237229     8278      -         -                  -                  -
+                amount        DOUBLE      237229     3924   0.01 3000000.0  848.0251091194548 10120.813674631538
+           alderman_id       VARCHAR      237229      122      -         -                  -                  -
+             full_name       VARCHAR      237229      123      -         -                  -                  -
+      strict_candidate       BOOLEAN      237229        2      -         -                  -                  -
+       named_recipient       BOOLEAN      237229        1      -         -                  -                  -
+      ownership_source       VARCHAR      237229        2      -         -                  -                  -
+                  year       INTEGER      237229       30   1994      2026 2011.7133529205958  7.666578156159214
+                 month       VARCHAR      237229      341      -         -                  -                  -
+            cycle_year        DOUBLE      237229       10 1995.0    2027.0 2013.5437699438096  7.590001226844701
+ legacy_cycle_included       BOOLEAN      237229        2      -         -                  -                  -
+            donor_name       VARCHAR      237229    91343      -         -                  -                  -
+       occupation_norm       VARCHAR      237229     2447      -         -                  -                  -
+         employer_norm       VARCHAR      237229     7382      -         -                  -                  -
+            person_key       VARCHAR      237229      155      -         -                  -                  -
+             in_office       BOOLEAN      210086        2      -         -                  -                  -
+own_committee_transfer       BOOLEAN      237229        2      -         -                  -                  -
+        recorded_union       VARCHAR       10342        4      -         -                  -                  -
+   union_review_status       VARCHAR      218141        4      -         -                  -                  -
+       auto_confidence       VARCHAR      218141        3      -         -                  -                  -
+        union_category       VARCHAR       11714        4      -         -                  -                  -
+          union_source       VARCHAR      237229        4      -         -                  -                  -
+  union_original_rules       BOOLEAN      237229        2      -         -                  -                  -
+       named_developer       BOOLEAN      237229        2      -         -                  -                  -
+      named_contractor       BOOLEAN      237229        2      -         -                  -                  -
+    named_estate_donor       BOOLEAN      237229        2      -         -                  -                  -
+      sector_name_rule       VARCHAR      237229       13      -         -                  -                  -
+    union_organization       BOOLEAN      237229        2      -         -                  -                  -
+         union_pending       BOOLEAN      237229        2      -         -                  -                  -
+    real_estate_strict       BOOLEAN      237229        2      -         -                  -                  -
+    developer_explicit       BOOLEAN      237229        2      -         -                  -                  -
+     real_estate_broad       BOOLEAN      237229        2      -         -                  -                  -
+ nonunion_construction       BOOLEAN      237229        2      -         -                  -                  -
+ land_use_professional       BOOLEAN      237229        2      -         -                  -                  -
+    developer_verified       BOOLEAN      237229        2      -         -                  -                  -
+  real_estate_verified       BOOLEAN      237229        2      -         -                  -                  -
+  estate_name_evidence       BOOLEAN      237229        2      -         -                  -                  -

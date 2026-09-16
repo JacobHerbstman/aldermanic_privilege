@@ -1,0 +1,48 @@
+\clearpage
+\section*{Density under alternative geographic and time fixed effects}
+\textit{September 16, 2026. Exploratory specifications requested by Jacob.}
+
+Replacing calendar-year fixed effects with periods of joint service makes
+the multifamily estimates more negative when local boundary-segment effects
+are retained. With zoning controls, FAR moves from $-11.51\%$ ($p=0.069$)
+to $-14.70\%$ ($p=0.040$), and DUPAC from $-11.68\%$ ($p=0.175$) to
+$-17.40\%$ ($p=0.071$). This is not a reduction in sampling uncertainty:
+the respective log-coefficient standard errors increase from 0.066 to
+0.076 and from 0.091 to 0.105. Without zoning, the joint-service estimates
+are $-10.39\%$ for FAR and $-14.36\%$ for DUPAC. Broader ward-pair effects
+produce smaller multifamily estimates in every corresponding specification.
+All-construction estimates remain negative across the grid, but precision
+and magnitudes vary with both geographic and zoning controls.
+
+A joint-service period is the uninterrupted overlap of the two serving
+aldermen within one ward pair and ward-map era. Reelection of the same
+aldermen does not split a period. Calendar-year effects adjust for common
+year differences; joint-service effects instead allow each local political
+pair-period its own intercept. These are different controls, not merely a
+coarser version of the same time effects. Replacing local segments with
+whole borders also changes the geographic comparisons. The models are not
+selected for their significance.
+
+Every specification uses the existing scores, ten 100-foot distance bins,
+five demographic controls and ward-pair clustering. Estimates compare
+0--100 feet on the more-stringent side with $-100$--0 feet; they are not
+averages over the full 500-foot window. All models retain exactly 4,016
+all-construction or 863 multifamily observations, with both density measures
+usable. Zoning remains required for the common starting sample even when
+its fixed effects are omitted. Parentheses below contain $p$-values.
+
+\input{../tasks/audits/density_fixed_effects/output/density_fixed_effects.tex}
+
+\medskip
+Year uncertainty still matters when it changes a building's assigned
+alderman, map, zoning or annual controls. Joint-service effects do not repair
+count, area or construction-eligibility errors. The thirteen newly reviewed
+influential records are unchanged in these estimates. No production model,
+construction input, score or manuscript was modified.
+
+\textit{Reproduction.} The single script and task Makefile are in
+\path{tasks/audits/density_fixed_effects/code/}. The full 48-estimate grid,
+confidence intervals and data report accompany the HTML and LaTeX exhibits.
+Both baseline estimates and standard errors reproduce the current reference
+results within $10^{-8}$. The README records the input hash and the Make
+command holding the four upstream outputs fixed.

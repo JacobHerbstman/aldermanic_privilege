@@ -1,0 +1,30 @@
+File: sales_pair_sensitivity.csv
+Rows: 747
+Columns: 20
+SHA-256 (saved bytes): ee3575ba849cba9bc92dbfe6583210cc1a7e31fe67fa307c487c5d1c8c622f80
+Key: market, scenario, method, threshold, pair
+Types: DuckDB inference from the complete saved CSV.
+Distinct counts: exact (exact up to 100,000 rows).
+Row counts, non-missing counts, and declared-key checks: exact.
+
+                column inferred_type non_missing distinct                   min                  max                    mean                    sd
+                market       VARCHAR         747        1                     -                    -                       -                     -
+              estimate        DOUBLE         747      699 -0.006995407447887913  0.04227098079127321     0.02973896970137936  0.002614008486271206
+             std_error        DOUBLE         747      707  0.012003612924971175  0.02578178102830524    0.013488379897641407 0.0008153899652821438
+               p_value        DOUBLE         747      707  0.005252689468297965   0.8187563859043971     0.03254340446264771   0.04918908535569589
+                ci_low        DOUBLE         747      707  -0.03745882150987541  0.01214634407631026    0.003070756068591888  0.003137359795482675
+               ci_high        DOUBLE         747      707  0.023336410677981687  0.09344741165556644    0.056407183334166756 0.0030166729985020096
+                     n        BIGINT         747      235                 23028                58468       58189.54618473895    2387.9414427473143
+               input_n        BIGINT         747      235                 23028                58468       58189.54618473895    2387.9414427473143
+        alderman_pairs        BIGINT         747        7                   154                  367       365.3333333333333    14.145547523701886
+            ward_pairs        BIGINT         747        7                    91                  141      140.75769745649265    2.9466078192131726
+              scenario       VARCHAR         747        5                     -                    -                       -                     -
+                method       VARCHAR         747        5                     -                    -                       -                     -
+             threshold        DOUBLE         747        3                   0.0                 0.95    0.013654618473895581   0.10768539031030105
+                  pair       VARCHAR         747      368                     -                    -                       -                     -
+        selected_pairs        BIGINT         747        7                     0                  213      3.3333333333333335     19.86529704811007
+      selected_records        BIGINT         747      235                     0                35440       556.9076305220883    3353.9898241924075
+        percent_effect        DOUBLE         747      699   -0.6970996539789928     4.31771214154665      3.0189076820281957    0.2661692761472258
+           percent_low        DOUBLE         747      707   -3.6765918570719847   1.2220410488447722     0.30803608032451646    0.3104213742194227
+          percent_high        DOUBLE         747      707     2.361083524667031    9.795286229976558       5.803321651992584   0.31933106959334745
+change_log_coefficient        DOUBLE         747      699  -0.03695607086995468 0.012310317369206448 -0.00022169372068741913  0.002614008486271206

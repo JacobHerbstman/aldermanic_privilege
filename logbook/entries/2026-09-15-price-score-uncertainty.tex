@@ -1,0 +1,85 @@
+\clearpage
+\section*{Sale-price and rent sensitivity to uncertain score orderings}
+\textit{September 15, 2026. Agent-drafted exploratory checks requested by Jacob.}
+
+Sale-price and rent differences remain positive in almost all complete score
+draws. Their point estimates are less sensitive to score resampling than
+multifamily DUPAC, but conventional estimation uncertainty remains important,
+especially for rents. The original estimates are $+3.04\%$ for sales
+($p=0.027$) and $+1.76\%$ for rents ($p=0.268$). The audit reproduces both
+recorded benchmarks exactly for the coefficient, standard error, p-value,
+and fitted sample: 58,468 sales across 367 named alderman pairs and 240,713
+rental observations across 244 pairs. Rental observations can repeat for a
+home over time; the count is not distinct homes.
+
+Using the same score-only fragility thresholds as the density and permit
+audits, 81 sales pairs have less than 75\% annual ordering retention. They
+represent 14,560 sales. Dropping them yields $+2.88\%$ ($p=0.112$), while
+reversing their orderings gives $+1.18\%$ ($p=0.458$). At the broader 95\%
+threshold, dropping 202 pairs and 34,907 sales gives $+4.32\%$, and
+reversing them gives $+0.38\%$; neither is statistically significant at 10\%.
+For rents, the 75\% threshold identifies 63 pairs and 52,747 observations.
+Dropping them gives $+2.41\%$ ($p=0.147$), and reversing gives $+2.32\%$
+($p=0.097$). The 95\% annual threshold identifies 142 pairs and 97,219
+observations; dropping gives $+2.07\%$ and reversing gives $+1.29\%$.
+
+The complete score draws preserve the positive direction more consistently
+than broad, deliberate reversals. Across 499 annual draws, the median sale
+effect is $+2.05\%$, with middle 95\% range $[+0.48,+3.91]\%$ and 98.8\%
+positive estimates. The median rent effect is $+1.89\%$, with range
+$[+0.69,+2.89]\%$ and 99.4\% positive estimates. Property and quarter
+reweighting yield sales medians of $+2.23\%$ and $+2.29\%$, with 98.6\%
+and 98.8\% positive draws. Rent medians are $+1.81\%$ and $+1.92\%$, with
+100\% and 99.4\% positive draws. These ranges describe score uncertainty
+alone, holding observed prices fixed. They are not full confidence intervals
+and do not establish a statistically significant rental effect. The draw
+shares are not probabilities that the causal effect is positive.
+
+All 611 market-specific pairs are tested individually, including stable
+ones. Every individual sales deletion or reversal preserves the positive
+sign. Deletion estimates range from $+2.43\%$ to $+3.59\%$, while reversals
+range from $+1.79\%$ to $+4.09\%$. JoAnn Thompson--Willie Cochran is the
+largest sales sensitivity: its 321 sales have 100\% ordering retention in
+all three resampling methods, yet reversing that pair lowers the estimate
+to $+1.79\%$. For rents, every individual deletion remains positive, from
+$+1.05\%$ to $+2.41\%$. Reversing Reilly--Hopkins, representing 21,216
+rental observations and 98.2\% annual ordering retention, gives $-0.31\%$;
+dropping it gives $+1.05\%$. These are influential comparisons whose score
+orderings are relatively stable.
+
+The full report retains unfavorable grouped tests. Reversing all sales
+pairs with less than 95\% property or quarter retention produces $-0.70\%$
+and $-0.62\%$, respectively; those sets contain 207 and 213 pairs. Such
+deliberate reversals can conflict with a coherent citywide ranking. They
+are stress tests, not adopted scores. Dropping changes the population
+represented, and conditional p-values treat each chosen sample and
+ordering as fixed. No preferred specification is selected from these tests.
+
+\clearpage
+\begin{center}
+\includegraphics[width=\textwidth]{../tasks/audits/price_score_uncertainty/output/price_score_draws.pdf}
+\end{center}
+
+\textit{Reproduction and scope.} Run \texttt{make} in
+\path{tasks/audits/price_score_uncertainty/code/}. The audit reads the recorded
+sales and rent panels under \path{data_raw/score_robustness/}, with source
+hashes in the score-reliability audit. It consumes that audit's through-2022
+score vectors (upstream implementation \texttt{7dd04922}) rather than
+estimating new scores. Both regressions use the original strict 500-foot
+window and ten 100-foot bins, comparing $[0,100)$ with $[-100,0)$.
+Sales retain 2006--2022 dates and segment-by-quarter fixed effects; rents
+retain 2014--2022 dates and segment-by-month fixed effects. Property
+characteristics, amenity controls, property-type indicators and ward-pair
+clustering are unchanged.
+
+One script estimates each market; one renders the report. The saved outputs
+contain 2,994 score-draw refits, 1,248 baseline and stress-test rows, all
+market-specific pair counts and retention shares, and 1,222 individual-pair
+results. Source-score direction, key uniqueness and matched fitted rows are
+checked. Reversing all boundaries negates each coefficient and preserves
+its standard error. In the completed runs, deleting pairs caused no further
+fixed-effect observation loss beyond the selected records. The report and
+figure rebuild through Make; a missing figure was regenerated with unchanged
+CSV, HTML and PNG bytes. Production data, scores and manuscript are unchanged.
+Combined score-and-outcome uncertainty and sensitivity to estimating the
+score controls jointly remain separate questions.

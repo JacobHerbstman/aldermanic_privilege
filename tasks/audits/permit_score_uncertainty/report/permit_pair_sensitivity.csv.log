@@ -1,0 +1,33 @@
+File: permit_pair_sensitivity.csv
+Rows: 1111
+Columns: 23
+SHA-256 (saved bytes): f04d92e580e19a3b839b718b5084b773829e41365a7c58f35c0ffc46ebc74d74
+Key: scenario, method, threshold, pair, specification, term
+Types: DuckDB inference from the complete saved CSV.
+Distinct counts: exact (exact up to 100,000 rows).
+Row counts, non-missing counts, and declared-key checks: exact.
+
+                    column inferred_type non_missing distinct                   min                   max                   mean                   sd
+             specification       VARCHAR        1111        2                     -                     -                      -                    -
+                      term       VARCHAR        1111       11                     -                     -                      -                    -
+                  estimate        DOUBLE        1111     1111   -0.3251707382774749   0.16531214000318387   -0.08116699206869935  0.10287560065665936
+                 std_error        DOUBLE        1111     1111  0.044644692256720686   0.17243778345876265     0.0904249194816651 0.019343917819006157
+                   p_value        DOUBLE        1111     1111 1.576891812332366e-05    0.9994890290791946    0.33268954872760687   0.3072934719779338
+                    ci_low        DOUBLE        1111     1111   -0.5649183768494815 -0.033665234879346126    -0.2607540415372885   0.1050539885013073
+                   ci_high        DOUBLE        1111     1111  -0.16749209956379846   0.43230173926961146    0.09842005739988961  0.11440258857625334
+                         n        BIGINT        1111       44                 20738                 36830     35978.237623762376   2485.7669991603825
+                    blocks        BIGINT        1111       43                  1911                  3379     3301.3366336633662   226.72807878782865
+                ward_pairs        BIGINT        1111        8                    69                    95      93.61386138613861    4.019025310399746
+         reassigned_blocks        BIGINT        1111       31                   262                   687      664.8712871287129    64.18042272620819
+          pretrend_p_value        DOUBLE        1111      101   0.13436987606812098    0.8237559606290875     0.4174281145329187  0.13715508351039402
+                  scenario       VARCHAR        1111        5                     -                     -                      -                    -
+                    method       VARCHAR        1111        5                     -                     -                      -                    -
+                 threshold        DOUBLE        1111        3                   0.0                  0.95    0.10099009900990111  0.27730834773172985
+                      pair       VARCHAR        1111       45                     -                     -                      -                    -
+            selected_pairs        BIGINT        1111        8                     0                    26      2.772277227722772    5.334688972300414
+           selected_blocks        BIGINT        1111       43                     0                  1468     155.32673267326732    301.2261255853663
+selected_reassigned_blocks        BIGINT        1111       31                     0                   425     44.257425742574256    85.19396193254322
+            percent_effect        DOUBLE        1111     1111   -27.759599890291696    17.976131194414915     -7.308116851833577    9.526019458474726
+               percent_low        DOUBLE        1111     1111    -43.15934600032966   -3.3104866769362626    -22.525631467768324    8.193333755542335
+              percent_high        DOUBLE        1111     1111   -15.421670068055477     54.07999648819133     11.060985366300292   12.582147043674269
+    change_log_coefficient        DOUBLE        1111     1101  -0.17428387724867186   0.41425704774892136 -8.391016176207203e-05 0.040902755521217554

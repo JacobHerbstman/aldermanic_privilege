@@ -1,0 +1,21 @@
+File: permit_pairs.csv
+Rows: 44
+Columns: 11
+SHA-256 (saved bytes): ad65e3c1eca87280414a9db8b6a8c67d63226f67572f94a4e84804b7db15f926
+Key: ward_pair_id
+Types: DuckDB inference from the complete saved CSV.
+Distinct counts: exact (exact up to 100,000 rows).
+Row counts, non-missing counts, and declared-key checks: exact.
+
+            column inferred_type non_missing distinct                 min                max                mean                  sd
+      ward_pair_id       VARCHAR          44       44                   -                  -                   -                   -
+        alderman_a       VARCHAR          44       26                   -                  -                   -                   -
+        alderman_b       VARCHAR          44       20                   -                  -                   -                   -
+              pair       VARCHAR          44       44                   -                  -                   -                   -
+            blocks        BIGINT          44       36                  12                230   53.18181818181818   42.03059391115374
+ reassigned_blocks        BIGINT          44       24                   1                 58  15.613636363636363   14.13591156493525
+      baseline_gap        DOUBLE          44       44 -1.8376458685917756 2.3057446675504147 0.07457795203967817   1.026462191555807
+ baseline_stricter       VARCHAR          44       23                   -                  -                   -                   -
+property_retention        DOUBLE          44       31 0.48296593186372744                1.0  0.8743395882674438  0.1641049038053488
+ quarter_retention        DOUBLE          44       34  0.4909819639278557                1.0  0.8658680998360357 0.16617531233622668
+    year_retention        DOUBLE          44       31 0.45490981963927857                1.0  0.8633175441792674 0.17120047044723477

@@ -1,0 +1,21 @@
+File: rent_pairs.csv
+Rows: 244
+Columns: 11
+SHA-256 (saved bytes): 25f961b0640c9871264af3001aa1daa641745615817d69352526f71801aaf18d
+Key: market, pair
+Types: DuckDB inference from the complete saved CSV.
+Distinct counts: exact (exact up to 100,000 rows).
+Row counts, non-missing counts, and declared-key checks: exact.
+
+            column inferred_type non_missing distinct                 min               max                mean                  sd
+              pair       VARCHAR         244      244                   -                 -                   -                   -
+        alderman_a       VARCHAR         244       61                   -                 -                   -                   -
+        alderman_b       VARCHAR         244       68                   -                 -                   -                   -
+           records        BIGINT         244      192                   1             21216   986.5286885245902  2608.0752665292093
+             wards       VARCHAR         244      140                   -                 -                   -                   -
+            market       VARCHAR         244        1                   -                 -                   -                   -
+      baseline_gap        DOUBLE         244      244 -3.8104336520720508 4.508636335552829 0.08817631920331281  1.1822653928561424
+ baseline_stricter       VARCHAR         244       67                   -                 -                   -                   -
+property_retention        DOUBLE         244      118 0.45691382765531063               1.0  0.8642859489470743 0.14834322842027348
+ quarter_retention        DOUBLE         244      129  0.4909819639278557               1.0  0.8555553730411648  0.1494832793568436
+    year_retention        DOUBLE         244      121  0.4609218436873748               1.0  0.8567627057393478 0.14883594632222977

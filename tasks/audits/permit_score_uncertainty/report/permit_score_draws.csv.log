@@ -1,0 +1,26 @@
+File: permit_score_draws.csv
+Rows: 16467
+Columns: 16
+SHA-256 (saved bytes): 7039039cddc60105295494e0eae5add8935b1a85b426cbb850bd496606050480
+Key: method, draw, specification, term
+Types: DuckDB inference from the complete saved CSV.
+Distinct counts: exact (exact up to 100,000 rows).
+Row counts, non-missing counts, and declared-key checks: exact.
+
+           column inferred_type non_missing distinct                   min                  max                 mean                  sd
+    specification       VARCHAR       16467        2                     -                    -                    -                   -
+             term       VARCHAR       16467       11                     -                    -                    -                   -
+         estimate        DOUBLE       16467    13541  -0.36530705321020535  0.20942419155612166 -0.08834008898621978 0.09606323392435542
+        std_error        DOUBLE       16467    13541  0.041772486847591404  0.12471071539670049  0.08950333824623784 0.01796048738183779
+          p_value        DOUBLE       16467    13541 1.488749436929561e-06   0.9999369393571291   0.3261853790616461  0.3007231985062181
+           ci_low        DOUBLE       16467    13541    -0.518391255191394 0.061162804925651765  -0.2660510651994416 0.09837087449143987
+          ci_high        DOUBLE       16467    13541  -0.21222285122901674  0.39302948098374135   0.0893708872270001 0.10640897639046568
+                n        BIGINT       16467        1                 36830                36830              36830.0                 0.0
+           blocks        BIGINT       16467        1                  3379                 3379               3379.0                 0.0
+       ward_pairs        BIGINT       16467        1                    95                   95                 95.0                 0.0
+reassigned_blocks        BIGINT       16467        1                   687                  687                687.0                 0.0
+ pretrend_p_value        DOUBLE       16467     1231  0.010813830990590185   0.9954417128766541   0.4701335427939707 0.26242434183449675
+           method       VARCHAR       16467        3                     -                    -                    -                   -
+             draw        BIGINT       16467      499                     1                  499                250.0  144.05297696499284
+  reversed_blocks        BIGINT       16467      225                     0                  300   101.23046092184369   47.60573099699384
+   reversed_pairs        BIGINT       16467       16                     0                   16    5.814963259853039  2.3470223886542185

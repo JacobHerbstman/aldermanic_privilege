@@ -1,0 +1,17 @@
+\clearpage
+\section*{What correlates with the permit score?}
+\textit{September 14, 2026. Agent-drafted review of the existing exploratory comparisons.}
+
+Developer funding is not the strongest relationship in the full donation comparison. Using the fixed baseline of eligible personal-campaign cash receipts during actual office months in 2006--2022, among 104 aldermen, general labor-organization funding has a Pearson correlation of $-0.303$ and a rank correlation of $-0.199$ with the submitted permit-stringency score. This category includes Chicago Federation of Labor and Teamsters contributions and is distinct from construction-trade, education, and public-service categories. Architect and land-use-professional funding has correlations of $+0.263$ in levels and $+0.201$ in ranks. Its recorded definition matches architect, zoning, land-use, and urban-planning wording while excluding software and other irrelevant uses. These correlations describe actual funding shares, before reversing their interpretation into any alternative stringency proxy.
+
+The remaining baseline relationships are weaker: education organizations have rank correlation $-0.188$, all union organizations $-0.162$, identified developers $+0.163$, real estate $-0.054$, and construction-trade organizations $-0.003$. The developer Pearson correlation is only $+0.074$. Thus some independent funding measures are modestly associated with the score, but none in this baseline provides a close independent ranking of regulatory preferences. Receipt and recipient variants generally preserve the signs of the labor and professional relationships. No combination or weighting was chosen to maximize agreement. Looking across many exploratory definitions means these associations should not be presented as confirmatory discoveries.
+
+Removing any one alderman leaves the general-labor Pearson correlation between $-0.341$ and $-0.245$, and the professional correlation between $+0.197$ and $+0.286$. The relationships therefore are not attributable to a single alderman, though their ranking agreement remains modest. For context, in this same matched sample the rank correlation is $+0.143$ with months in office during the study period and $+0.166$ with total eligible campaign dollars. The former is observed study-window service, not complete career tenure. The current production score matches the pinned score used in the donation audit exactly. Older orphaned permit-validation exhibits were not treated as current independent evidence; comparisons that reuse the permit data or score controls cannot by themselves establish external validity.
+
+\textit{Reproduction.} The primary figures are existing rows of
+\path{tasks/audits/donation_score_robustness/output/donation_correlations.csv},
+filtered to \texttt{available}, \texttt{main}, \texttt{personal\_in\_office},
+\texttt{dollar\_share}, and \texttt{paper\_score}. The saved measures and receipts
+independently reproduce the baseline correlations and identify the donor
+categories. No scores, classifications, specifications, or manuscript files
+were changed for this review.

@@ -1,0 +1,48 @@
+File: permit_pair_comparisons.csv
+Rows: 95
+Columns: 38
+SHA-256 (saved bytes): e0cde88b3e68ca87468cb19c89f41b2adf2270e25e07c8e81b6b8bf454166fd4
+Key: ward_pair_id
+Types: DuckDB inference from the complete saved CSV.
+Distinct counts: exact (exact up to 100,000 rows).
+Row counts, non-missing counts, and declared-key checks: exact.
+
+                            column inferred_type non_missing distinct                  min                  max                  mean                    sd
+                      ward_pair_id       VARCHAR          95       95                    -                    -                     -                     -
+                            status       VARCHAR          95        3                    -                    -                     -                     -
+                            blocks        BIGINT          95       54                    1                  230     35.56842105263158     35.94133891809103
+                   switched_blocks        BIGINT          95       25                    0                   58     7.231578947368421    12.355938043192497
+                  unchanged_blocks        BIGINT          95       47                    1                  174     28.33684210526316    27.691542040123192
+                            ward_a        BIGINT          95       38                    1                   49     20.46315789473684     14.57614673881269
+                            ward_b        BIGINT          95       45                    3                   50     29.66315789473684     13.22763912155616
+                        alderman_a       VARCHAR          95       38                    -                    -                     -                     -
+                    permit_score_a        DOUBLE          95       38  -2.6261282212235035   1.5587271875761726  0.008221341217956537    0.7542363866141314
+                 developer_share_a        DOUBLE          94       20                  0.0  0.03577817531305903  0.003711158858842471 0.0057735263311104925
+             donation_stringency_a        DOUBLE          94       20 -0.03577817531305903                 -0.0 -0.003711158858842471 0.0057735263311104925
+               developer_dollars_a        BIGINT          94       16                    0                68000    3990.9574468085107     8589.015123625568
+                eligible_dollars_a        DOUBLE          94       37               2000.0           5234417.33     801385.7653191491     897979.1820664633
+                        alderman_b       VARCHAR          95       45                    -                    -                     -                     -
+                    permit_score_b        DOUBLE          95       45  -2.6261282212235035    1.557767949771029   0.05192087651568384    0.7909872976953078
+                 developer_share_b        DOUBLE          94       24                  0.0  0.03577817531305903  0.005163310116021119  0.006138969036094394
+             donation_stringency_b        DOUBLE          94       24 -0.03577817531305903                 -0.0 -0.005163310116021119  0.006138969036094394
+               developer_dollars_b        BIGINT          94       19                    0                68000     4409.574468085107     10449.28169727559
+                eligible_dollars_b        DOUBLE          94       44              11800.0           5234417.33     676580.1688297869     757237.5316149207
+                      paper_higher       VARCHAR          95       36                    -                    -                     -                     -
+                  developer_higher       VARCHAR          75       24                    -                    -                     -                     -
+                   donation_higher       VARCHAR          75       35                    -                    -                     -                     -
+                          ordering       VARCHAR          95        4                    -                    -                     -                     -
+        estimate_without_developer        DOUBLE          37       37  0.08303420797784358  0.14198182831631226    0.1136021426390007  0.009697642490872503
+            estimate_without_paper        DOUBLE          37       37 -0.09753479225500408 -0.04490355427249594  -0.08272544416531713   0.00994957910369041
+       std_error_without_developer        DOUBLE          37       37 0.047244830334808446 0.061502201052677716   0.05446406773465293  0.001969647648492471
+           std_error_without_paper        DOUBLE          37       37 0.051714230185401056  0.06295517799772773   0.05510848867633009 0.0018442002684757057
+         p_value_without_developer        DOUBLE          37       37 0.003635622109116863   0.1575988711213382   0.04442198841448425  0.024282160338874897
+             p_value_without_paper        DOUBLE          37       37  0.06326851756013628  0.43378624139932054   0.14480852580792503   0.06700204129980274
+         percent_without_developer        DOUBLE          37       37    8.657897758208613   15.255570446901698    12.035748754274962    1.0839123010489433
+             percent_without_paper        DOUBLE          37       37   -9.292921803116268   -4.391031184789137    -7.935151504192335    0.9246887659598417
+change_percentage_points_developer        DOUBLE          37       37   -3.384619127316231    3.213053561376855 -0.006768131249881311    1.0839123010489435
+    change_percentage_points_paper        DOUBLE          37       37  -1.3332688442989307   3.5686217740282014   0.02450145462500375    0.9246887659598412
+               n_without_developer        BIGINT          37       32                28957                31347     30892.72972972973     497.8246371659098
+                   n_without_paper        BIGINT          37       32                28957                31347     30892.72972972973     497.8246371659098
+                     fitted_blocks        BIGINT          75       46                    1                  230     38.38666666666666    38.157176128352184
+            fitted_switched_blocks        BIGINT          75       23                    0                   58     7.773333333333333    13.214011127969057
+                fitted_block_years        BIGINT          75       51                    1                 2530    419.82666666666665     421.4831077161814

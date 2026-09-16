@@ -1,0 +1,40 @@
+File: influential_building_review.csv
+Rows: 13
+Columns: 30
+SHA-256 (saved bytes): 89416174d10d4727817968e3cedc614906055d519d4c2e8e4a1a9e80cdc09105
+Key: project_id
+Types: DuckDB inference from the complete saved CSV.
+Distinct counts: exact (exact up to 100,000 rows).
+Row counts, non-missing counts, and declared-key checks: exact.
+
+                 column inferred_type non_missing distinct                 min                max                mean                 sd
+            case_number        BIGINT          13       13                   1                 13                 7.0 3.8944404818493075
+             project_id       VARCHAR          13       13                   -                  -                   -                  -
+                address       VARCHAR          13       13                   -                  -                   -                  -
+              selection       VARCHAR          13        4                   -                  -                   -                  -
+            review_date          DATE          13        1                   -                  -                   -                  -
+                adopted       BOOLEAN          13        1                   -                  -                   -                  -
+          current_units        BIGINT          13       12                   1                275   56.30769230769231  91.40421636462276
+  current_building_sqft        BIGINT          13       13                5560             365137   67877.69230769231 111338.82750818529
+      current_land_sqft        BIGINT          13       13                2950              47882  15603.461538461539 13303.991209504165
+           current_year        BIGINT          13       11                2006               2022  2014.4615384615386 5.6364200312992185
+          current_dupac        DOUBLE          13       13  1.8435754189944136  370.8553914739482  116.41284159413019 112.03576899326384
+         component_pins       VARCHAR          13       13                   -                  -                   -                  -
+   selected_source_rows       VARCHAR          13       13                   -                  -                   -                  -
+       current_alderman       VARCHAR          13        9                   -                  -                   -                  -
+           current_pair       VARCHAR          13       11                   -                  -                   -                  -
+        omission_sample       VARCHAR          13        2                   -                  -                   -                  -
+omission_effect_percent        DOUBLE          13       13   -14.6974155147902 -8.807752730505314 -10.612041445094604 1.9637708489881323
+     omission_change_pp        DOUBLE          13       13 -3.0126603756156687 2.8770024086692167  1.1597336050952054 1.9175381441932497
+ in_recent_count_review       BOOLEAN          13        1                   -                  -                   -                  -
+         recommendation       VARCHAR          13       13                   -                  -                   -                  -
+         proposed_units        BIGINT           9        9                   2                275   77.66666666666667 104.15973310257664
+     proposed_land_sqft        BIGINT           8        8                2950              47882           16720.125 16099.543165102541
+          proposed_year        BIGINT           6        5                2006               2022  2016.3333333333333  5.680375574437557
+             confidence       VARCHAR          13       11                   -                  -                   -                  -
+               evidence       VARCHAR          13       13                   -                  -                   -                  -
+        remaining_issue       VARCHAR          13       13                   -                  -                   -                  -
+             permit_ids       VARCHAR          13       13                   -                  -                   -                  -
+            source_urls       VARCHAR          13       13                   -                  -                   -                  -
+       assessor_history       VARCHAR          13       13                   -                  -                   -                  -
+        permit_evidence       VARCHAR          13       13                   -                  -                   -                  -

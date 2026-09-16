@@ -1,0 +1,72 @@
+\clearpage
+\section*{Outcome estimates using raw log processing times}
+\textit{September 15, 2026. Agent-drafted analysis requested by Jacob.}
+
+Ordering aldermen by raw average log permit processing time leaves the
+permit and sale-price estimates close to their original values, but makes
+the density estimates small and statistically imprecise. The permit effect
+is $-11.80\%$ under raw ordering versus $-11.88\%$ under the adjusted score;
+the corresponding sale-price estimates are $+3.17\%$ and $+3.04\%$. All
+four estimates have conditional $p$-values below .05. For all construction,
+FAR changes from $-9.24\%$ to $-1.84\%$ and DUPAC from $-13.70\%$ to
+$+1.20\%$. For multifamily construction, FAR changes from $-12.85\%$ to
+$-1.95\%$ and DUPAC from $-17.36\%$ to $+2.16\%$. The four raw-ordering
+density estimates have $p$-values between .66 and .85. Rent changes from
+$+1.76\%$ to $+1.30\%$, with neither distinguishable from zero at .10.
+
+Jacob also requested dropping the disagreements. This retains only pairs
+on which the adjusted score and raw log time agree. The permit effect is
+$-12.42\%$ ($p=.0099$), sale prices are $+4.49\%$ ($p=.0116$), and rents
+are $+3.20\%$ ($p=.0204$). All-construction FAR and DUPAC remain negative
+at $-8.66\%$ and $-10.54\%$; multifamily FAR and DUPAC are $-7.05\%$ and
+$-11.49\%$. All four density $p$-values exceed .10. The agreement-only
+samples contain 2,657 construction projects, including 539 multifamily
+projects, 41,290 sales and 121,615 rental observations. The permit sample
+retains 3,153 blocks and 34,386 block-years, compared with 3,379 blocks and
+36,830 block-years originally. This deletion changes sample composition,
+particularly for rentals; it is not simply another ordering of the same data.
+
+There are six disagreeing permit pairs, 73 all-construction pairs, 52
+multifamily pairs, 101 sales pairs and 70 rental pairs. Reversing all these
+disagreements is exactly equivalent to ordering every local comparison by
+raw average log processing time. The audit checks that identity for each
+record. It averages permit-level log durations, using exactly the same
+eligible permits as each adjusted score: through 2014 for the remap and
+through 2022 for boundary outcomes. No mean-log tie occurs in these pairs.
+This is a coherent alternative ordering, unlike arbitrary pair reversals
+that might conflict with one another.
+
+The outcome specifications remain fixed. Boundary coefficients compare the
+two 100-foot bands in the existing distance-bin model within 500 feet.
+The permit effect pools 2015--2020 in the signed Poisson specification;
+the annual path is also retained. Dropping a permit pair removes its
+unchanged comparison blocks along with its reassigned blocks. Reversal
+keeps unchanged blocks at zero. Joint pretrend $p$-values are .400 for
+the original score, .435 after deletion and .483 under raw ordering.
+These tests do not establish parallel trends.
+
+The sensitivity differs substantially by outcome. This exercise does not
+establish which ranking better measures alderman behavior: raw delays also
+reflect permit composition, calendar time and location. Both orderings use
+the same permits, and the reported intervals and $p$-values condition on
+each sample and ordering. They exclude score-estimation uncertainty.
+Production scores, datasets and manuscript files remain unchanged.
+
+\clearpage
+\begin{center}
+\includegraphics[width=\textwidth]{../tasks/audits/raw_log_score_sensitivity/records/raw_log_effects_before_corrections.pdf}
+\end{center}
+
+\textit{Reproduction.} Run \texttt{make} in
+\path{tasks/audits/raw_log_score_sensitivity/code/}. The audit reads the
+preserved outcome sources under \path{data_raw/score_robustness/} and the
+raw-pair comparisons produced from revision \texttt{2a06f3d7}. Two
+estimation scripts cover the boundary and permit specifications; one
+assembles the report and figures. All seven baseline coefficients,
+standard errors, $p$-values and fitted counts match the preceding recorded
+results within $10^{-8}$. All baseline annual permit coefficients and the
+pretrend test also match. Fitted pair counts agree with the raw-time
+comparison. Reversing every original label negates coefficients and
+preserves standard errors; using raw ordering preserves original fitted
+observations. Data reports record keys, counts, missingness and saved-byte
+fingerprints. The summary has 21 rows and the full permit table has 33.

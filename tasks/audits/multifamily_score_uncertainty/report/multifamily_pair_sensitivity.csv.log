@@ -1,0 +1,30 @@
+File: multifamily_pair_sensitivity.csv
+Rows: 670
+Columns: 20
+SHA-256 (saved bytes): 58cbb70d2389f696824e5f06b8eddcaa9e6d5079198637224534aefbdc93ce00
+Key: scenario, method, threshold, pair, outcome
+Types: DuckDB inference from the complete saved CSV.
+Distinct counts: exact (exact up to 100,000 rows).
+Row counts, non-missing counts, and declared-key checks: exact.
+
+                column inferred_type non_missing distinct                  min                  max                 mean                   sd
+               outcome       VARCHAR         670        2                    -                    -                    -                    -
+              estimate        DOUBLE         670      669 -0.25565568903448993  0.05954260527130789  -0.1595725616127831  0.03749583069198664
+             std_error        DOUBLE         670      670  0.06321149882834717  0.16379442506571976  0.09008459698948762 0.019736401794901322
+               p_value        DOUBLE         670      670 0.007722463682888317   0.9918411090965547  0.08862772105914363  0.10253703879430016
+                ci_low        DOUBLE         670      670  -0.5023456758202816 -0.14200604590119473 -0.33865846998417964  0.06830043401743513
+               ci_high        DOUBLE         670      670 -0.06387398768029504   0.2734580087958984  0.01951334675861308  0.03515891973144466
+                     n        BIGINT         670       32                  408                  863    854.7522388059701    44.84640573209718
+               input_n        BIGINT         670       32                  408                  863    854.7522388059701    44.84640573209718
+        alderman_pairs        BIGINT         670        8                   67                  161   159.32537313432834    9.374062476827019
+            ward_pairs        BIGINT         670        6                   51                   88    87.44776119402985   3.5639935867904167
+              scenario       VARCHAR         670        5                    -                    -                    -                    -
+                method       VARCHAR         670        5                    -                    -                    -                    -
+             threshold        DOUBLE         670        3                  0.0                 0.95 0.030447761194029845  0.15921549860167594
+                  pair       VARCHAR         670      162                    -                    -                    -                    -
+        selected_pairs        BIGINT         670        8                    0                   94   3.3492537313432837   13.043349285297657
+    selected_buildings        BIGINT         670       32                    0                  455     16.4955223880597   62.338958283174264
+        percent_effect        DOUBLE         670      669   -22.55914397464869   6.1350979162683235  -14.688166440169562     3.29667941612629
+           percent_low        DOUBLE         670      670   -39.48903972690357  -13.238398905062013  -28.561208288554468    4.880417291449319
+          percent_high        DOUBLE         670      670   -6.187679283573216    31.45021605246224   2.0367632833659832    3.880087112477749
+change_log_coefficient        DOUBLE         670      668 -0.06496411662667467  0.25023417767912315 0.004555981660550048 0.028110406324286862

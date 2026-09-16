@@ -1,0 +1,33 @@
+File: multifamily_dupac_projects.csv
+Rows: 863
+Columns: 23
+SHA-256 (saved bytes): 0b8bc2e7a03d02ec19cf3776435076f084267c971c2ed694080a9e989e0c39c4
+Key: sample, project_id
+Types: DuckDB inference from the complete saved CSV.
+Distinct counts: exact (exact up to 100,000 rows).
+Row counts, non-missing counts, and declared-key checks: exact.
+
+            column inferred_type non_missing distinct                  min                  max                  mean                    sd
+          estimate        DOUBLE         863      850 -0.15896543317794645 -0.09220030053111801  -0.12422933201321938  0.004178322542211691
+         std_error        DOUBLE         863      850   0.0845189924059668   0.0974395310478998   0.09089378390465884 0.0009093626944601946
+           p_value        DOUBLE         863      850  0.08902887616150798   0.2920735376210294   0.17564440490064956  0.014589115454927143
+    percent_effect        DOUBLE         863      850    -14.6974155147902   -8.807752730505314   -11.681500612839534   0.37023539849680565
+           input_n        BIGINT         863        1                  862                  862                 862.0                   0.0
+                 n        BIGINT         863        1                  862                  862                 862.0                   0.0
+        project_id       VARCHAR         863      863                    -                    -                     -                     -
+            sample       VARCHAR         863        1                    -                    -                     -                     -
+    current_effect        DOUBLE         863        1   -11.68475513917453   -11.68475513917453   -11.684755139174694                   0.0
+           address       VARCHAR         676      669                    -                    -                     -                     -
+              pair       VARCHAR         863      161                    -                    -                     -                     -
+      alderman_own       VARCHAR         863       83                    -                    -                     -                     -
+              ward        BIGINT         863       44                    1                   50    20.703360370799537    15.105969850417486
+ construction_year        BIGINT         863       17                 2006                 2022    2013.3835457705677     5.747999384629007
+    dwelling_units        BIGINT         863      108                    2                  800    24.208574739281577     71.29716623027478
+         land_sqft        BIGINT         863      569                 1575              1540260    11487.136732329085    56464.823646468234
+     density_dupac        DOUBLE         863      602    4.148571428571429    905.9747899159664     67.27881344382202     91.84976330285244
+signed_distance_ft        DOUBLE         863      863  -499.48730233535076   499.22435948929416    -3.908448242414369    277.50454196011253
+  in_recent_review       BOOLEAN         863        2                    -                    -                     -                     -
+    screen_reasons       VARCHAR          56       12                    -                    -                     -                     -
+ recorded_decision       VARCHAR         120      111                    -                    -                     -                     -
+         change_pp        DOUBLE         863      850  -3.0126603756156687   2.8770024086692167 0.0032545263350052165    0.3702353984968058
+additional_omitted        BIGINT         863        1                    0                    0                   0.0                   0.0

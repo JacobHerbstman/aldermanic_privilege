@@ -1,0 +1,574 @@
+\clearpage
+\section*{Do the source rules measure the original construction?}
+\textit{September 15, 2026. Agent-drafted first-stage population review requested by Jacob.}
+
+The existing rules account for the numerical values in all 13,677
+retained construction observations, but they do not consistently
+establish that those values describe the original construction. Of the
+13,183 observations without recorded overrides, 12,383 reproduce all
+four fields from an identified assessment or the declared aggregation of
+its components; 636 substitute permit application year for an Assessor
+year one year earlier; 162 recover older area measurements; and two fill
+missing development-record apartment counts from permit evidence. These
+categories partition the ordinary observations. All 494 retained
+correction records reproduce their explicit numerical inputs. This is
+an accounting result, not independent confirmation of each field's
+accuracy or coverage.
+
+The multiple-card rule has a concrete coverage gap. All 339 ordinary
+multiple-card observations reproduce their selected cards' unit and
+floor sums and take the repeated parcel land once. However, 40 have
+additional positive-area cards in the same assessment outside the
+selected construction episode, including 13 main-sample observations.
+Most extra cards have years before the study period. They could
+represent older buildings or obsolete records. The numerator counts
+selected construction while the denominator uses parcel land; a
+complete selected episode need not cover the whole parcel. These cases
+have not been adjudicated or added to the existing flag list.
+
+Among 614 ordinary commercial observations, 452 take all four fields
+from the selected assessment. Another 158 take earlier reported areas,
+and four combine earlier component records. Twenty of these 162 have a
+different count in the earlier area source. Their arithmetic follows
+the code; matching parcel membership alone does not establish that old
+land and current building measurements describe the same original
+construction. The known Madison and Waveland errors also show that
+using all fields from one current assessment does not solve the
+original-construction question.
+
+The development route retains 64 ordinary observations: 62 use a
+positive apartment field and two fill from a permit count. The
+Assessor's dictionary defines that apartment field for small multifamily
+classes 211/212, so positivity on a development record does not establish
+a completed-building count. The 37 completed-condo observations without
+recorded overrides instead reproduce their residential-unit membership
+and agreeing building fields. All 321 ordinary tied-parcel observations
+reproduce their selected counts, floor areas and parcel-land sums.
+These internal agreements do not independently establish physical lot
+coverage.
+
+The application-year substitution already affects 636 observations,
+including 201 in the main sample. Application year is a proxy rather
+than a recorded completion date; this review has not established that
+those 636 dates are wrong. A separate provenance-label defect affects
+five ordinary records: floor recovery identifies a 2025 source row
+while the output retains a 2022 assessment-year label. Their other
+values agree under the recovery rule, so this finding alone does not
+establish wrong density measurements.
+
+The full-date permit check finds permit records sharing the parcel base
+(the first ten digits) for 7,295
+projects and a full residential new-building candidate for 4,002.
+There are 505 with a single completed candidate issued after the
+assigned year and 62 with later residential conversion or count-change
+text. These are chronology leads, not 505 wrong years or 62 inflated
+counts. A parcel can contain another building or a later construction
+episode, and some later conversions are already correctly excluded.
+No permit date or count was substituted by this audit.
+
+\textit{Scope and reproduction.} Production values, the 218 existing
+flags, estimates and manuscript are unchanged. The existing flags are
+reconciled below; no sample of unflagged buildings has been drawn or
+reviewed. The audit producer
+\path{tasks/audits/construction_measurement_review/code/check_source_rules.R}
+writes project-level and source-route tables with SaveData reports. It
+uses the preserved ordinary history, completed-condo history, correction
+file and full permit history. Make holds the existing production and
+screening outputs fixed for this first-stage review. The HTML report
+and \path{source_rules.md} explain the distinctions between accounting,
+source coverage and substantive confirmation. The Assessor's field
+scope is documented at
+\url{https://github.com/ccao-data/model-res-avm#features-used}.
+
+\textit{Reconcile the existing flags before new research.} Reading all
+64 recorded decisions for their actual subject separates earlier
+evidence from mere source preferences. Of the original 218 flags, 47
+are addressed by earlier documented decisions, ten have current-count
+support from the recent investigation, and six properties already lie
+outside the common FAR and DUPAC sample. Eight have confirmed count
+errors, with corrections not applied. Sixteen have recently reviewed
+but open measurement questions, seven have old decisions that leave
+the flagged question open, 72 have source disagreements still to
+reconcile, and 52 have repetition or ratio clues without a case
+adjudication. These categories partition the original 218; their
+main-sample counts are respectively 12, 9, 0, 5, 9, 2, 6 and 17,
+totaling 60.
+
+The earlier decision for Belmont's two 27-home buildings cites
+separate permit revisions, so equal counts do not by themselves
+reopen that decision. The mixed-use floor area at 440 N Halsted also
+has an explicit explanation. Conversely, expired conflicting permits
+do not prove newer Assessor counts correct, and Optima Signature's
+count decision does not settle its repeated land area. Eight of the
+64 older decisions rely on a source preference without independently
+settling counts; one, Lawrence, is already included among the recently
+reviewed open cases. Reusing a decision addresses its specific flag,
+not every field of the building. This is an evidence reconciliation,
+not completion of all remaining case adjudications. The renderer
+produces \path{flag_reconciliation.csv} with a data report, using the
+screen, recent findings and \path{prior_decision_review.csv}. Production
+data remain byte-identical to the preserved analysis snapshot.
+
+\clearpage
+\section*{Review of all 87 unchanged-area count disagreements}
+\textit{September 15, 2026. Agent recommendations following the requested case review; not adopted corrections.}
+
+All 87 retained projects with a positive unchanged-area count-conflict
+indicator were reviewed using preserved assessment histories, permit
+records, earlier decisions and available external building evidence.
+They include 27 observations in the main 500-foot sample. The count and
+land recommendations are to retain 45 current choices, correct 24
+counts (one also needs different land), remove six conversions,
+renovations or additions, retire one obsolete duplicate, and leave
+eleven unresolved or provisional. The main-sample counts in those
+categories are respectively 15, 6, 4, zero and two. These categories
+partition the reviewed records, but do not certify all their variables:
+twenty of the same records have construction-timing questions and three
+may carry forward an old building's floor area. The evidence table
+states those concerns alongside the count and land recommendations.
+
+There is no defensible unconditional oldest-assessment or
+newest-assessment rule. Original full-building permits and completed
+building accounts often corroborate an Assessor count, while revisions
+and later conversion permits explain other changes. At 5439 N Lincoln,
+the evidence distinguishes two dwellings from commercial space; at
+4351 N Lincoln it supports three dwellings rather than either reported
+four or five. This does not justify automatically subtracting one from
+all mixed-use apartment fields. At 1214 S Sawyer a 2014 permit explicitly
+converts the original two-flat to a single-family house. At 1664 W
+Division the original permits specify 60 apartments and a later permit
+converts a fitness center into another apartment. The construction
+observation should describe the original building rather than its
+later count.
+
+At Madison, independent building evidence supports nine apartments at
+1100 and eighteen at 1048, retaining their reported lots of 4,599 and
+10,000 square feet. Eighty-one describes the community, and even the
+older 24 at 1048 is unsupported. The contemporary account reports 2013
+completion, which also needs reconciliation with the selected 2012.
+Wolf Point West's developer reports 509 apartments and a 40,653-square-foot
+site instead of the repeated 178,133-square-foot development total;
+its initial occupancy is reported as 2016 rather than the selected
+2014. Wolf Point East's individual lot remains unresolved. Circa 922
+has 104 newly built apartments and 45 existing lofts, so its combined
+site cannot automatically be paired with the new-building count.
+
+The six removal recommendations concern 2656 W North (warehouse
+conversion), 2425 N Rockwell, 1939 N Whipple, 2223 N Bissell, 116 N
+Elizabeth and 3440 N Southport (additions or renovations). Wholly new
+replacement buildings remain eligible in principle, but identical
+floor numbers across demolition and replacement do not verify the
+new building's floor area. That issue is retained explicitly for 2742 W
+38th, 1428 N Cleveland and 2045 W Ohio. At 660 E 42nd, consecutive old
+and successor assessment histories share an address; the successor's
+preserved 2009 parcel point falls inside the old 2006 polygon, 6.15 feet
+from its centroid in CRS 3435. This supports retiring the obsolete
+observation, while the successor's original count and year remain
+unresolved. No land was calculated from those polygons.
+
+The eleven unresolved or provisional observations are Lawrence, Lake,
+Circa 922, Wolf Point East, Michigan, Crystal, the two Sawyer houses,
+the successor at 660 E 42nd, 552 W 43rd and 2935--2937 W 63rd. Only
+Lawrence and Michigan are currently in the main sample. The two Sawyer
+counts of two remain reasonable Assessor-based preferences but lack
+independent original-building confirmation. Crystal and 43rd have
+evidence of pre-period construction despite later selected years. The
+63rd Street permit may describe only part of the combined assessment;
+neither its count nor a replacement denominator is proposed without
+settling that coverage.
+
+\textit{Proposed rule and implementation.} Flag unchanged-area count
+changes; establish the original completed building; separate dwellings
+from shops and later conversions; and retain source-reported land for
+the same building or coherent group. An issued or expired permit alone
+does not establish completion. The interpretation needed here should
+be documented in the existing correction input once approved, applied
+once in ordinary cleaning. This review introduces no production task,
+no address-specific correction code and no automatic numerical choice
+between contradictory snapshots.
+
+\textit{Research record and verification.}
+\path{tasks/audits/construction_measurement_review/count_land_review.csv}
+contains all 87 recommendations, current and proposed measurements,
+assessment row IDs and histories, exact relevant permit descriptions,
+source URLs, limitations and an unadopted indicator. The existing
+renderer checks unique keys, exact coverage of the population indicator,
+agreement with current count/land/sample membership, and unadopted
+status. It writes the HTML review and a standard data report. The
+report was rebuilt through the audit Makefile with the six existing
+screen/source-check outputs held fixed. Production data, recorded
+production decisions, estimates and manuscript remain unchanged; no
+unflagged-building sample was drawn. Sources and the report-only build
+command are recorded in \path{count_land_review.md}.
+
+\clearpage
+\section*{Follow-up recommendations for the same 87 records}
+\textit{September 15, 2026. Further source review; all recommendations remain unadopted.}
+
+The follow-up covers thirty of the same 87 records: the union of the
+previously unresolved or provisional cases and the overlapping date
+and floor-area questions. The proposed treatment across all 87 is now
+to keep 65 after specified corrections, retain two Sawyer observations
+with an explicit count qualification, exclude six additions,
+renovations or conversions, exclude one partial ownership record and
+one lodging building, place two buildings before the study period,
+retire one obsolete duplicate, and withhold nine records whose needed
+measurements or construction years remain unresolved. These categories
+sum to 87. Among the proposed retained observations, 24 counts,
+14 construction years and one lot area would change; the changes
+overlap. Current main-sample membership comprises 19 proposed retained
+observations, four non-new-construction exclusions, one partial-building
+exclusion, one lodging exclusion and two unresolved records. Corrected
+years could change historical boundary assignment, so these are not
+post-adoption sample counts.
+
+The two Madison buildings have documented completion in 2013, with
+nine and eighteen apartments. Other completed-building evidence supports
+2011 for 544 W Oak, 2015 for Eight O Five, 2017 for Aur\'elien, 2016 for
+Centrum Wicker Park and Luxe on Chicago, 2016 for Wolf Point West,
+2008 for Burnham Pointe, and 2017 for 6614 W 65th. A June 2021 listing
+offers newly completed apartments at 2910 S Archer; the exact-PIN permit
+identifies that address rather than the selected 2904. Earlier assessment,
+retail-buildout and rental evidence support three apartments in 2021
+at 3542 N Southport. Six apartments and a 2014 completion proxy are
+supported at 3408 N Milwaukee. Van Buren's 2014 remains an earlier
+Assessor proxy amid inconsistent marketing, rather than a located
+occupancy certificate. Superior's rental history establishes completed
+use by mid-2022, supporting retention of the Assessor's 2022 year and
+three dwellings despite an expired permit status.
+
+The follow-up also shows why initial permit counts cannot always settle
+a dispute. Aur\'elien's developer page has completed-project data of
+368 apartments in July 2017 but unrevised proposal prose stating 373.
+The full permit and completed-project data support retaining 368,
+while the conflicting older assessment and publicity are preserved in
+the case record. At 1428 N Cleveland, the single-family permit concealed
+a use question: an October 2016 visitor describes a newly built
+bed-and-breakfast, The Sono, with seven guest rooms and owners living
+on site. The operator and seller descriptions corroborate lodging use.
+The recommendation is to exclude it from ordinary residential
+construction, not count its guest rooms as dwellings. This remains a
+sample-definition judgment requiring agreement.
+
+The nine withholding recommendations concern Lawrence, Lake,
+Circa 922, Wolf Point East, Jackson, 38th, Ohio, the successor at 42nd,
+and the 63rd Street parcel pair. Additional sources did not establish
+the missing completion year, building coverage, floor measure or
+individual lot. At Ohio, seller marketing reports an estimated area
+including finished lower-level rooms; it does not independently replace
+the Assessor-comparable floor area. At 38th, the located old listing
+describes the demolished building. Withholding FAR removes these two
+from the agreed common FAR-and-DUPAC sample even though one dwelling
+and reported land remain supported. No map-calculated or allocated
+land area is proposed. Crystal's original building is dated 2005 in
+the early assessment, and the 43rd Street house already appears in
+2005 with year built 2004; both should remain outside the study period.
+The Michigan record groups only seven holdings within a much larger
+condominium tower and is not a whole-building observation.
+
+The two Sawyer properties are explicitly qualified retention judgments.
+Each has an initial count of three and then two in all subsequent
+preserved assessments, without a located original-building permit or
+independent seller account. Two is the recommended Assessor-based
+choice, not independently established truth or a general majority-vote
+rule. The research pass is complete for the bounded follow-up, but
+adoption, conservative withholding and the lodging judgment still need
+agreement. This does not adjudicate all other population flags or begin
+the deferred unflagged-building sample.
+
+\textit{Reproduction and production boundary.} Findings, URLs and
+proposed values were added to the existing 87-row audit evidence table.
+The existing renderer reports proposed sample treatment and displays
+the follow-up evidence, while preserving source histories and the
+unadopted indicator. The audit report and this logbook were rebuilt
+through their Makefiles against the preserved upstream outputs.
+Production correction and analysis files remain unchanged. Eventual
+approved decisions belong in the existing committed correction CSV,
+joined once by ordinary cleaning; this follow-up adds no production
+scripts or tasks.
+
+
+\clearpage
+\section*{Adoption of the apartment-count review}
+\textit{September 15, 2026. Approved decisions entered in the existing correction table.}
+
+Jacob approved incorporating the recommendations for the 87 reviewed records.
+The adopted treatment retains 67, including the two qualified Sawyer counts,
+and leaves twenty outside the common FAR-and-DUPAC sample. Six describe
+additions, renovations or conversions rather than new buildings; one is a
+partial ownership record, one is lodging, two predate the study period and
+one is an obsolete duplicate. Nine lack a supported measurement or completion
+year. For the two replacement houses with unverified floor area, the dwelling
+count and reported land remain usable for DUPAC, but FAR is withheld; the
+common sample therefore excludes them. The Sawyer records retain two apartments
+each as documented Assessor-based judgments, not independently verified counts.
+
+The adoption check corrected one mistake in the earlier review itself.
+The proposed 112 apartments and 2011 for 531 W Division came from the separate
+544 W Oak building. The Oak permit carried the Division parcel number, but
+its street address and coordinate identify the other Parkside phase. The
+completed original permit 100186134 at 545 W Division specifies 111 apartments;
+the Chicago Housing Authority's May 2025 Cabrini NOW completion table reports
+111 units and 2009 for Parkside IB-Rental. The adopted Division observation
+therefore uses 111 and retains its selected Assessor year 2009, floor area,
+lot and location. This supersedes the 112/2011 recommendation above. Among
+the retained 67 records, 25 dwelling counts, thirteen years and one land area
+change relative to the pre-adoption data; these changes overlap.
+
+Seven other retained buildings required explicit location references after
+count or year changes. LaSalle, Chicago Avenue, Fulton Market and Milwaukee
+use completed original-building permits. Wolf Point West, Archer and Southport
+use the preserved 2025 points for their exact County parcel numbers after
+checking the building identity. These are parcel-location proxies, not
+building-footprint measurements. Wolf Point West's address and recorded owner
+identify the West building; its original permit point lies farther east on
+the shared site. The developer's reported individual lot, rather than any
+area calculated from these coordinates, supplies its density denominator.
+Archer's County property-address field still says 2904, while the exact-parcel
+permit and taxpayer mailing address identify 2910. These source choices and
+limitations are stated with the corrections.
+
+The existing production correction CSV receives fifty new rows and two
+revisions; the other 35 reviewed observations need no redundant override.
+All 740 unrelated earlier correction rows are unchanged. Ordinary cleaning
+applies this table once; no production script or Makefile rule changed.
+The Make rebuild using preserved inputs yields 13,664 construction records,
+compared with 13,677 before adoption. Eligibility for both density measures
+falls from 13,635 to 13,615. All 67 retained review records have the specified
+measurements and usable locations; the other twenty are outside the common
+sample. Every unreviewed project and boundary row is unchanged. A second
+Make check requires no computation. The audit and logbook were rebuilt;
+estimation inputs, estimates and manuscript remain unchanged. Audit snapshots
+preserve the original discrepancies. This completes adoption of the bounded
+87-record review, not adjudication of other flags or the deferred unflagged
+sample.
+
+\clearpage
+\section*{Density estimates after the measurement corrections}
+\textit{September 15, 2026. Rerun requested after committing the reviewed decisions.}
+
+The corrections weaken the multifamily DUPAC estimate materially, while the
+two all-construction estimates remain negative and significant at five percent.
+Holding the original stringency scores and regression specifications fixed,
+the estimates comparing the first 100 feet on each side of the boundary are:
+
+\begin{center}
+\begin{tabular}{lrrr}
+\hline
+Outcome & Before (\%) & Corrected (\%) & Corrected $p$ \\
+\hline
+All construction: FAR & $-9.24$ & $-9.82$ & .025 \\
+All construction: DUPAC & $-13.70$ & $-12.82$ & .048 \\
+Multifamily: FAR & $-12.85$ & $-11.51$ & .069 \\
+Multifamily: DUPAC & $-17.36$ & $-11.68$ & .175 \\
+\hline
+\end{tabular}
+\end{center}
+
+Effects are $100[\exp(\hat\beta)-1]$. The fitted all-construction sample falls
+from 4,023 to 4,016 projects. Multifamily remains at 863, with changed membership.
+Within the eligible 500-foot data, nine observations exit, two enter following
+location corrections, and two retained houses become multifamily after their
+original two-unit counts are restored. Nine otherwise eligible projects lack
+one endpoint's stringency score and therefore a signed distance. This accounts
+for the difference between these eligible counts and fitted counts. All changes in
+the rebuilt analysis data belong to the reviewed properties; every unreviewed
+row remains unchanged. The citywide common-density sample has 13,615 projects,
+including 2,570 multifamily projects.
+
+At 1100 and 1048 W Madison, the adopted counts are nine and eighteen apartments,
+with 2013 completion. DUPAC is now 85.24 and 78.41, using the unchanged reported
+lots. Both remain assigned to Burnett opposite Fioretti. These corrections are
+part of the full rerun; the table above does not isolate their individual
+contributions to the change.
+
+Ordering the corrected observations by raw average log processing time gives
+all-construction FAR and DUPAC estimates of $-2.24\%$ and $-0.70\%$, and
+multifamily estimates of $-3.76\%$ and $-5.22\%$. None is significant at ten
+percent. Dropping disagreements instead gives $-10.36\%$, $-11.55\%$,
+$-8.00\%$ and $-12.48\%$; only all-construction FAR reaches ten percent
+($p=.085$). Thus the reviewed measurement errors explain part of the original
+multifamily difference, but the sensitivity to the ordering remains. This
+exercise does not establish which score measures alderman behavior better.
+All uncertainty statements condition on the estimated ordering and selected
+sample; score-estimation uncertainty is not included.
+
+The existing appendix checks were also rebuilt. All eight placebo coefficients
+remain statistically indistinguishable from zero at ten percent. All eight
+donut point estimates remain negative, although their significance varies.
+Removing each project's matched permits from the existing score calculation
+leaves the density estimates almost unchanged: all-construction FAR moves from
+$-.103$ to $-.104$ log points, and the other coefficients agree to three decimal
+places. The existing score-gap restrictions were rerun as well. This is the
+implemented project-specific permit exclusion check, not a new full first-stage
+leave-out estimator or combined bootstrap.
+
+\textit{Reproduction.} The reviewed decisions were committed and pushed as
+\texttt{7b0cf59c}. Make rebuilt the two analysis-data producers and the existing
+main density, density appendix and density score-robustness tasks using the
+preserved scores, controls, zoning sources, permit history and boundary inputs.
+This is a downstream rerun on the existing checkout, not a fresh-clone build.
+The raw-log audit now reads the corrected production analysis data and matches
+its alderman pairs to the preserved citywide score/time table. Its prior density
+estimates and figure are saved in its \texttt{records/} directory; the older
+driver audit continues to use those pre-correction inputs. Sales, rent and permit
+outcome estimates are retained unchanged. No production R script or Makefile
+was added or modified. The working-paper text and compiled PDF remain unchanged.
+
+\clearpage
+\begin{center}
+\includegraphics[width=\textwidth]{../tasks/audits/raw_log_score_sensitivity/output/raw_log_effects.pdf}
+\end{center}
+
+\clearpage
+\section*{Which projects explain the DUPAC change?}
+\textit{September 15, 2026. Project-level diagnosis requested after the rerun.}
+
+The two Madison corrections explain essentially all of the latest weakening
+in multifamily DUPAC. Starting from the pre-correction estimate of $-17.36\%$,
+changing only their counts from 81 each to nine and eighteen gives $-13.11\%$.
+Applying their complete corrected records, including 2013 construction years,
+gives $-11.67\%$. Applying all adopted corrections gives $-11.68\%$.
+Every correction except Madison gives $-17.04\%$. Thus this particular change
+has an identified source; it is not unexplained variability across identical
+runs. The intermediate regressions are accounting counterfactuals, not
+alternative datasets proposed for adoption. Their contributions are not
+additive, and the year changes also carry their construction-year controls.
+
+The corresponding all-construction estimates are $-13.70\%$ before correction,
+$-12.68\%$ after changing Madison counts alone, $-12.67\%$ after changing their
+complete records, and $-12.82\%$ with all corrections. All other corrections
+without Madison give $-13.84\%$. On the corrected data, deleting 1100 W Madison
+alone gives multifamily DUPAC of $-11.55\%$, deleting 1048 alone gives
+$-11.68\%$, and deleting the complete 27-project Burnett--Fioretti comparison
+gives $-9.51\%$. The old errors explain the latest attenuation, but neither
+corrected building is necessary for the remaining negative coefficient.
+
+Every current project was then omitted once with scores and specification
+unchanged: 4,016 all-construction trials and 863 multifamily trials. Every named
+alderman comparison was also omitted once: 256 and 161 trials. No individual
+project or pair omission makes either estimate nonnegative. Individual-project
+omissions yield ranges of $-13.56\%$ to $-12.09\%$ for all construction and
+$-14.70\%$ to $-8.81\%$ for multifamily. Pair omissions yield $-16.41\%$ to
+$-10.69\%$ and $-15.98\%$ to $-8.14\%$, respectively. This sign stability does
+not establish statistical precision or measurement accuracy. The corrected
+multifamily baseline has $p=.175$.
+
+\begin{center}
+\begin{tabular}{lr}
+\hline
+Project removed from multifamily sample & DUPAC estimate (\%) \\
+\hline
+1938 W North or 1551 N Milwaukee & $-8.81$ \\
+2030 or 1943 N California & $-9.22$ \\
+4183 W Belmont & $-9.31$ \\
+1219 W Madison & $-9.62$ \\
+\hline
+\end{tabular}
+\end{center}
+
+Each of the first two address pairs shares a boundary segment containing only
+those two multifamily observations. Dropping either removes that segment's
+within-segment comparison. The surviving singleton remains counted; no extra
+observation is omitted. The first pair compares 15 apartments on 3,025 square
+feet with four on 2,950; the second compares twenty on 9,128 with twelve on
+20,381. These are the recorded measurements, not newly verified values. None
+of these five leading records was part of the 87-case unchanged-area count
+review. They are influential observations, not newly established data errors.
+Removing those five together changes the multifamily estimate to $-3.33\%$
+($p=.663$, 858 projects). The joint check selects the five largest upward
+individual-deletion effects separately in each sample; it therefore removes
+a different set in all construction, yielding $-9.79\%$ ($p=.131$,
+4,011 projects). These are deliberately outcome-selected influence checks,
+not proposed samples or independent hypothesis tests. Despite the negative
+sign in every single-deletion trial, a few local comparisons account for much
+of the multifamily coefficient. This is substantial concentration of influence.
+
+Reviewing their measurements would be a targeted next check; no fresh manual
+adjudication or sample of unflagged buildings was undertaken here.
+
+\textit{Reproduction.} The existing
+\path{tasks/audits/density_ordering_drivers/} task now includes
+\texttt{diagnose\_dupac\_changes.R}. Its Make targets save the correction trials,
+every project deletion and every pair deletion, with SaveData reports. The
+estimator verifies both before and after baseline coefficients, standard errors
+and counts against the previous reruns. Both FAR and DUPAC remain required for
+sample eligibility; the outcome here is log DUPAC. The HTML report opens with
+these corrected-data checks and explicitly labels its preserved score-ordering
+results as pre-correction. The preceding rerun entry was also corrected: nine
+otherwise eligible projects lack a score for one boundary endpoint; their
+omission was not a fixed-effect singleton removal. This documentary correction
+changes no estimate. Production data, recorded decisions, scores and the
+manuscript remain unchanged by this diagnosis.
+
+
+\clearpage
+\section*{Evidence review of 13 influential construction observations}
+\textit{September 15, 2026. Requested follow-up after the correction rerun; recommendations not adopted.}
+
+Jacob requested a check of the five observations most strongly supporting
+the current negative multifamily DUPAC estimate and several other influential
+observations. The review covers thirteen records: the original five, seven
+additional multifamily records (including three whose removal makes the
+estimate more negative), and one single-family record influential in the
+all-construction result. None was in the earlier 87-case review, which
+selected changing counts with unchanged areas. This influence-selected set
+cannot estimate the error rate of the population.
+
+Two observations fail the agreed wholly new building definition as currently
+represented. At 1938--42 W North, the original permit and builder describe
+an addition beside an existing building; all fifteen homes cannot simply
+be treated as wholly new construction. At 1219 W Madison, the record of
+three homes in 2008 conflicts with a 2009 second-floor addition and a 2024
+conversion of commercial space to one dwelling. Exclusion of these combined
+records is recommended, without inventing measurements for a new portion.
+
+At 1551 N Milwaukee the City zoning application specifies three dwellings
+and a shop on 2,950 square feet of land; the Assessor's four appears to
+include commercial space. At 1451 W Belmont the new-building permit similarly
+specifies two dwellings plus an office rather than three dwellings. An
+October 2019 new-construction rental listing supports 2019 instead of the
+selected 2021 as a completion proxy. Neither case justifies mechanically
+subtracting commercial units throughout the dataset.
+
+Independent accounts support 275 homes at 205 S Peoria but completion in
+2019, rather than the selected 2018. Builder Clayco explicitly dates
+AM1980 (2435 W Armitage / 1980 N Milwaukee) to summer 2018, rather than
+2017; its 132 homes are supported. These two observations push against
+the negative result. Net rentable floor area at Peoria must not replace
+the reported gross area. Approximate floor totals at AM1980 differ in
+coverage; no new exact floor-area correction is recommended.
+
+The 20 homes at 2024--30 N California are supported, but their year remains
+unresolved between the selected 2008 and evidence favoring 2010/2011.
+The grouped 1943/1929 N California record does not yet reconcile distinct
+six-home buildings and 2008 versus 2012--2013 construction evidence.
+No replacement count or allocation of its 20,381-square-foot site is
+invented. The seventeen homes at 4177/4183 W Belmont and 2022 proxy are
+supported, but the related zoning application's address range differs
+from the four selected parcels. Its 13,500-square-foot denominator remains
+a coverage question, not a confirmed error. SOBE at 1400 W Belmont has
+support for 24 homes and its reported floor size; its 2019 versus 2020
+completion year is unsettled. The 3721 N Parkview castle was reportedly
+unfinished in 2015, contradicting treatment as a completed 2008 home;
+its tied-parcel lot also remains unresolved.
+
+The five two-home cards at 500 W 66th are consistent with ten homes,
+11,050 square feet of floor and 6,251 of land. Earlier review distinguished
+the building from its neighbor, and an exact-parcel property record
+corroborates the totals, although that source may reproduce the Assessor.
+The 2006 Assessor year remains a proxy. At 1164 W Madison, permits and
+CBRE's delivery record support the existing reviewed 216 homes and 2014.
+Repeated reported areas are not labeled independently measured or certified.
+
+The existing audit task records current values, proposed changes, limits,
+source-row histories, permit evidence and source URLs in
+\path{tasks/audits/construction_measurement_review/influential_building_review.csv}.
+Its existing renderer displays all thirteen reviews and writes the data
+report. No new production script or task was added. The current analysis
+file remains unchanged (SHA-256
+\path{d78388a3713ed8224cd94bbdf5413d038902a080deb1038ceff49ccc6f2edebf}).
+No proposed corrections, new regression estimates or manuscript edits were
+made. The findings justify correcting demonstrated errors before treating
+statistical sensitivity as merely sampling variation; they do not establish
+what the corrected estimate will be.

@@ -1,0 +1,40 @@
+File: price_pair_influence.csv
+Rows: 1222
+Columns: 30
+SHA-256 (saved bytes): 274354081ecf1e020ebe6130a3ed430e62c73215132c27b423879fac799dca5f
+Key: market, scenario, pair
+Types: DuckDB inference from the complete saved CSV.
+Distinct counts: exact (exact up to 100,000 rows).
+Row counts, non-missing counts, and declared-key checks: exact.
+
+                  column inferred_type non_missing distinct                    min                  max                   mean                   sd
+                  market       VARCHAR        1222        2                      -                    -                      -                    -
+                    pair       VARCHAR        1222      377                      -                    -                      -                    -
+                estimate        DOUBLE        1222     1127 -0.0031539076191654447  0.04011772341043127   0.024902655199017985 0.006262141567462402
+               std_error        DOUBLE        1222     1145   0.012003612924971176  0.01817725071971465   0.014331492942082113  0.00114995799261407
+                 p_value        DOUBLE        1222     1145   0.005252689468297965   0.8959208221753805    0.12529772620939875  0.12350525125208632
+                  ci_low        DOUBLE        1222     1145   -0.03909356283466098  0.01214634407631026  -0.003432379932607113 0.008491383839016091
+                 ci_high        DOUBLE        1222     1145   0.032785747596330087   0.0680891027445523    0.05323769033064315 0.004083197296523137
+                       n        BIGINT        1222      422                  57027               240713     131001.86170212766    89099.13067282562
+                 input_n        BIGINT        1222      422                  57027               240713     131001.86170212766    89099.13067282562
+          alderman_pairs        BIGINT        1222        4                    243                  367      317.3805237315876   60.267694235300326
+              ward_pairs        BIGINT        1222        3                    139                  141      140.5343698854337   0.5851398013034269
+                scenario       VARCHAR        1222        2                      -                    -                      -                    -
+                  method       VARCHAR        1222        1                      -                    -                      -                    -
+               threshold        BIGINT        1222        1                      0                    0                    0.0                  0.0
+          selected_pairs        BIGINT        1222        1                      1                    1                    1.0                  0.0
+        selected_records        BIGINT        1222      345                      1                21216       489.657937806874    1701.071486536632
+          percent_effect        DOUBLE        1222     1127    -0.3148939277133436    4.093330919881768       2.52353819609065   0.6410732895750245
+             percent_low        DOUBLE        1222     1145     -3.833927076676471   1.2220410488447722   -0.33906435636014526   0.8445948930098103
+            percent_high        DOUBLE        1222     1145     3.3329122274364376    7.046068521453474      5.468908175014985  0.43022401450616765
+  change_log_coefficient        DOUBLE        1222     1126  -0.020638813102136312 0.010157059988364508 -7.587248304973371e-05 0.001388205102972691
+              alderman_a       VARCHAR        1222       88                      -                    -                      -                    -
+              alderman_b       VARCHAR        1222       96                      -                    -                      -                    -
+                 records        BIGINT        1222      345                      1                21216       489.657937806874    1701.071486536632
+                   wards       VARCHAR        1222      145                      -                    -                      -                    -
+            baseline_gap        DOUBLE        1222      377     -4.616253377138877    4.508636335552829    0.06876891452800034   1.2703137221137217
+       baseline_stricter       VARCHAR        1222       97                      -                    -                      -                    -
+      property_retention        DOUBLE        1222      145     0.3887775551102205                  1.0       0.86784698693623  0.14529595729912703
+       quarter_retention        DOUBLE        1222      165     0.4909819639278557                  1.0     0.8589486665638966  0.14741202237134918
+          year_retention        DOUBLE        1222      157     0.4609218436873748                  1.0     0.8634585045705144   0.1450745491223921
+change_percentage_points        DOUBLE        1222     1126    -2.0787600547860974   1.0519309003147455  -0.007684622545753275  0.14167101454094883

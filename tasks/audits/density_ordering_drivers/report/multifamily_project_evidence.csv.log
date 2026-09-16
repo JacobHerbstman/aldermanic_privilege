@@ -1,0 +1,29 @@
+File: multifamily_project_evidence.csv
+Rows: 324
+Columns: 19
+SHA-256 (saved bytes): 90e37b2befb59c565234ca389737e3b353ea2426022805d578f905112dab1ac5
+Key: project_id
+Types: DuckDB inference from the complete saved CSV.
+Distinct counts: exact (exact up to 100,000 rows).
+Row counts, non-missing counts, and declared-key checks: exact.
+
+           column inferred_type non_missing distinct                 min                max                 mean                 sd
+       project_id       VARCHAR         324      324                   -                  -                    -                  -
+    source_family       VARCHAR         324        2                   -                  -                    -                  -
+ source_addresses       VARCHAR         113      107                   -                  -                    -                  -
+   component_pins       VARCHAR         324      324                   -                  -                    -                  -
+             pair       VARCHAR         324       52                   -                  -                    -                  -
+     alderman_own       VARCHAR         324       46                   -                  -                    -                  -
+alderman_neighbor       VARCHAR         324       41                   -                  -                    -                  -
+             ward        BIGINT         324       33                   1                 50   18.296296296296298 14.661670037327044
+    neighbor_ward        BIGINT         324       30                   1                 50                18.25 14.797367140927658
+construction_year        BIGINT         324       17                2006               2022   2014.7469135802469  5.549453132787846
+   dwelling_units        BIGINT         324       72                   2                800    35.67901234567901  89.98053826874438
+    building_sqft        BIGINT         324      287                1618            1252885   47999.200617283954 127000.50272380406
+        land_sqft        BIGINT         324      247                2040            1540260    15580.75925925926  86570.00486456873
+      density_far        DOUBLE         324      313  0.1847454325893031 32.509535794909056    2.722650650186276   3.47151324065396
+    density_dupac        DOUBLE         324      259   4.148571428571429  904.2268870494823     86.8433127377891 126.34109158271869
+   paper_distance        DOUBLE         324      324 -499.48730233535076 499.22435948929416  0.16464230482548678 287.33138800087175
+     raw_distance        DOUBLE         324      324 -499.22435948929416 499.48730233535076 -0.16464230482548678 287.33138800087175
+       segment_id       VARCHAR         324      171                   -                  -                    -                  -
+       zone_group       VARCHAR         324        6                   -                  -                    -                  -

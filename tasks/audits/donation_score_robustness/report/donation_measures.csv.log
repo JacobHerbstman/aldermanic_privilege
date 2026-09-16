@@ -1,0 +1,33 @@
+File: donation_measures.csv
+Rows: 39667
+Columns: 23
+SHA-256 (saved bytes): 99bca404468c43b4ba6e3657ea95495402359197bb92cc52b16a21c23b259a94
+Key: period, definition, sector, person_key
+Types: DuckDB inference from the complete saved CSV.
+Distinct counts: exact (exact up to 100,000 rows).
+Row counts, non-missing counts, and declared-key checks: exact.
+
+                     column inferred_type non_missing distinct                  min                max                 mean                  sd
+                 person_key       VARCHAR       39667      124                    -                  -                    -                   -
+                  full_name       VARCHAR       39667      124                    -                  -                    -                   -
+              total_dollars        DOUBLE       39667     1146                250.0         13900310.0     828109.195797794  1222555.4013903236
+             total_receipts        BIGINT       39667      853                    1              12218     983.339072780901  1152.6348429203738
+             observed_years        BIGINT       39667       27                    1                 28    6.511583936269443   4.543990007344004
+               office_years        DOUBLE       39667       59                 0.25               33.0   10.923658204553014    9.19559833783205
+             sector_dollars        DOUBLE       39667     4234                  0.0         1496292.18    31029.77913177199    72683.1858865038
+               dollar_share        DOUBLE       39667    13360                  0.0                1.0 0.044498787179021414   0.088630204616367
+          real_dollar_share        DOUBLE       39425    13498                  0.0                1.0  0.04422841902515636 0.08825598266143712
+              receipt_share        DOUBLE       39667     9421                  0.0                1.0 0.026593755943127212 0.04455799084398211
+           donor_name_share        DOUBLE       39425     6789                  0.0                1.0 0.022736989787213394 0.03746903462897175
+      real_dollars_per_year        DOUBLE       39425    11421                  0.0 183133.52788868145    4205.205589638825    9222.03684767406
+share_without_largest_donor        DOUBLE       39330    13195                  0.0                1.0  0.04166037738708913 0.07619910087410081
+        largest_donor_share        DOUBLE       39425     1096 0.006581393399794207                1.0  0.11038584479817343 0.14360497915211803
+                     period       VARCHAR       39667        8                    -                  -                    -                   -
+                 first_year        BIGINT       39667        6                 1994               2026   2007.1959563365015   7.845961661265853
+                  last_year        BIGINT       39667        6                 2005               2026   2019.9565129704793   5.463178229152613
+                 definition       VARCHAR       39667        7                    -                  -                    -                   -
+                     sector       VARCHAR       39667       19                    -                  -                    -                   -
+                paper_score        DOUBLE       37418      111   -3.445576092831627  3.335724428970233  0.03480451330418142  0.9393890675865969
+                  raw_score        DOUBLE       37418      111 -0.45148979022935976 0.5161660017100685  0.00477624210868455 0.13661720525687468
+                early_score        DOUBLE       27744       81  -2.6261282212235035  3.005754074503109  0.03047881258476269  0.9475289327690761
+                  n_permits        BIGINT       37418      108                   36               9560   1217.4731947191192  1323.9004884596782

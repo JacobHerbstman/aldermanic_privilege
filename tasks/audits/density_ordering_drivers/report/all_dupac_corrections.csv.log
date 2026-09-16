@@ -1,0 +1,30 @@
+File: all_dupac_corrections.csv
+Rows: 38
+Columns: 20
+SHA-256 (saved bytes): c24f9c477c5e57723780a71967f7fcd9ef3fd867f664343d9bdb1e46ff7cd1a4
+Key: sample, scenario, project_id
+Types: DuckDB inference from the complete saved CSV.
+Distinct counts: exact (exact up to 100,000 rows).
+Row counts, non-missing counts, and declared-key checks: exact.
+
+                column inferred_type non_missing distinct                  min                  max                 mean                    sd
+              estimate        DOUBLE          38       38  -0.1507127306932706 -0.10307094022974231 -0.14105020181460662  0.008181374061105065
+             std_error        DOUBLE          38       38  0.06770059530382373  0.07263796708970328   0.0704553536388523 0.0017531285016887956
+               p_value        DOUBLE          38       38  0.03914539428257541   0.1305049198627963  0.04854963003353721    0.0140256056076495
+        percent_effect        DOUBLE          38       38    -13.9905258006223   -9.793702134330843  -13.152578938632468    0.7180139952780977
+               input_n        BIGINT          38        7                 4011                 4024   4019.3684210526317    3.4829395214122094
+                     n        BIGINT          38        7                 4011                 4024   4019.3684210526317    3.4829395214122094
+              scenario       VARCHAR          38        8                    -                    -                    -                     -
+            project_id       VARCHAR          38       19                    -                    -                    -                     -
+                sample       VARCHAR          38        1                    -                    -                    -                     -
+         before_effect        DOUBLE          38        1  -13.703084207211347  -13.703084207211347  -13.703084207211356                   0.0
+        current_effect        DOUBLE          38        1  -12.816013982373159  -12.816013982373159   -12.81601398237315                   0.0
+               address       VARCHAR          32       16                    -                    -                    -                     -
+             old_units        BIGINT          28        6                    1                   81                 15.5    28.450737151160855
+             new_units        BIGINT          14        6                    2                  292                 55.0    102.27564564600749
+         old_land_sqft        BIGINT          28       14                 2208               212611   20473.428571428572     54426.91401995386
+         new_land_sqft        BIGINT          14        7                 2876                37362              13186.0      13409.1397188634
+              old_year        BIGINT          28        8                 2008                 2022   2013.0714285714287     4.224519007716866
+              new_year        BIGINT          14        6                 2008                 2022   2015.2857142857142     4.496640992983611
+ change_from_before_pp        DOUBLE          38       38 -0.28744159341095354    3.909382072880504   0.5505052685788759    0.7180139952780976
+change_from_current_pp        DOUBLE          38       38   -1.174511818249142   3.0223118480423157  -0.3365649562593126    0.7180139952780976
