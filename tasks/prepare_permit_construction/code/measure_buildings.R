@@ -101,6 +101,9 @@ commercial <- read_csv("../input/commercial_valuation_data.csv", col_types = col
   group_by(permit_id, record_id) |> mutate(permit_pin = any(permit_pin)) |> filter(year == min(year)) |> ungroup() |>
   distinct(permit_id, record_id, permit_pin, first_year = year, year_built = yearbuilt, classes = class_es,
     units = tot_units, building_sqft = bldgsf, land_sqft = landsf) |>
+  # A valuation reporting different measurements in the same year has no usable measurement.
+  group_by(permit_id, record_id) |> mutate(across(c(units, building_sqft, land_sqft), \(x) if (n() > 1) NA_real_ else x)) |>
+  slice(1) |> ungroup() |>
   mutate(older_building = FALSE, single_family = FALSE, source = "commercial")
 stopifnot(!anyDuplicated(commercial[c("permit_id", "record_id")]))
 DBI::dbDisconnect(con, shutdown = TRUE)

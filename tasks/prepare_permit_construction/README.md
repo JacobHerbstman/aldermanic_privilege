@@ -1,8 +1,10 @@
 # Permit-based new construction
 
-One row per new residential building authorized by a City of Chicago building permit issued 2006–2022,
-measured with the first Cook County Assessor record that shows the new building. This task does not
-feed the paper yet; `tasks/audits/permit_density_comparison` compares it with the paper's current data.
+`output/construction_buildings.csv` has one row per new residential building: every building authorized by a
+City of Chicago new-construction permit issued 2006–2022 (`route = permit`), and every new building in Cook County
+Assessor records that no such permit reaches (`route = assessor_only`). The permit file starts on January 3, 2006,
+so buildings completed in 2006–2007 are often on earlier permits. This task does not feed the paper yet;
+`tasks/audits/permit_density_comparison` compares it with the paper's current data.
 
 ## Rules
 
@@ -32,8 +34,19 @@ feed the paper yet; `tasks/audits/permit_density_comparison` compares it with th
 - `adjudication/manual_decisions.csv` is the only place for hand research: one row per permit number and
   field (`exclude`, `accept`, `dwelling_units`, `building_sqft`, `land_sqft`) with a source and note.
 
-`build_ledger.R` (`permit_issue`, `assessor_year`)
+`build_construction_buildings.R`
+- Assessor-only buildings: a condominium building, residential card or commercial apartment valuation first
+  reported built from `FIRST_YEAR_BUILT` on, persisting the following year, not measured by a permit and on no
+  parcel of a new residential permit issued in the preceding years. Measured as in the permit arm.
+- Those built through `LAST_UNPERMITTED_YEAR_BUILT` (2007) are accepted (`measured_without_permit`). Among
+  permitted buildings, the Assessor year built is at least one year after the permit for about a third and at
+  least two years after it for an eighth, so many 2006 and some 2007 buildings had pre-2006 permits; the paper's
+  no-permit share falls to its later level by 2008. Later ones are `no_permit_found` and wait for research;
+  many sit beside a permitted development (other lots of a townhome row, for example).
+- A residential year built that changes while the parcel keeps last year's floor area is a revised record.
 - Location: centroid of the measured parcels in the 2025 parcel universe (permit coordinates are geocoded
   at the street frontage, a median 56 ft from the parcel centroid); the permit point only when no parcel remains.
+
+`build_ledger.R` (`permit_issue`, `assessor_year`)
 - Ward and nearest ward-pair boundary from the map in effect on the permit issue date, or on June 15 of the
-  Assessor's year built.
+  Assessor's year built (always the latter for Assessor-only buildings).

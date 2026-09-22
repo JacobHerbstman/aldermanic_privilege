@@ -2,6 +2,9 @@ include ../../shared/code/shell_functions.make
 
 FIRST_ISSUE_YEAR := 2006
 LAST_ISSUE_YEAR := 2022
+FIRST_YEAR_BUILT := 2006
+LAST_YEAR_BUILT := 2022
+LAST_UNPERMITTED_YEAR_BUILT := 2007
 REPEAT_PERMIT_YEARS := 3
 ASSESSOR_YEAR_LEAD := 2
 UNIT_TOLERANCE := 0.2
@@ -11,12 +14,17 @@ BOUNDARY_WINDOW_FT := 1500
 MAIN_BOUNDARY_WINDOW_FT := 500
 TIMINGS := permit_issue assessor_year
 
-all: $(foreach timing,$(TIMINGS),../output/permit_construction_$(timing).csv)
+all: ../output/construction_buildings.csv $(foreach timing,$(TIMINGS),../output/permit_construction_$(timing).csv)
 
-../output/permit_construction_%.csv: build_ledger.R ../output/permit_buildings.csv ../input/parcel_universe_2025_city.csv \
-	../input/ward_panel.gpkg ../input/ward_pair_boundaries.gpkg \
+../output/permit_construction_%.csv: build_ledger.R ../output/construction_buildings.csv ../input/ward_panel.gpkg ../input/ward_pair_boundaries.gpkg \
 	../../shared/code/canonical_geometry_helpers.R ../../shared/code/save_data.R | ../output ../report
 	$(R) $< $* $(BOUNDARY_WINDOW_FT) $(MAIN_BOUNDARY_WINDOW_FT)
+
+../output/construction_buildings.csv: build_construction_buildings.R ../output/permit_buildings.csv \
+	../input/residential_assessor_history.parquet ../input/condominium_characteristics.csv ../input/commercial_valuation_data.csv \
+	../input/parcel_addresses_2025_chicago.csv ../input/parcel_universe_2025_city.csv ../../shared/code/assessor_classification.R \
+	../../shared/code/save_data.R | ../output ../report
+	$(R) $< $(FIRST_YEAR_BUILT) $(LAST_YEAR_BUILT) $(LAST_UNPERMITTED_YEAR_BUILT) $(ASSESSOR_YEAR_LEAD) $(MIN_SQFT_PER_UNIT) $(MAX_LAND_SQFT_PER_UNIT)
 
 ../output/permit_buildings.csv: measure_buildings.R ../output/construction_permits.csv ../adjudication/manual_decisions.csv \
 	../input/residential_assessor_history.parquet ../input/condominium_characteristics.csv ../input/commercial_valuation_data.csv \
