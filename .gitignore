@@ -213,3 +213,8 @@ tasks/audits/density_fixed_effects/input/
 tasks/audits/density_fixed_effects/output/
 tasks/audits/density_fixed_effects/temp/
 !tasks/audits/density_fixed_effects/report/*.log
+!tasks/audits/permit_density_comparison/
+tasks/audits/permit_density_comparison/input/
+tasks/audits/permit_density_comparison/output/
+tasks/audits/permit_density_comparison/temp/
+!tasks/audits/permit_density_comparison/report/*.log

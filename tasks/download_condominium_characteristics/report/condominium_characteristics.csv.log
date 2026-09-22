@@ -1,0 +1,24 @@
+File: condominium_characteristics.csv
+Rows: 1896881
+Columns: 14
+SHA-256 (saved bytes): 940741d71a3a2fd0dbae2755ee645c1b1e32faf97be95c0e6ded760c065d9dad
+Key: row_id
+Types: DuckDB inference from the complete saved CSV.
+Distinct counts: approximate (exact up to 100,000 rows).
+Row counts, non-missing counts, and declared-key checks: exact.
+
+                 column inferred_type  non_missing  distinct    min          max               mean                sd
+                 row_id       VARCHAR      1896881   1818672      -            -                  -                 -
+                    pin       VARCHAR      1896881    145365      -            -                  -                 -
+                  pin10       VARCHAR      1896881      6748      -            -                  -                 -
+                   year        DOUBLE      1896881        29 1999.0       2026.0 2016.3487224554412 6.236713021135802
+                  class        BIGINT      1896881         2    299          399  299.9988502178049  9.94421299824393
+             char_yrblt        DOUBLE      1896881        60 1888.0       2026.0 2004.4737745804823 7.490261331728179
+       char_building_sf        DOUBLE       422767      3102  475.0      75469.0 11380.741964249812  7572.36051187052
+           char_unit_sf        DOUBLE       282206      1556  120.0      10000.0 1695.8381076235091 556.6175474050407
+           char_land_sf        DOUBLE      1887789      4051    1.0 2656463040.0  42813.53422336924 5121059.115266447
+     char_building_pins        DOUBLE      1896881       386    1.0       1286.0  285.1132184886664 282.8253348376409
+char_building_non_units        DOUBLE      1896881       244    0.0        675.0 138.51054336039002 160.9509863310655
+       is_parking_space       BOOLEAN      1896881         2      -            -                  -                 -
+         is_common_area       BOOLEAN      1896881         2      -            -                  -                 -
+      bldg_is_mixed_use       BOOLEAN      1896881         2      -            -                  -                 -

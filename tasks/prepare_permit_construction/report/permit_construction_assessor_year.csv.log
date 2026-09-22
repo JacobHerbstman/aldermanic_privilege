@@ -1,0 +1,38 @@
+File: permit_construction_assessor_year.csv
+Rows: 10722
+Columns: 28
+SHA-256 (saved bytes): eaf10fd61b762ade6099289dbf093b4298440be98cd08bba743024bbc7e1e7a3
+Key: building_id
+Types: DuckDB inference from the complete saved CSV.
+Distinct counts: exact (exact up to 100,000 rows).
+Row counts, non-missing counts, and declared-key checks: exact.
+
+                 column inferred_type  non_missing  distinct                 min                max               mean                 sd
+            building_id        BIGINT        10722     10722             1555404            3291157   2390964.27625443 510092.09048855654
+          permit_number        BIGINT        10722     10722           100038638          100995338 100471138.30059691  264414.4209617811
+  member_permit_numbers       VARCHAR        10722     10722                   -                  -                  -                  -
+                 source       VARCHAR        10722         3                   -                  -                  -                  -
+             record_ids       VARCHAR        10722     10717                   -                  -                  -                  -
+             issue_date          DATE        10722      3364                   -                  -                  -                  -
+    assessor_year_built        BIGINT        10722        19                2004               2022 2012.8297892184294   5.25247611134023
+      construction_date          DATE        10722        19                   -                  -                  -                  -
+      construction_year        BIGINT        10722        19                2004               2022 2012.8297892184294   5.25247611134023
+          boundary_year        BIGINT        10722         2                2003               2015 2006.8914381645216 5.6175537539463205
+                    era       VARCHAR        10722         2                   -                  -                  -                  -
+                   ward        BIGINT        10722        50                   1                 50 25.952993844432008 15.406394509496975
+          neighbor_ward        BIGINT        10722        50                   1                 50  24.76487595597836 15.610650305931257
+              ward_pair       VARCHAR        10722       139                   -                  -                  -                  -
+distance_to_boundary_ft        DOUBLE        10722     10712  1.0214760848636961 27623.331505315982 1331.2285213178247 1687.4257115966657
+          within_1500ft       BOOLEAN        10722         2                   -                  -                  -                  -
+           within_500ft       BOOLEAN        10722         2                   -                  -                  -                  -
+        location_source       VARCHAR        10722         2                   -                  -                  -                  -
+                 x_3435        DOUBLE        10722     10709  1119499.7135786538 1203743.2364409526 1161737.3012825013 12117.499743433335
+                 y_3435        DOUBLE        10722     10709  1816533.4700654005 1950280.6413426185 1904414.2342904694 25392.796782690715
+         dwelling_units        BIGINT        10663       209                   0               1679  7.111507080558942 41.256160238824755
+          building_sqft        BIGINT        10448      4437                   0            1380640  8940.251627105667  45429.50663224701
+              land_sqft        BIGINT        10720      3373                   0            1612731 5692.9208955223885 26582.487926379046
+              allow_far       BOOLEAN        10722         2                   -                  -                  -                  -
+            allow_dupac       BOOLEAN        10722         2                   -                  -                  -                  -
+                    far        DOUBLE        10015      8752 0.15010161618116713 39.667305129913395 1.1834782020874597 1.3539013197829253
+                  dupac        DOUBLE        10225      3840  1.8282548476454292  914.1505662891408  27.94647287532599  46.54918745978229
+            multifamily       BOOLEAN        10663         2                   -                  -                  -                  -
