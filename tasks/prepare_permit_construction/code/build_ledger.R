@@ -18,7 +18,8 @@ stopifnot(timing %in% c("permit_issue", "assessor_year"))
 # reported year built. Buildings dated after the last recorded ward map are outside the panel.
 ward_panel <- st_read("../input/ward_panel.gpkg", quiet = TRUE) |> st_transform(3435)
 buildings <- read_csv("../output/construction_buildings.csv", col_types = cols(building_id = "c", permit_number = "c",
-    member_permit_numbers = "c", record_ids = "c", issue_date = "D", .default = col_guess())) |>
+    member_permit_numbers = "c", superseded_permit_numbers = "c", lot_rule_candidates = "c", record_ids = "c",
+    parcel_pin10s = "c", issue_date = "D", .default = col_guess())) |>
   filter(status %in% c("measured", "measured_without_permit"), is.finite(x_3435), is.finite(y_3435)) |>
   mutate(date_source = if_else(timing == "permit_issue" & !is.na(issue_date), "permit_issue_date", "assessor_year_built"),
     construction_date = if_else(date_source == "permit_issue_date", issue_date, make_date(assessor_year_built, 6L, 15L)),

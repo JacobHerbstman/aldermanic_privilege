@@ -1,5 +1,6 @@
 # setwd("tasks/prepare_permit_construction/code")
 # assessor_year_lead <- 2
+# max_build_lag_years <- 4
 # unit_tolerance <- 0.2
 # min_sqft_per_unit <- 300
 # max_land_sqft_per_unit <- 43560
@@ -9,12 +10,13 @@ source("../../shared/code/normalize_chicago_address.R")
 source("../../shared/code/assessor_classification.R")
 
 args <- commandArgs(trailingOnly = TRUE)
-if (interactive()) args <- c(assessor_year_lead, unit_tolerance, min_sqft_per_unit, max_land_sqft_per_unit)
-stopifnot(length(args) == 4L)
+if (interactive()) args <- c(assessor_year_lead, max_build_lag_years, unit_tolerance, min_sqft_per_unit, max_land_sqft_per_unit)
+stopifnot(length(args) == 5L)
 assessor_year_lead <- as.integer(args[1])
-unit_tolerance <- as.numeric(args[2])
-min_sqft_per_unit <- as.numeric(args[3])
-max_land_sqft_per_unit <- as.numeric(args[4])
+max_build_lag_years <- as.integer(args[2])
+unit_tolerance <- as.numeric(args[3])
+min_sqft_per_unit <- as.numeric(args[4])
+max_land_sqft_per_unit <- as.numeric(args[5])
 
 permits <- read_csv("../output/construction_permits.csv",
   col_types = cols(permit_id = "c", permit_number = "c", permit_pin10s = "c", permit_units = "i", .default = col_guess())) |>
@@ -22,7 +24,9 @@ permits <- read_csv("../output/construction_permits.csv",
 
 # Parcels: every PIN listed on the permit, and every 2025 parcel at the permit's house number and street.
 street_key <- function(x) {
-  x <- normalize_address(x)
+  x <- normalize_address(x) |> str_replace_all("\\bPKY\\b", "PKWY") |> str_replace_all("\\bAV\\b", "AVE") |>
+    str_replace_all("\\bSAINT\\b", "ST") |>
+    str_replace_all("\\b(?:DR )?(?:MARTIN L(?:UTHER)?|M L) KING(?: JR)?\\b", "MARTIN LUTHER KING")
   coalesce(str_match(x, "^([0-9]+ [NSEW] .+?) (?:AVE|ST|RD|BLVD|DR|PL|CT|PKWY|TER|HWY|LN|WAY|SQ|CIR)\\b")[, 2],
     str_extract(x, "^[0-9]+ [NSEW] [A-Z]+(?: [A-Z]+)*"))
 }
@@ -42,17 +46,27 @@ parcels <- bind_rows(
 con <- DBI::dbConnect(duckdb::duckdb())
 duckdb::duckdb_register(con, "parcels", parcels)
 
-# Residential cards are new when their reported year built is no earlier than the permit year minus the lead.
+# Residential cards are new when their reported year built is between the permit year minus the lead and the permit
+# year plus the longest construction lag.
 # A parcel already showing a new card before the permit year holds an earlier building, not this one.
 # Otherwise each parcel is measured in the first tax year after the permit that shows a new card.
 cards <- DBI::dbGetQuery(con, sprintf("
   SELECT p.permit_id, p.permit_pin, h.pin, h.tax_year, h.card_num, h.class, h.year_built, h.building_sqft,
     h.land_sqft, h.num_apartments, h.pin_proration_rate, h.proration_key_pin,
-    coalesce(h.year_built >= p.issue_year - %d, false) AS new_card, h.tax_year < p.issue_year AS before_permit
+    coalesce(h.year_built BETWEEN p.issue_year - %d AND p.issue_year + %d, false) AS new_card,
+    h.tax_year < p.issue_year AS before_permit
   FROM parcels p JOIN read_parquet('../input/residential_assessor_history.parquet') h ON substr(h.pin, 1, 10) = p.pin10",
-  assessor_year_lead)) |>
+  assessor_year_lead, max_build_lag_years)) |>
   group_by(permit_id, pin) |> mutate(predates_permit = any(new_card & before_permit)) |> ungroup()
 predates <- cards |> filter(predates_permit) |> distinct(permit_id)
+# A parcel still holding a building of a different floor area in its latest record may hold the new building under
+# an old reported year built. A demolished building leaves no later record.
+parcel_changes <- cards |> group_by(permit_id, pin, tax_year, before_permit) |>
+  summarise(sqft = sum(building_sqft, na.rm = TRUE), .groups = "drop") |> arrange(permit_id, pin, tax_year) |>
+  group_by(permit_id, pin) |> filter(any(before_permit), any(!before_permit)) |>
+  summarise(changed = last(sqft) > 0 & abs(last(sqft) - last(sqft[before_permit])) > 1 &
+    max(tax_year) >= max(cards$tax_year) - 1, .groups = "drop") |>
+  group_by(permit_id) |> summarise(parcel_changed_after_permit = any(changed), .groups = "drop")
 cards <- cards |> filter(!predates_permit, !before_permit) |>
   group_by(permit_id, pin) |> filter(any(new_card)) |> filter(tax_year == min(tax_year[new_card])) |>
   mutate(old_card_on_parcel = any(!new_card)) |> filter(new_card) |> ungroup()
@@ -78,7 +92,8 @@ condominiums <- DBI::dbGetQuery(con, sprintf("
     min(try_cast(try_cast(c.char_yrblt AS DOUBLE) AS INTEGER)) AS year_built
   FROM parcels p JOIN read_csv('../input/condominium_characteristics.csv', all_varchar = true) c ON c.pin10 = p.pin10
   GROUP BY 1, 2, 3, 4, 5
-  HAVING min(try_cast(try_cast(c.char_yrblt AS DOUBLE) AS INTEGER)) >= p.issue_year - %d", assessor_year_lead)) |>
+  HAVING min(try_cast(try_cast(c.char_yrblt AS DOUBLE) AS INTEGER)) BETWEEN p.issue_year - %d AND p.issue_year + %d",
+  assessor_year_lead, max_build_lag_years)) |>
   group_by(permit_id, record_id) |> mutate(predates_permit = any(first_year < issue_year)) |> ungroup()
 predates <- bind_rows(predates, condominiums |> filter(predates_permit) |> distinct(permit_id))
 condominiums <- condominiums |> filter(!predates_permit) |>
@@ -97,7 +112,7 @@ commercial <- read_csv("../input/commercial_valuation_data.csv", col_types = col
     by = "pin10", relationship = "many-to-one") |>
   separate_longer_delim(permit_id, "/") |>
   left_join(parcels |> select(permit_id, pin10, permit_pin, issue_year), by = c("permit_id", "pin10"), relationship = "many-to-one") |>
-  filter(yearbuilt >= issue_year - assessor_year_lead) |>
+  filter(yearbuilt >= issue_year - assessor_year_lead, yearbuilt <= issue_year + max_build_lag_years) |>
   group_by(permit_id, record_id) |> mutate(permit_pin = any(permit_pin)) |> filter(year == min(year)) |> ungroup() |>
   distinct(permit_id, record_id, permit_pin, first_year = year, year_built = yearbuilt, classes = class_es,
     units = tot_units, building_sqft = bldgsf, land_sqft = landsf) |>
@@ -162,9 +177,11 @@ buildings <- permits |>
   left_join(parcels |> group_by(permit_id) |> summarise(parcel_pin10s = paste(sort(unique(pin10)), collapse = "/"), .groups = "drop"),
     by = "permit_id", relationship = "one-to-one") |>
   left_join(buildings, by = c("permit_id" = "building_id"), relationship = "one-to-one") |>
+  left_join(parcel_changes, by = "permit_id", relationship = "one-to-one") |>
   left_join(decisions, by = "permit_number", relationship = "one-to-one") |>
   mutate(
     permit_units = if_else(is.na(source), permit_units, group_permit_units),
+    parcel_changed_after_permit = coalesce(parcel_changed_after_permit, FALSE),
     member_permit_numbers = coalesce(member_permit_numbers, permit_number),
     dwelling_units = coalesce(as.numeric(manual_dwelling_units), dwelling_units),
     building_sqft = coalesce(as.numeric(manual_building_sqft), building_sqft),
@@ -189,7 +206,8 @@ buildings <- permits |>
     far = if_else(allow_far, building_sqft / land_sqft, NA_real_),
     multifamily = dwelling_units >= 2 & !single_family) |>
   select(building_id = permit_id, permit_number, member_permit_numbers, superseded_permit_numbers, issue_date, issue_year,
-    address, latitude, longitude, permit_units, stated_counts, permit_status, any_permit_complete, parcel_pin10s, status,
+    address, latitude, longitude, permit_units, stated_counts, permit_status, any_permit_complete, parcel_pin10s,
+    parcel_changed_after_permit, status,
     source, record_ids, classes, first_assessment_year, assessor_year_built, dwelling_units, building_sqft, land_sqft,
     flags, allow_far, allow_dupac, far, dupac, multifamily, description) |>
   arrange(issue_date, building_id)

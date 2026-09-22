@@ -7,9 +7,11 @@ LAST_YEAR_BUILT := 2022
 LAST_UNPERMITTED_YEAR_BUILT := 2007
 REPEAT_PERMIT_YEARS := 3
 ASSESSOR_YEAR_LEAD := 2
+MAX_BUILD_LAG_YEARS := 4
 UNIT_TOLERANCE := 0.2
 MIN_SQFT_PER_UNIT := 300
 MAX_LAND_SQFT_PER_UNIT := 43560
+LOT_DISTANCE_FT := 150
 BOUNDARY_WINDOW_FT := 1500
 MAIN_BOUNDARY_WINDOW_FT := 500
 TIMINGS := permit_issue assessor_year
@@ -20,17 +22,18 @@ all: ../output/construction_buildings.csv $(foreach timing,$(TIMINGS),../output/
 	../../shared/code/canonical_geometry_helpers.R ../../shared/code/save_data.R | ../output ../report
 	$(R) $< $* $(BOUNDARY_WINDOW_FT) $(MAIN_BOUNDARY_WINDOW_FT)
 
-../output/construction_buildings.csv: build_construction_buildings.R ../output/permit_buildings.csv \
+../output/construction_buildings.csv: build_construction_buildings.R ../output/permit_buildings.csv ../output/construction_permits.csv \
 	../input/residential_assessor_history.parquet ../input/condominium_characteristics.csv ../input/commercial_valuation_data.csv \
 	../input/parcel_addresses_2025_chicago.csv ../input/parcel_universe_2025_city.csv ../../shared/code/assessor_classification.R \
-	../../shared/code/save_data.R | ../output ../report
-	$(R) $< $(FIRST_YEAR_BUILT) $(LAST_YEAR_BUILT) $(LAST_UNPERMITTED_YEAR_BUILT) $(ASSESSOR_YEAR_LEAD) $(MIN_SQFT_PER_UNIT) $(MAX_LAND_SQFT_PER_UNIT)
+	../../shared/code/normalize_chicago_address.R ../../shared/code/save_data.R | ../output ../report
+	$(R) $< $(FIRST_YEAR_BUILT) $(LAST_YEAR_BUILT) $(LAST_UNPERMITTED_YEAR_BUILT) $(ASSESSOR_YEAR_LEAD) $(MAX_BUILD_LAG_YEARS) $(UNIT_TOLERANCE) \
+		$(MIN_SQFT_PER_UNIT) $(MAX_LAND_SQFT_PER_UNIT) $(LOT_DISTANCE_FT)
 
 ../output/permit_buildings.csv: measure_buildings.R ../output/construction_permits.csv ../adjudication/manual_decisions.csv \
 	../input/residential_assessor_history.parquet ../input/condominium_characteristics.csv ../input/commercial_valuation_data.csv \
 	../input/parcel_addresses_2025_chicago.csv ../../shared/code/normalize_chicago_address.R ../../shared/code/assessor_classification.R \
 	../../shared/code/save_data.R | ../output ../report
-	$(R) $< $(ASSESSOR_YEAR_LEAD) $(UNIT_TOLERANCE) $(MIN_SQFT_PER_UNIT) $(MAX_LAND_SQFT_PER_UNIT)
+	$(R) $< $(ASSESSOR_YEAR_LEAD) $(MAX_BUILD_LAG_YEARS) $(UNIT_TOLERANCE) $(MIN_SQFT_PER_UNIT) $(MAX_LAND_SQFT_PER_UNIT)
 
 ../output/construction_permits.csv: select_permits.R ../input/building_permits_full.csv ../../shared/code/normalize_chicago_address.R \
 	../../shared/code/permit_unit_patterns.R ../../shared/code/save_data.R | ../output ../report

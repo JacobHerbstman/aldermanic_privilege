@@ -218,3 +218,8 @@ tasks/audits/permit_density_comparison/input/
 tasks/audits/permit_density_comparison/output/
 tasks/audits/permit_density_comparison/temp/
 !tasks/audits/permit_density_comparison/report/*.log
+!tasks/audits/construction_hand_checks/
+tasks/audits/construction_hand_checks/input/
+tasks/audits/construction_hand_checks/output/
+tasks/audits/construction_hand_checks/temp/
+!tasks/audits/construction_hand_checks/report/*.log

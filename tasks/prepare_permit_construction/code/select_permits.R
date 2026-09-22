@@ -44,11 +44,12 @@ counts_found <- map2(str_match_all(count_text, dwelling_count_pattern),
   \(a, b) unique(as.integer(c(a[, 2], str_extract(b[, 1], "[0-9]+")))))
 
 # Words naming a dwelling structure; generic "residential use" alone does not identify one.
-dwelling_words <- paste0("\\bRESIDENCES?\\b|RESIDENTIAL (?:BUILDING|BLDG|STRUCTURE|DEVELOPMENT|HIGH ?RISE|TOWER)|DWELLING|",
-  "\\bSFR\\b|\\bSFH\\b|\\bSFD\\b|SINGLE[- ]?FA[A-Z]*LY|MULTI[- ]?FAMILY|TWO[- ]FAMILY|\\bDUPLEX\\b|APARTMENT|CONDO|",
+dwelling_words <- paste0("\\bRESIDENCES?\\b|RESIDENTIAL (?:BUILDING|BLDG|STRUCTURE|DEVELOPMENT|HIGH[- ]?RISE|TOWER)|DWELLING|",
+  "\\bS\\.?F\\.?[RHD]\\b|SINGLE[- ]?FA[A-Z]*LY|MULTI[- ]?FAMILY|TWO[- ]FAMILY|\\bDUPLEX\\b|APARTMENT|CONDO|",
+  "MIXED[- ]USE|RESIDENTIAL ?/ ?COMMERCIAL|GROUND FLOOR (?:COMMERCIAL|RETAIL|BUSINESS|OFFICE)|",
   "TOWN ?HOUSE|TOWN ?HOME|ROW ?HOUSE|ROW ?HOME|\\bFLATS?\\b|",
   "(?<!NURSING |FUNERAL |MOBILE )\\bHOMES?\\b|(?<!PUMP |CLUB |FIELD |BOAT |GATE |GUARD |POWER |SCREEN )\\bHOUSES?\\b")
-single_home_words <- paste0("\\bSFR\\b|\\bSFH\\b|\\bSFD\\b|SINGLE[- ]?FA[A-Z]*LY|ONE[- ]FAMILY|\\bRESIDENCE\\b|",
+single_home_words <- paste0("\\bS\\.?F\\.?[RHD]\\b|SINGLE[- ]?FA[A-Z]*LY|ONE[- ]FAMILY|\\bRESIDENCE\\b|",
   "\\b(?:TOWN ?HOME|TOWN ?HOUSE|ROW ?HOME|ROW ?HOUSE|HOME|HOUSE)\\b")
 permits <- permits |>
   mutate(stated_counts = map_chr(counts_found, \(x) paste(x, collapse = "/")),
@@ -65,6 +66,8 @@ permits <- permits |> mutate(scope = case_when(
   str_detect(main_text, "\\bREVISION TO\\b|\\bREVISIONS? (?:OF|FOR|TO) (?:THE )?(?:DDS )?PERMIT\\b|\\bREINSTAT") ~ "revision",
   str_detect(main_text, "\\bERECTION STARTS\\b|\\bPERMIT EXPIRES ON\\b|\\bTENTS?\\b|\\bTEMPORARY (?:STRUCTURE|EXHIBIT|STAGE)") ~ "temporary_structure",
   str_detect(main_text, "(?<!IN )\\bADDITIONS?\\b|CONVER(?:T|SION)|\\bINTERIOR (?:ALTERATION|RENOVATION|REMODEL)") ~ "addition_or_conversion",
+  str_detect(main_text, paste0("\\b(?:AT|FOR|TO|ON|SERVE|SERVES|SERVING|BEHIND) (?:AN |THE )?EXISTING (?:[0-9A-Z/.-]+ ){0,6}?",
+    "(?:S\\.?F\\.?R|SINGLE[- ]?FAMILY|RESIDENCE|HOUSE|HOME|BUILDING|BLDG|DWELLING|UNIT)")) ~ "work_at_existing_building",
   str_detect(main_text, "\\bGARAGE\\b") & stated_counts == "" & !dwelling_text ~ "garage",
   str_detect(main_text, "^(?:ERECT |CONSTRUCT |BUILD |NEW )?(?:A |AN )?(?:NEW )?(?:[0-9]+[- ]CAR )?(?:(?:DETACHED|ATTACHED|FRAME|MASONRY|1 STORY) )*GARAGE\\b") ~ "garage",
   stated_counts != "" | dwelling_text ~ "new_residential",
