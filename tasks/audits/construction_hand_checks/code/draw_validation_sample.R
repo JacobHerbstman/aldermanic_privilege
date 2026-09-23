@@ -1,5 +1,5 @@
 # setwd("tasks/audits/construction_hand_checks/code")
-# review_seed <- 20260923
+# review_seed <- 20260925
 # stratum_size <- 25
 source("../../../setup_environment/code/packages.R")
 source("../../../shared/code/save_data.R")
@@ -20,7 +20,7 @@ buildings <- read_csv("../input/construction_buildings.csv", col_types = cols(.d
       eligible & str_detect(coalesce(match_basis, ""), "townhouse|homes") ~ "eligible_added_homes",
       eligible & str_detect(coalesce(match_basis, ""), "parcel_successor") ~ "eligible_parcel_successor",
       eligible & str_detect(coalesce(match_basis, ""), "floor_area_change") ~ "eligible_floor_area_change",
-      eligible & str_detect(coalesce(match_basis, ""), "lot|hand") ~ "eligible_lot_link",
+      eligible & str_detect(coalesce(match_basis, ""), "lot|hand|new_parcel") ~ "eligible_lot_link",
       eligible ~ "eligible_permit_parcels",
       status == "measured" & str_detect(coalesce(flags, ""), "units_disagree") ~ "held_units_disagree",
       status == "no_permit_found" ~ "held_no_permit_found",
