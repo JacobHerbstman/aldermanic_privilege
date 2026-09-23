@@ -7,6 +7,7 @@
 # rebuilt_area_growth <- 0.25
 # address_match_ft <- 1000
 # measurement_years <- 3
+# min_land_sqft <- 100
 source("../../setup_environment/code/packages.R")
 source("../../shared/code/save_data.R")
 source("../../shared/code/normalize_chicago_address.R")
@@ -16,8 +17,8 @@ source("construction_rules.R")
 
 args <- commandArgs(trailingOnly = TRUE)
 if (interactive()) args <- c(assessor_year_lead, max_build_lag_years, unit_tolerance, min_sqft_per_unit, max_land_sqft_per_unit,
-  rebuilt_area_growth, address_match_ft, measurement_years)
-stopifnot(length(args) == 8L)
+  rebuilt_area_growth, address_match_ft, measurement_years, min_land_sqft)
+stopifnot(length(args) == 9L)
 assessor_year_lead <- as.integer(args[1])
 max_build_lag_years <- as.integer(args[2])
 unit_tolerance <- as.numeric(args[3])
@@ -26,6 +27,7 @@ max_land_sqft_per_unit <- as.numeric(args[5])
 rebuilt_area_growth <- as.numeric(args[6])
 address_match_ft <- as.numeric(args[7])
 measurement_years <- as.integer(args[8])
+min_land_sqft <- as.numeric(args[9])
 
 permits <- read_csv("../output/construction_permits.csv",
   col_types = cols(permit_id = "c", permit_number = "c", permit_pin10s = "c", house_numbers = "c", permit_units = "i",
@@ -345,7 +347,7 @@ buildings <- permits |>
     flags = if_else(status != "measured" | manual_accept %in% "TRUE", "", str_c(
       if_else(units_agree(dwelling_units, permit_units, unit_tolerance) %in% FALSE, "units_disagree;", ""),
       if_else(building_sqft / dwelling_units < min_sqft_per_unit, "area_per_unit_implausible;", "", ""),
-      if_else(land_sqft / dwelling_units > max_land_sqft_per_unit, "land_per_unit_implausible;", "", ""),
+      if_else(land_sqft / dwelling_units > max_land_sqft_per_unit | land_sqft < min_land_sqft, "land_implausible;", "", ""),
       if_else(older_building, "older_building_on_parcel;", "", ""))),
     allow_dupac = coalesce(status == "measured" & flags == "" & dwelling_units > 0 & land_sqft > 0, FALSE),
     allow_far = allow_dupac & coalesce(building_sqft > 0, FALSE),

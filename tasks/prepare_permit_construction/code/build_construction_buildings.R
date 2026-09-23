@@ -12,6 +12,7 @@
 # large_building_units <- 20
 # large_lot_distance_ft <- 300
 # measurement_years <- 3
+# min_land_sqft <- 100
 source("../../setup_environment/code/packages.R")
 source("../../shared/code/save_data.R")
 source("../../shared/code/assessor_classification.R")
@@ -22,8 +23,8 @@ source("construction_rules.R")
 args <- commandArgs(trailingOnly = TRUE)
 if (interactive()) args <- c(first_year_built, last_year_built, last_unpermitted_year_built, assessor_year_lead,
   max_build_lag_years, unit_tolerance, min_sqft_per_unit, max_land_sqft_per_unit, lot_distance_ft, townhouse_distance_ft,
-  large_building_units, large_lot_distance_ft, measurement_years)
-stopifnot(length(args) == 13L)
+  large_building_units, large_lot_distance_ft, measurement_years, min_land_sqft)
+stopifnot(length(args) == 14L)
 first_year_built <- as.integer(args[1])
 last_year_built <- as.integer(args[2])
 last_unpermitted_year_built <- as.integer(args[3])
@@ -37,6 +38,7 @@ townhouse_distance_ft <- as.numeric(args[10])
 large_building_units <- as.integer(args[11])
 large_lot_distance_ft <- as.numeric(args[12])
 measurement_years <- as.integer(args[13])
+min_land_sqft <- as.numeric(args[14])
 
 permit_buildings <- read_csv("../output/permit_buildings.csv", col_types = cols(building_id = "c", permit_number = "c",
   member_permit_numbers = "c", superseded_permit_numbers = "c", parcel_pin10s = "c", record_ids = "c", issue_date = "D",
@@ -151,7 +153,7 @@ candidates <- bind_rows(condominiums, residential, commercial) |>
   mutate(priority = match(source, c("condominium", "residential", "commercial")),
     flags = str_c(
       if_else(building_sqft / units < min_sqft_per_unit, "area_per_unit_implausible;", "", ""),
-      if_else(land_sqft / units > max_land_sqft_per_unit, "land_per_unit_implausible;", "", ""),
+      if_else(land_sqft / units > max_land_sqft_per_unit | land_sqft < min_land_sqft, "land_implausible;", "", ""),
       if_else(older_building, "older_building_on_parcel;", "", ""),
       if_else(same_floor_area %in% TRUE, "year_built_revised_same_floor_area;", "", "")) |> coalesce(""))
 parcel_candidates <- candidates |> select(source, record_id, priority, year_built, pin10s) |>

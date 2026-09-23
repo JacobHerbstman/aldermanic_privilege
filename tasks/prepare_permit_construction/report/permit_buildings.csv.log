@@ -1,7 +1,7 @@
 File: permit_buildings.csv
 Rows: 14479
 Columns: 32
-SHA-256 (saved bytes): 6201d2ddd34e0d7a38fb07f23106fbe4e9b785bb0c30c13f759d9bd8331c07d1
+SHA-256 (saved bytes): dc257df10e30d98241573282f5012364ef85874f765c25206a9d5afe6dc530ad
 Key: building_id
 Types: DuckDB inference from the complete saved CSV.
 Distinct counts: exact (exact up to 100,000 rows).
@@ -33,10 +33,10 @@ parcel_changed_after_permit       BOOLEAN        14479         2                
               building_sqft        BIGINT        12145      5004                   0            1380640   9350.54022231371   45768.62401098676
                   land_sqft        BIGINT        12574      3861                   0            1540260  5645.112772387466   22482.65505059935
                 match_basis       VARCHAR        12575         4                   -                  -                  -                   -
-                      flags       VARCHAR          447         7                   -                  -                  -                   -
+                      flags       VARCHAR          498         7                   -                  -                  -                   -
                   allow_far       BOOLEAN        14479         2                   -                  -                  -                   -
                 allow_dupac       BOOLEAN        14479         2                   -                  -                  -                   -
-                        far        DOUBLE        11668     10169 0.15010161618116713            53022.0  5.748475301523683   490.8509548197207
-                      dupac        DOUBLE        12048      4536  1.8282548476454292          3179880.0 292.68779413290866  28970.092573991595
+                        far        DOUBLE        11667     10168 0.15010161618116713 32.509535794909056 1.2043550028437566  1.3365096123136928
+                      dupac        DOUBLE        12047      4535  1.8282548476454292  904.2268870494823  28.75591796408296   46.46650957949997
                 multifamily       BOOLEAN        12546         2                   -                  -                  -                   -
                 description       VARCHAR        14479     12526                   -                  -                  -                   -

@@ -14,6 +14,7 @@ MAX_LAND_SQFT_PER_UNIT := 43560
 REBUILT_AREA_GROWTH := 0.25
 ADDRESS_MATCH_FT := 1000
 MEASUREMENT_YEARS := 3
+MIN_LAND_SQFT := 100
 LOT_DISTANCE_FT := 150
 TOWNHOUSE_DISTANCE_FT := 300
 LARGE_BUILDING_UNITS := 20
@@ -34,14 +35,14 @@ all: ../output/construction_buildings.csv ../output/permit_construction.csv
 	../../shared/code/normalize_chicago_address.R ../../shared/code/street_key.R ../../shared/code/save_data.R | ../output ../report
 	$(R) $< $(FIRST_YEAR_BUILT) $(LAST_YEAR_BUILT) $(LAST_UNPERMITTED_YEAR_BUILT) $(ASSESSOR_YEAR_LEAD) $(MAX_BUILD_LAG_YEARS) $(UNIT_TOLERANCE) \
 		$(MIN_SQFT_PER_UNIT) $(MAX_LAND_SQFT_PER_UNIT) $(LOT_DISTANCE_FT) $(TOWNHOUSE_DISTANCE_FT) \
-		$(LARGE_BUILDING_UNITS) $(LARGE_LOT_DISTANCE_FT) $(MEASUREMENT_YEARS)
+		$(LARGE_BUILDING_UNITS) $(LARGE_LOT_DISTANCE_FT) $(MEASUREMENT_YEARS) $(MIN_LAND_SQFT)
 
 ../output/permit_buildings.csv: measure_buildings.R construction_rules.R ../output/construction_permits.csv \
 	../adjudication/manual_decisions.csv ../input/residential_assessor_history.parquet ../input/condominium_characteristics.csv \
 	../input/commercial_valuation_data.csv ../input/parcel_addresses_2025_chicago.csv ../input/parcel_centroids.csv \
 	../../shared/code/normalize_chicago_address.R ../../shared/code/street_key.R ../../shared/code/assessor_classification.R ../../shared/code/save_data.R | ../output ../report
 	$(R) $< $(ASSESSOR_YEAR_LEAD) $(MAX_BUILD_LAG_YEARS) $(UNIT_TOLERANCE) $(MIN_SQFT_PER_UNIT) $(MAX_LAND_SQFT_PER_UNIT) \
-		$(REBUILT_AREA_GROWTH) $(ADDRESS_MATCH_FT) $(MEASUREMENT_YEARS)
+		$(REBUILT_AREA_GROWTH) $(ADDRESS_MATCH_FT) $(MEASUREMENT_YEARS) $(MIN_LAND_SQFT)
 
 ../output/construction_permits.csv: select_permits.R ../input/building_permits_full.csv ../../shared/code/normalize_chicago_address.R \
 	../../shared/code/street_key.R ../../shared/code/permit_unit_patterns.R ../../shared/code/save_data.R | ../output ../report

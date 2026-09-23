@@ -70,7 +70,10 @@ yet; `tasks/audits/permit_density_comparison` compares it with the paper's curre
   under this permit (`later_permit_built`).
 - Flags withhold density: Assessor units differ from the permit (exactly for single houses, beyond
   `UNIT_TOLERANCE` for multifamily), floor area per unit below `MIN_SQFT_PER_UNIT` (a shop-only record),
-  land per unit above `MAX_LAND_SQFT_PER_UNIT` (development-wide land), or an older building on the parcel.
+  land per unit above `MAX_LAND_SQFT_PER_UNIT` (development-wide land) or land below `MIN_LAND_SQFT` (a recording
+  error such as 1 sq ft), or an older building on the parcel. A permit's building left without a measurement when a
+  neighboring permit takes its record by address and then keeps other evidence is a known case (one 6-unit condominium,
+  1419100038).
 - `adjudication/manual_decisions.csv` is the only place for hand research: one row per permit number and
   field, with a source and note. Named lots and homes (`assign_lot`, `add_homes`, `replace_homes`) join their permit's
   parcels here (`match_basis = hand_checked`), as do the measurement fields (`exclude`, `accept`, `dwelling_units`,
