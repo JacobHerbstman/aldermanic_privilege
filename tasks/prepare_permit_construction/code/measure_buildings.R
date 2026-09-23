@@ -28,7 +28,8 @@ address_match_ft <- as.numeric(args[7])
 measurement_years <- as.integer(args[8])
 
 permits <- read_csv("../output/construction_permits.csv",
-  col_types = cols(permit_id = "c", permit_number = "c", permit_pin10s = "c", permit_units = "i", .default = col_guess())) |>
+  col_types = cols(permit_id = "c", permit_number = "c", permit_pin10s = "c", house_numbers = "c", permit_units = "i",
+    .default = col_guess())) |>
   filter(scope %in% c("new_residential", "building_use_not_stated"))
 
 permits <- bind_cols(permits, address_parts(permits$address) |> rename(house = number, street_name = street))
@@ -68,7 +69,9 @@ parcel_places <- parcel_addresses |> group_by(pin10) |>
 
 # Parcels: every PIN listed on the permit with the parcels that later succeeded it, and the 2025 parcels at the
 # permit's address: the same house number, direction and street, or, for a parcel address without a direction, the
-# same house number and street name within ADDRESS_MATCH_FT of the permit's geocoded point.
+# same house number and street name within ADDRESS_MATCH_FT of the permit's geocoded point. A permit for several
+# dwellings also covers the house numbers its description lists on its street ("329, 335, 337, 339 EAST 25TH PLACE"),
+# at most one per dwelling, matched the same way; in a single-house permit such numbers name other buildings.
 listed <- permits |> select(permit_id, pin10 = permit_pin10s) |> separate_longer_delim(pin10, "/") |>
   filter(!is.na(pin10), pin10 != "")
 # A successor parcel listed on another permit, or at another permit's house number and street issued within the
@@ -97,6 +100,15 @@ street_parcels <- parcel_addresses |> filter(!is.na(street)) |> group_by(street)
   summarise(address_pin10s = paste(sort(unique(pin10)), collapse = "/"), .groups = "drop")
 undirected_parcels <- parcel_addresses |> filter(is.na(street)) |> group_by(house, street_name) |>
   summarise(address_pin10s = paste(sort(unique(pin10)), collapse = "/"), .groups = "drop")
+place_parcels <- parcel_addresses |> group_by(house, street_name) |>
+  summarise(address_pin10s = paste(sort(unique(pin10)), collapse = "/"), .groups = "drop")
+nearby_address_parcels <- function(places) {
+  places |> separate_longer_delim(address_pin10s, "/") |> rename(pin10 = address_pin10s) |>
+    inner_join(permit_points, by = "permit_id", relationship = "many-to-one") |>
+    inner_join(centroids |> select(pin10, x_3435, y_3435), by = "pin10", relationship = "many-to-one") |>
+    filter(sqrt((x_3435 - permit_x)^2 + (y_3435 - permit_y)^2) <= address_match_ft) |>
+    transmute(permit_id, pin10, permit_pin = FALSE)
+}
 parcels <- bind_rows(
   listed |> mutate(permit_pin = TRUE),
   successor_parcels |> mutate(permit_pin = TRUE),
@@ -105,12 +117,11 @@ parcels <- bind_rows(
     inner_join(street_parcels, by = "street", relationship = "many-to-one") |>
     separate_longer_delim(address_pin10s, "/") |> transmute(permit_id, pin10 = address_pin10s, permit_pin = FALSE),
   permits |> select(permit_id, house, street_name) |>
-    inner_join(undirected_parcels, by = c("house", "street_name"), relationship = "many-to-one") |>
-    separate_longer_delim(address_pin10s, "/") |> rename(pin10 = address_pin10s) |>
-    inner_join(permit_points, by = "permit_id", relationship = "many-to-one") |>
-    inner_join(centroids |> select(pin10, x_3435, y_3435), by = "pin10", relationship = "many-to-one") |>
-    filter(sqrt((x_3435 - permit_x)^2 + (y_3435 - permit_y)^2) <= address_match_ft) |>
-    transmute(permit_id, pin10, permit_pin = FALSE)) |>
+    inner_join(undirected_parcels, by = c("house", "street_name"), relationship = "many-to-one") |> nearby_address_parcels(),
+  permits |> filter(coalesce(house_numbers, "") != "", permit_units >= 2,
+      str_count(house_numbers, "/") + 2 <= permit_units) |> select(permit_id, house = house_numbers, street_name) |>
+    separate_longer_delim(house, "/") |> mutate(house = as.integer(house)) |>
+    inner_join(place_parcels, by = c("house", "street_name"), relationship = "many-to-one") |> nearby_address_parcels()) |>
   group_by(permit_id, pin10) |> summarise(permit_pin = any(permit_pin), .groups = "drop") |>
   left_join(permits |> select(permit_id, issue_year), by = "permit_id", relationship = "many-to-one")
 

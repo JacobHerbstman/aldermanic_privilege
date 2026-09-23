@@ -4,7 +4,7 @@ REVIEW_SEED := 20260922
 SAMPLE_SIZE := 40
 TOWNHOUSE_SAMPLE_SIZE := 25
 FIRST_RECORD_YEAR_BUILT := 2004
-VALIDATION_SEED := 20260923
+VALIDATION_SEED := 20260924
 VALIDATION_STRATUM_SIZE := 25
 
 all: ../output/lot_review.csv ../output/townhouse_review.csv ../output/queue_review.csv ../output/validation_sample.csv

@@ -9,6 +9,11 @@ yet; `tasks/audits/permit_density_comparison` compares it with the paper's curre
 ## Rules
 
 `select_permits.R` (every `PERMIT - NEW CONSTRUCTION` issued 2006–2022, one `scope` per permit)
+- Renovation, easy and express permits are included when their first sentence erects or constructs a new building of
+  stated height with dwellings (`ERECT NEW 2 STORY 6 DU 3B BUILDING`) and describes no work on or next to an existing
+  building (additions, dormers, porches, build-outs, trade work).
+- House numbers the description lists on the permit's street (`329, 335, 337, 339 EAST 25TH PLACE`, `1626-46 SOUTH
+  PRAIRIE`) are kept (`house_numbers`); prototype references name other buildings.
 - Notes about later permits (`{ALSO SEE PERMIT ...}`, `[SEE PERMIT #... TO CONVERT ...]`, `SEE REVISION #...`) and
   review-program notes (`***SELF CERT PROJECT***`) are ignored. Common misspellings and abbreviations (`DWELING`,
   `APARMENT`, `6 UNITBUILDING`, `4(DU)`, `EXIST.`, `SRF`, `STRY`) are corrected.
@@ -26,7 +31,8 @@ yet; `tasks/audits/permit_density_comparison` compares it with the paper's curre
 `measure_buildings.R` (one row per building: each new Assessor record belongs to one permit)
 - Parcels: the permit's PIN list with the parcels that later succeeded them; the 2025 parcels at the permit's address
   are used only when these show no new building. Hand-named lots and homes are added to either. A parcel address without a
-  direction matches by house number and street name within `ADDRESS_MATCH_FT` of the permit's geocoded point.
+  direction matches by house number and street name within `ADDRESS_MATCH_FT` of the permit's geocoded point. A permit
+  for several dwellings also covers its listed house numbers, at most one per dwelling.
 - Parcel succession: a condominium declaration or subdivision retires a parcel number and creates new ones. Each new
   parcel descends from the nearest older parcel on its tax block last assessed in the year before, or the year of, its
   first assessment (from `tasks/download_parcel_centroids`, every assessment year 1999–2025). A successor parcel listed

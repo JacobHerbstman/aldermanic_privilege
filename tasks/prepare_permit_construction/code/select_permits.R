@@ -5,6 +5,7 @@
 source("../../setup_environment/code/packages.R")
 source("../../shared/code/save_data.R")
 source("../../shared/code/normalize_chicago_address.R")
+source("../../shared/code/street_key.R")
 source("../../shared/code/permit_unit_patterns.R")
 
 args <- commandArgs(trailingOnly = TRUE)
@@ -17,7 +18,8 @@ repeat_permit_years <- as.integer(args[3])
 permits <- read_csv("../input/building_permits_full.csv", col_types = cols(.default = col_character()),
   col_select = c(permit_id = id, permit_number = permit_, permit_type, permit_status, permit_milestone,
     issue_date, street_number, street_direction, street_name, work_description, pin_list, latitude, longitude)) |>
-  filter(permit_type == "PERMIT - NEW CONSTRUCTION") |>
+  filter(permit_type %in% c("PERMIT - NEW CONSTRUCTION", "PERMIT - RENOVATION/ALTERATION", "PERMIT - EASY PERMIT PROCESS",
+    "PERMIT – EXPRESS PERMIT PROGRAM")) |>
   mutate(issue_date = as.Date(substr(issue_date, 1, 10)), issue_year = as.integer(format(issue_date, "%Y"))) |>
   filter(between(issue_year, first_issue_year, last_issue_year)) |>
   mutate(description = str_squish(str_to_upper(coalesce(work_description, ""))),
@@ -35,6 +37,41 @@ permits <- read_csv("../input/building_permits_full.csv", col_types = cols(.defa
       \(x) paste(unique(x), collapse = "/")),
     latitude = as.numeric(latitude), longitude = as.numeric(longitude))
 stopifnot(!anyDuplicated(permits$permit_id), !anyNA(permits$issue_date))
+# Some new buildings are filed as renovation, easy or express permits. Those count when the first sentence erects or
+# constructs a new building of stated height ("ERECT NEW 2 STORY 6 DU 3B BUILDING", "NEW CONSTRUCTION OF A 4 STORY
+# ... RESIDENTIAL BUILDING") and describes no work on or next to an existing one (and, below, names dwellings).
+first_sentence <- str_split_i(permits$main_text, "\\. ", 1)
+permits <- permits |>
+  filter(permit_type == "PERMIT - NEW CONSTRUCTION" |
+    (str_detect(first_sentence, "^(?:[A-Z0-9 '.-]{0,30}: ?)?(?:ERECT|CONSTRUCT|BUILD\\b(?!-? ?OUT)|NEW CONSTRUCTION)") &
+      str_detect(first_sentence, "\\b(?:[0-9]+|ONE|TWO|THREE|FOUR|FIVE|SIX)[- ]?(?:STORY|STORIES|STRY)\\b|NEW CONSTRUCTION") &
+      str_detect(first_sentence, "BUILDING|BLDG|RESIDEN|\\bHOMES?\\b|\\bHOUSES?\\b|DWELLING|\\bS\\.?F\\.?R\\b|\\bUNITS?\\b|TOWN ?HO") &
+      !str_detect(first_sentence, paste0("\\bADDI|\\bADDT|\\bADITI|EXISTING|CONVER|REHAB|ALTERATION|RENOVAT|INTERIOR|REPLAC|REPAIR|",
+        "DORMER|PORCH|DECK|GARAGE|STAIR|RAMP|CANOP|PATIO|PERGOLA|TRASH|ENCLOSURE|\\bBAY\\b|EXCAVAT|DRYWALL|FOUNDATION|",
+        "BUILD-? ?OUT|WIRING|CIRCUIT|ELECTRIC|",
+        "LOW VOLTAGE|\\bOVER\\b|\\bREAR OF\\b|\\bTO (?:A|AN|THE)\\b"))))
+
+# House numbers the description gives on the permit's street, besides its own: "329, 335, 337, 339 EAST 25TH PLACE",
+# "1626-46 SOUTH PRAIRIE", "1231/1233/1235 W GRENSHAW", with ranges on the permit's side of the street. Prototype
+# references ("PER PROTOTYPE PERMIT #... AT 3156 S. STEWART") name another building.
+listed_house_numbers <- function(text, street, own) {
+  text <- str_remove_all(text, "PROTOTYPE[^.;]*")
+  groups <- str_match_all(text, paste0("((?:\\b[0-9]{2,5}(?:\\s*-\\s*[0-9]{1,5})?(?:\\s*(?:,|/|&|AND|THRU|THROUGH|TO)\\s*)?)+)",
+    "\\s+(?:[NSEW]\\.?\\s+|NORTH\\s+|SOUTH\\s+|EAST\\s+|WEST\\s+)?", street, "\\b"))[[1]][, 2]
+  numbers <- unlist(map(groups, \(group) {
+    parts <- str_match_all(group, "([0-9]{2,5})(?:\\s*(?:-|THRU|THROUGH|TO)\\s*([0-9]{1,5}))?")[[1]]
+    unlist(map2(as.integer(parts[, 2]), parts[, 3], \(start, end) {
+      if (is.na(end)) return(start)
+      end <- as.integer(if (nchar(end) < nchar(start)) paste0(substr(start, 1, nchar(start) - nchar(end)), end) else end)
+      if (end > start && end - start <= 200) seq(start, end, by = 2) else start
+    }))
+  }))
+  numbers <- numbers[abs(numbers - own) <= 400 & numbers %% 2 == own %% 2 & numbers != own]
+  paste(sort(unique(numbers)), collapse = "/")
+}
+permits <- bind_cols(permits, address_parts(permits$address) |> rename(house = number, street_word = street)) |>
+  mutate(house_numbers = pmap_chr(list(main_text, street_word, house),
+    \(text, street, own) if (is.na(own) | is.na(street)) "" else listed_house_numbers(text, street, own)))
 
 # Dwelling counts stated in the description: "35 DWELLING UNITS", "3 D.U.", "(6) UNIT", "2-FLAT", "(7) 3-STORY ROWHOMES".
 number_words <- c(ONE = "1", TWO = "2", THREE = "3", FOUR = "4", FIVE = "5", SIX = "6", SEVEN = "7",
@@ -82,7 +119,8 @@ permits <- permits |> mutate(scope = case_when(
   str_detect(main_text, "\\bREVISION TO\\b|\\bREVISIONS? (?:OF|FOR|TO) (?:THE )?(?:DDS )?PERMIT\\b|\\bPERMIT REVISION\\b|\\bREINSTAT") ~ "revision",
   str_detect(main_text, "\\bERECTION STARTS\\b|\\bPERMIT EXPIRES ON\\b|\\bTENTS?\\b|\\bTEMPORARY (?:STRUCTURE|EXHIBIT|STAGE)") ~ "temporary_structure",
   str_detect(main_text, "(?<!IN )\\bADDITIONS?\\b|CONVER(?:T|SION)|\\bREHAB|\\bINTERIOR (?:ALTERATION|RENOVATION|REMODEL)") ~ "addition_or_conversion",
-  str_detect(first_clause, "\\b(?:GARAGES?|CARPORTS?|DECKS?|PORCH(?:ES)?|STAIRS?|STAIRWAYS?|FENCES?|PERGOLAS?|GAZEBOS?|SHEDS?|BREEZEWAY)\\b") &
+  str_detect(first_clause, paste0("\\b(?:GARAGES?|CARPORTS?|DECKS?|PORCH(?:ES)?|STAIRS?|STAIRWAYS?|FENCES?|PERGOLAS?|GAZEBOS?|SHEDS?|",
+    "BREEZEWAY|RAMPS?|LANDINGS?|SUNROOMS?|CANOP(?:Y|IES))\\b")) &
     !str_detect(first_clause, dwelling_words) & !str_detect(first_clause, "\\b(?:BUILDING|BLDG|UNITS?|D\\.?U)\\b") ~ "accessory_structure",
   str_detect(main_text, paste0("\\b(?:AT|FOR|TO|ON|SERVE|SERVES|SERVING|BEHIND) (?:AN |THE )?EXISTING (?:[0-9A-Z/.-]+ ){0,6}?",
     "(?:S\\.?F\\.?R|SINGLE[- ]?FAMILY|RESIDENCE|HOUSE|HOME|BUILDING|BLDG|DWELLING|UNIT)|\\bEXISTING ?:")) ~ "work_at_existing_building",
@@ -103,7 +141,9 @@ residential <- permits |> filter(scope == "new_residential") |> arrange(address,
 permits <- permits |> left_join(residential |> select(permit_id, repeat_permit_numbers, any_permit_complete),
     by = "permit_id", relationship = "one-to-one") |>
   mutate(scope = if_else(scope == "new_residential" & is.na(repeat_permit_numbers), "repeated_permit", scope)) |>
-  select(permit_id, permit_number, scope, issue_date, issue_year, address, permit_pin10s, permit_units, stated_counts,
+  filter(permit_type == "PERMIT - NEW CONSTRUCTION" | scope == "new_residential") |>
+  select(permit_id, permit_number, permit_type, scope, issue_date, issue_year, address, house_numbers, permit_pin10s,
+    permit_units, stated_counts,
     permit_status, permit_milestone, any_permit_complete, repeat_permit_numbers, latitude, longitude, description) |>
   arrange(issue_date, permit_id)
 SaveData(permits, "permit_id", "../output/construction_permits.csv", na = "")

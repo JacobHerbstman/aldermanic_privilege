@@ -44,7 +44,7 @@ all: ../output/construction_buildings.csv ../output/permit_construction.csv
 		$(REBUILT_AREA_GROWTH) $(ADDRESS_MATCH_FT) $(MEASUREMENT_YEARS)
 
 ../output/construction_permits.csv: select_permits.R ../input/building_permits_full.csv ../../shared/code/normalize_chicago_address.R \
-	../../shared/code/permit_unit_patterns.R ../../shared/code/save_data.R | ../output ../report
+	../../shared/code/street_key.R ../../shared/code/permit_unit_patterns.R ../../shared/code/save_data.R | ../output ../report
 	$(R) $< $(FIRST_ISSUE_YEAR) $(LAST_ISSUE_YEAR) $(REPEAT_PERMIT_YEARS)
 
 ../input/building_permits_full.csv: ../../../data_raw/construction_review/building_permits_full.csv | ../input
