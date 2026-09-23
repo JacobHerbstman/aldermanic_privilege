@@ -161,11 +161,14 @@ buildings <- records |> left_join(groups |> select(permit_id, building_id), by =
     group_by(building_id) |> summarise(superseded_permit_numbers = paste(sort(permit_number), collapse = "/"), .groups = "drop"),
     by = "building_id", relationship = "one-to-one")
 
+# Measurement decisions apply here; building links (assign_lot and the others) apply in build_construction_buildings.R.
 decisions <- read_csv("../adjudication/manual_decisions.csv", col_types = cols(.default = col_character()))
 stopifnot(!anyDuplicated(decisions[c("permit_number", "field")]),
-  all(decisions$field %in% c("exclude", "accept", "dwelling_units", "building_sqft", "land_sqft")),
+  all(decisions$field %in% c("exclude", "accept", "dwelling_units", "building_sqft", "land_sqft",
+    "assign_lot", "add_homes", "replace_homes", "same_building", "no_match")),
   !anyNA(decisions$source), all(decisions$permit_number %in% permits$permit_number))
-decisions <- decisions |> select(permit_number, field, value) |>
+decisions <- decisions |> filter(field %in% c("exclude", "accept", "dwelling_units", "building_sqft", "land_sqft")) |>
+  select(permit_number, field, value) |>
   pivot_wider(names_from = field, values_from = value, names_prefix = "manual_")
 for (field in c("manual_exclude", "manual_accept", "manual_dwelling_units", "manual_building_sqft", "manual_land_sqft")) {
   if (!field %in% names(decisions)) decisions[[field]] <- NA_character_

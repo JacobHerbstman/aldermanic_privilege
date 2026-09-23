@@ -10,8 +10,8 @@ so buildings completed in 2006–2007 are often on earlier permits. This task do
 
 `select_permits.R` (every `PERMIT - NEW CONSTRUCTION` issued 2006–2022, one `scope` per permit)
 - Braced notes about later permits (`{ALSO SEE PERMIT ...}`) are ignored.
-- Dropped: revisions and reinstatements, tent/event structures, additions and conversions, garages, and work
-  at, for or serving an existing building. Foundation and superstructure phases stay; they are resolved by the
+- Dropped: revisions and reinstatements, tent/event structures, additions and conversions, garages, work
+  at, for or serving an existing building, and permits whose first object is a deck, porch, stair or fence. Foundation and superstructure phases stay; they are resolved by the
   Assessor claims below. Residential wording includes `S.F.R.`, mixed use and ground-floor commercial.
 - Dwelling count: the first count stated in the description (`35 DWELLING UNITS`, `3 D.U.`, `6 UNIT`,
   `2-FLAT`, `(7) 3-STORY ROWHOMES`); otherwise 2 for a duplex and 1 for a single house.
@@ -33,7 +33,12 @@ so buildings completed in 2006–2007 are often on earlier permits. This task do
   `UNIT_TOLERANCE` for multifamily), floor area per unit below `MIN_SQFT_PER_UNIT` (a shop-only record),
   land per unit above `MAX_LAND_SQFT_PER_UNIT` (development-wide land), or an older building on the parcel.
 - `adjudication/manual_decisions.csv` is the only place for hand research: one row per permit number and
-  field (`exclude`, `accept`, `dwelling_units`, `building_sqft`, `land_sqft`) with a source and note.
+  field, with a source and note. Measurement fields (`exclude`, `accept`, `dwelling_units`, `building_sqft`,
+  `land_sqft`) apply here; link fields apply in `build_construction_buildings.R` after the rules:
+  `assign_lot` (take a named Assessor-only building), `add_homes` / `replace_homes` (add named single-family
+  parcels, or replace a parent parcel with them), `same_building` (another phase of a named permit's building;
+  the building takes the earlier issue date) and `no_match` (no candidate is this permit's building).
+  The current rows come from `tasks/audits/construction_hand_checks/queue_first_pass.csv`.
 
 `build_construction_buildings.R`
 - Assessor-only buildings: a condominium building, residential card or commercial apartment valuation first

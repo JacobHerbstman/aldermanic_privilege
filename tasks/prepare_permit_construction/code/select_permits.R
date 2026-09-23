@@ -67,7 +67,11 @@ permits <- permits |> mutate(scope = case_when(
   str_detect(main_text, "\\bERECTION STARTS\\b|\\bPERMIT EXPIRES ON\\b|\\bTENTS?\\b|\\bTEMPORARY (?:STRUCTURE|EXHIBIT|STAGE)") ~ "temporary_structure",
   str_detect(main_text, "(?<!IN )\\bADDITIONS?\\b|CONVER(?:T|SION)|\\bINTERIOR (?:ALTERATION|RENOVATION|REMODEL)") ~ "addition_or_conversion",
   str_detect(main_text, paste0("\\b(?:AT|FOR|TO|ON|SERVE|SERVES|SERVING|BEHIND) (?:AN |THE )?EXISTING (?:[0-9A-Z/.-]+ ){0,6}?",
-    "(?:S\\.?F\\.?R|SINGLE[- ]?FAMILY|RESIDENCE|HOUSE|HOME|BUILDING|BLDG|DWELLING|UNIT)")) ~ "work_at_existing_building",
+    "(?:S\\.?F\\.?R|SINGLE[- ]?FAMILY|RESIDENCE|HOUSE|HOME|BUILDING|BLDG|DWELLING|UNIT)|\\bEXISTING ?:|",
+    "^(?:ERECT |CONSTRUCT |BUILD |INSTALL )?(?:A |AN )?(?:NEW )?",
+    "(?:(?!TOWN|ROW|UNIT|RESIDEN|HOME|HOUSE|DWELLING|APARTMENT|CONDO|S\\.?F\\.?R)[A-Z0-9-]+ ){0,3}?",
+    "(?:DECKS?|PORCH(?:ES)?|STAIRS?|FENCES?)\\b")) ~
+    "work_at_existing_building",
   str_detect(main_text, "\\bGARAGE\\b") & stated_counts == "" & !dwelling_text ~ "garage",
   str_detect(main_text, "^(?:ERECT |CONSTRUCT |BUILD |NEW )?(?:A |AN )?(?:NEW )?(?:[0-9]+[- ]CAR )?(?:(?:DETACHED|ATTACHED|FRAME|MASONRY|1 STORY) )*GARAGE\\b") ~ "garage",
   stated_counts != "" | dwelling_text ~ "new_residential",

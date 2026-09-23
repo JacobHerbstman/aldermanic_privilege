@@ -23,6 +23,7 @@ all: ../output/construction_buildings.csv ../output/permit_construction.csv
 	$(R) $< $(BOUNDARY_WINDOW_FT) $(MAIN_BOUNDARY_WINDOW_FT)
 
 ../output/construction_buildings.csv: build_construction_buildings.R ../output/permit_buildings.csv ../output/construction_permits.csv \
+	../adjudication/manual_decisions.csv \
 	../input/residential_assessor_history.parquet ../input/condominium_characteristics.csv ../input/commercial_valuation_data.csv \
 	../input/parcel_addresses_2025_chicago.csv ../input/parcel_universe_2025_city.csv ../../shared/code/assessor_classification.R \
 	../../shared/code/normalize_chicago_address.R ../../shared/code/save_data.R | ../output ../report

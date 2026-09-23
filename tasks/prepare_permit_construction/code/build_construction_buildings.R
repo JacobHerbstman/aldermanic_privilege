@@ -325,7 +325,77 @@ buildings <- buildings |>
     flags = if_else(townhouse, str_remove(flags, "units_disagree;"), flags),
     match_basis = if_else(townhouse, if_else(is.na(match_basis), "townhouse_lots", paste0(match_basis, "+townhouse_lots")), match_basis),
     source = if_else(townhouse, "residential", source), status = if_else(townhouse, "measured", status),
-    multifamily = if_else(townhouse, FALSE, multifamily)) |>
+    multifamily = if_else(townhouse, FALSE, multifamily))
+
+# Hand-checked links from adjudication/manual_decisions.csv, applied after the rules: a permit takes a named
+# Assessor-only building (assign_lot), adds or replaces its homes with named single-family parcels (add_homes,
+# replace_homes), is another phase of a named permit's building (same_building), or has no qualifying candidate
+# (no_match). Every named building, parcel and permit must exist.
+manual <- read_csv("../adjudication/manual_decisions.csv", col_types = cols(.default = col_character())) |>
+  filter(field %in% c("assign_lot", "add_homes", "replace_homes", "same_building", "no_match")) |>
+  left_join(buildings |> filter(route == "permit") |> select(permit_number, building_id), by = "permit_number",
+    relationship = "many-to-one")
+stopifnot(!anyNA(manual$building_id), !anyDuplicated(manual$building_id))
+assigned_lots <- manual |> filter(field == "assign_lot") |> select(building_id, lot_id = value)
+stopifnot(all(assigned_lots$lot_id %in% buildings$building_id[buildings$route == "assessor_only"]),
+  !anyDuplicated(assigned_lots$lot_id))
+buildings <- buildings |>
+  rows_update(assigned_lots |>
+    left_join(buildings |> select(lot_id = building_id, source, record_ids, classes, first_assessment_year, assessor_year_built,
+      dwelling_units, building_sqft, land_sqft, multifamily, x_3435, y_3435), by = "lot_id", relationship = "one-to-one") |>
+    mutate(status = "measured", match_basis = "hand_checked_lot", location_source = "parcel_centroid", flags = "") |>
+    select(-lot_id), by = "building_id") |>
+  filter(!building_id %in% assigned_lots$lot_id)
+named_homes <- manual |> filter(field %in% c("add_homes", "replace_homes")) |> separate_longer_delim(value, "/")
+home_records <- candidates |> filter(source == "residential") |>
+  transmute(value = record_id, units, building_sqft, land_sqft, classes, first_year, year_built, pin10 = substr(record_id, 1, 10)) |>
+  left_join(centroids, by = "pin10", relationship = "many-to-one")
+stopifnot(all(named_homes$value %in% home_records$value), !anyDuplicated(named_homes$value))
+hand_homes <- named_homes |> left_join(home_records, by = "value", relationship = "one-to-one") |>
+  group_by(building_id, field) |>
+  summarise(h_ids = paste(value, collapse = "/"), h_units = sum(units), h_sqft = sum(building_sqft), h_land = sum(land_sqft),
+    h_classes = paste(sort(unique(classes)), collapse = "/"), h_first = min(first_year), h_built = min(year_built),
+    h_x = mean(x), h_y = mean(y), .groups = "drop")
+same_building <- manual |> filter(field == "same_building") |>
+  left_join(buildings |> filter(route == "permit") |> select(target_id = building_id, value = permit_number), by = "value",
+    relationship = "many-to-one") |>
+  left_join(buildings |> select(building_id, a_members = member_permit_numbers, a_date = issue_date), by = "building_id",
+    relationship = "one-to-one")
+stopifnot(!anyNA(same_building$target_id), !any(same_building$target_id %in% same_building$building_id))
+buildings <- buildings |>
+  left_join(hand_homes, by = "building_id", relationship = "one-to-one") |>
+  filter(!building_id %in% paste0("assessor_residential_", named_homes$value), !building_id %in% same_building$building_id) |>
+  left_join(same_building |> group_by(building_id = target_id) |>
+    summarise(add_members = paste(a_members, collapse = "/"), add_date = min(a_date), .groups = "drop"),
+    by = "building_id", relationship = "one-to-one") |>
+  mutate(keep = field %in% "add_homes", homes = !is.na(h_ids),
+    x_3435 = if_else(homes, (if_else(keep, coalesce(x_3435 * dwelling_units, 0), 0) + h_x * h_units) /
+      (if_else(keep, coalesce(dwelling_units, 0), 0) + h_units), x_3435),
+    y_3435 = if_else(homes, (if_else(keep, coalesce(y_3435 * dwelling_units, 0), 0) + h_y * h_units) /
+      (if_else(keep, coalesce(dwelling_units, 0), 0) + h_units), y_3435),
+    location_source = if_else(homes, "parcel_centroid", location_source),
+    record_ids = if_else(homes, if_else(keep & !is.na(record_ids), paste(record_ids, h_ids, sep = "/"), h_ids), record_ids),
+    classes = if_else(homes, if_else(keep & !is.na(classes), paste(classes, h_classes, sep = "/"), h_classes), classes),
+    first_assessment_year = if_else(homes, if_else(keep, pmin(first_assessment_year, h_first, na.rm = TRUE), h_first),
+      first_assessment_year),
+    assessor_year_built = if_else(homes, if_else(keep, pmin(assessor_year_built, h_built, na.rm = TRUE), h_built),
+      assessor_year_built),
+    building_sqft = if_else(homes, if_else(keep, coalesce(building_sqft, 0), 0) + h_sqft, building_sqft),
+    land_sqft = if_else(homes, if_else(keep, coalesce(land_sqft, 0), 0) + h_land, land_sqft),
+    dwelling_units = if_else(homes, if_else(keep, coalesce(dwelling_units, 0), 0) + h_units, dwelling_units),
+    flags = if_else(homes & dwelling_units == permit_units, str_remove(flags, "units_disagree;"), flags),
+    match_basis = if_else(homes, if_else(is.na(match_basis) | !keep, "hand_checked_homes", paste0(match_basis, "+hand_checked_homes")),
+      match_basis),
+    source = if_else(homes, "residential", source), status = if_else(homes, "measured", status),
+    multifamily = if_else(homes, FALSE, multifamily),
+    member_permit_numbers = if_else(is.na(add_members), member_permit_numbers, paste(member_permit_numbers, add_members, sep = "/")),
+    issue_date = if_else(is.na(add_date), issue_date, pmin(issue_date, add_date)),
+    issue_year = as.integer(format(issue_date, "%Y")),
+    reviewed = building_id %in% manual$building_id,
+    lot_rule_candidates = if_else(reviewed, NA_character_, lot_rule_candidates),
+    townhouse_candidates = if_else(reviewed, NA_character_, townhouse_candidates))
+
+buildings <- buildings |>
   filter(status != "built_after_window") |>
   mutate(allow_dupac = coalesce(status %in% c("measured", "measured_without_permit") & flags == "" &
       dwelling_units > 0 & land_sqft > 0, FALSE),
