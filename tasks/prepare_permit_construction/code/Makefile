@@ -15,13 +15,12 @@ LOT_DISTANCE_FT := 150
 TOWNHOUSE_DISTANCE_FT := 300
 BOUNDARY_WINDOW_FT := 1500
 MAIN_BOUNDARY_WINDOW_FT := 500
-TIMINGS := permit_issue assessor_year
 
-all: ../output/construction_buildings.csv $(foreach timing,$(TIMINGS),../output/permit_construction_$(timing).csv)
+all: ../output/construction_buildings.csv ../output/permit_construction.csv
 
-../output/permit_construction_%.csv: build_ledger.R ../output/construction_buildings.csv ../input/ward_panel.gpkg ../input/ward_pair_boundaries.gpkg \
+../output/permit_construction.csv: build_ledger.R ../output/construction_buildings.csv ../input/ward_panel.gpkg ../input/ward_pair_boundaries.gpkg \
 	../../shared/code/canonical_geometry_helpers.R ../../shared/code/save_data.R | ../output ../report
-	$(R) $< $* $(BOUNDARY_WINDOW_FT) $(MAIN_BOUNDARY_WINDOW_FT)
+	$(R) $< $(BOUNDARY_WINDOW_FT) $(MAIN_BOUNDARY_WINDOW_FT)
 
 ../output/construction_buildings.csv: build_construction_buildings.R ../output/permit_buildings.csv ../output/construction_permits.csv \
 	../input/residential_assessor_history.parquet ../input/condominium_characteristics.csv ../input/commercial_valuation_data.csv \

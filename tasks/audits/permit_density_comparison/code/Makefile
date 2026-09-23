@@ -11,16 +11,14 @@ SEGMENT_WINDOW_FT := 1500
 
 all: ../output/density_comparison.csv
 
-../output/density_comparison.csv: compare_density.R ../input/permit_construction_permit_issue.csv ../input/permit_construction_assessor_year.csv \
+../output/density_comparison.csv: compare_density.R ../input/permit_construction.csv \
 	../input/new_construction_analysis_data.csv ../input/boundary_segments_1320ft.gpkg ../input/chicago_alderman_terms.csv \
 	../input/alderman_uncertainty_index_through2022.csv ../input/ward_controls_2006_2022.csv ../input/historical_zoning_2006_candidate.gpkg \
 	../input/zoning_nov2012.zip ../input/zoning_sep2014.zip ../input/zoning_jan2016.zip \
 	../../../shared/code/canonical_geometry_helpers.R ../../../shared/code/save_data.R | ../output ../report
 	$(R) $< $(START_YEAR) $(END_YEAR) $(BANDWIDTH_FT) $(BIN_WIDTH_FT) "$(CONTROLS)" "$(FIXED_EFFECTS)" "$(CLUSTER)" $(SEGMENT_WINDOW_FT)
 
-../input/permit_construction_permit_issue.csv: ../../../prepare_permit_construction/output/permit_construction_permit_issue.csv | ../input
-	ln -sf $< $@
-../input/permit_construction_assessor_year.csv: ../../../prepare_permit_construction/output/permit_construction_assessor_year.csv | ../input
+../input/permit_construction.csv: ../../../prepare_permit_construction/output/permit_construction.csv | ../input
 	ln -sf $< $@
 ../input/new_construction_analysis_data.csv: ../../../new_construction_analysis_data/output/new_construction_analysis_data.csv | ../input
 	ln -sf $< $@
@@ -41,7 +39,7 @@ all: ../output/density_comparison.csv
 ../input/zoning_jan2016.zip: ../../../../data_raw/construction_review/zoning_jan2016.zip | ../input
 	ln -sf $< $@
 
-link-inputs: ../input/permit_construction_permit_issue.csv ../input/permit_construction_assessor_year.csv \
+link-inputs: ../input/permit_construction.csv \
 	../input/new_construction_analysis_data.csv ../input/boundary_segments_1320ft.gpkg ../input/chicago_alderman_terms.csv \
 	../input/alderman_uncertainty_index_through2022.csv ../input/ward_controls_2006_2022.csv ../input/historical_zoning_2006_candidate.gpkg \
 	../input/zoning_nov2012.zip ../input/zoning_sep2014.zip ../input/zoning_jan2016.zip

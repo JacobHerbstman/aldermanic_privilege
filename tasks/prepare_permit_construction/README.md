@@ -65,6 +65,6 @@ so buildings completed in 2006–2007 are often on earlier permits. This task do
 - Location: centroid of the measured parcels in the 2025 parcel universe (permit coordinates are geocoded
   at the street frontage, a median 56 ft from the parcel centroid); the permit point only when no parcel remains.
 
-`build_ledger.R` (`permit_issue`, `assessor_year`)
-- Ward and nearest ward-pair boundary from the map in effect on the permit issue date, or on June 15 of the
-  Assessor's year built (always the latter for Assessor-only buildings).
+`build_ledger.R`
+- Ward and nearest ward-pair boundary from the map in effect on the first permit's issue date, or on June 15 of
+  the Assessor's year built for Assessor-only buildings (`date_source`).

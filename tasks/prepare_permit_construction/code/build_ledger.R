@@ -1,5 +1,4 @@
 # setwd("tasks/prepare_permit_construction/code")
-# timing <- "permit_issue"
 # boundary_window_ft <- 1500
 # main_boundary_window_ft <- 500
 source("../../setup_environment/code/packages.R")
@@ -7,21 +6,19 @@ source("../../shared/code/save_data.R")
 source("../../shared/code/canonical_geometry_helpers.R")
 
 args <- commandArgs(trailingOnly = TRUE)
-if (interactive()) args <- c(timing, boundary_window_ft, main_boundary_window_ft)
-stopifnot(length(args) == 3L)
-timing <- args[1]
-boundary_window_ft <- as.numeric(args[2])
-main_boundary_window_ft <- as.numeric(args[3])
-stopifnot(timing %in% c("permit_issue", "assessor_year"))
+if (interactive()) args <- c(boundary_window_ft, main_boundary_window_ft)
+stopifnot(length(args) == 2L)
+boundary_window_ft <- as.numeric(args[1])
+main_boundary_window_ft <- as.numeric(args[2])
 
-# Permit timing uses the first permit's issue date; Assessor timing, and Assessor-only buildings, use June 15 of the
-# reported year built. Buildings dated after the last recorded ward map are outside the panel.
+# Buildings are dated by their first permit's issue date; Assessor-only buildings, which have no permit, by June 15
+# of the reported year built. Buildings dated after the last recorded ward map are outside the panel.
 ward_panel <- st_read("../input/ward_panel.gpkg", quiet = TRUE) |> st_transform(3435)
 buildings <- read_csv("../output/construction_buildings.csv", col_types = cols(building_id = "c", permit_number = "c",
     member_permit_numbers = "c", superseded_permit_numbers = "c", lot_rule_candidates = "c", record_ids = "c",
     parcel_pin10s = "c", issue_date = "D", .default = col_guess())) |>
   filter(status %in% c("measured", "measured_without_permit"), is.finite(x_3435), is.finite(y_3435)) |>
-  mutate(date_source = if_else(timing == "permit_issue" & !is.na(issue_date), "permit_issue_date", "assessor_year_built"),
+  mutate(date_source = if_else(!is.na(issue_date), "permit_issue_date", "assessor_year_built"),
     construction_date = if_else(date_source == "permit_issue_date", issue_date, make_date(assessor_year_built, 6L, 15L)),
     construction_year = as.integer(format(construction_date, "%Y")),
     boundary_year = canonical_boundary_year_from_date(construction_date),
@@ -42,4 +39,4 @@ ledger <- bind_cols(st_drop_geometry(points), assignment) |>
     within_1500ft, within_500ft, location_source, x_3435, y_3435, dwelling_units, building_sqft, land_sqft, allow_far, allow_dupac,
     far, dupac, multifamily) |>
   arrange(construction_date, building_id)
-SaveData(ledger, "building_id", sprintf("../output/permit_construction_%s.csv", timing), na = "")
+SaveData(ledger, "building_id", "../output/permit_construction.csv", na = "")

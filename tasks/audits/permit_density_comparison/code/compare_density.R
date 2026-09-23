@@ -97,10 +97,8 @@ paper <- read_csv("../input/new_construction_analysis_data.csv",
 datasets <- list(
   paper_published = paper,
   paper_snapshot_zoning = paper |> mutate(zone_group = preceding_zoning(paper)),
-  permit_issue = read_permit_ledger("../input/permit_construction_permit_issue.csv"),
-  assessor_year = read_permit_ledger("../input/permit_construction_assessor_year.csv"))
-datasets$permit_issue$zone_group <- preceding_zoning(datasets$permit_issue)
-datasets$assessor_year$zone_group <- preceding_zoning(datasets$assessor_year)
+  permit_construction = read_permit_ledger("../input/permit_construction.csv"))
+datasets$permit_construction$zone_group <- preceding_zoning(datasets$permit_construction)
 
 # The paper's specification: log density on 100 ft distance bands, omitting the nearest lenient-side band.
 # Reported: the nearest stringent-side band, from 0 to 100 ft.
