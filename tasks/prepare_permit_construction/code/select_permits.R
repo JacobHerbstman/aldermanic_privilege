@@ -21,8 +21,13 @@ permits <- read_csv("../input/building_permits_full.csv", col_types = cols(.defa
   mutate(issue_date = as.Date(substr(issue_date, 1, 10)), issue_year = as.integer(format(issue_date, "%Y"))) |>
   filter(between(issue_year, first_issue_year, last_issue_year)) |>
   mutate(description = str_squish(str_to_upper(coalesce(work_description, ""))),
-    # Braced notes describe later permits ("{ALSO SEE PERMIT #... TO: DECONVERSION ...}"), not this building.
-    main_text = str_squish(str_remove_all(description, "\\{[^}]*(?:\\}|$)")),
+    # Notes describe later permits ("{ALSO SEE PERMIT #... TO: DECONVERSION ...}", "[SEE PERMIT #... TO CONVERT ...]",
+    # "SEE REVISION #... TO ADD TWO FLOORS"), not this building. Common misspellings are corrected.
+    main_text = description |> str_remove_all("\\{[^}]*(?:\\}|$)|\\[[^\\]]*(?:\\]|$)") |>
+      str_remove("\\bSEE (?:REVISION|PERMIT|#).*$") |>
+      str_replace_all("\\bDWELING", "DWELLING") |> str_replace_all("\\bAPARMENT", "APARTMENT") |>
+      str_replace_all("\\bUNIT(S?)(BUILDING|BLDG)\\b", "UNIT\\1 \\2") |> str_replace_all("([0-9]) ?\\(DU\\)", "\\1 DU") |>
+      str_squish(),
     address = normalize_address(paste(str_remove(street_number, "^0+"), street_direction, street_name)),
     permit_pin10s = map_chr(str_extract_all(coalesce(pin_list, ""), "[0-9]{10}"),
       \(x) paste(unique(x), collapse = "/")),
@@ -45,6 +50,7 @@ counts_found <- map2(str_match_all(count_text, dwelling_count_pattern),
 
 # Words naming a dwelling structure; generic "residential use" alone does not identify one.
 dwelling_words <- paste0("\\bRESIDENCES?\\b|RESIDENTIAL (?:BUILDING|BLDG|STRUCTURE|DEVELOPMENT|HIGH[- ]?RISE|TOWER)|DWELLING|",
+  "RESIDENTIAL UNITS?|FLOORS? (?:FOR )?RESIDENTIAL|(?:ELDERLY|SENIOR|AFFORDABLE|STUDENT|SUPPORTIVE) HOUSING|",
   "\\bS\\.?F\\.?[RHD]\\b|SINGLE[- ]?FA[A-Z]*LY|MULTI[- ]?FAMILY|TWO[- ]FAMILY|\\bDUPLEX\\b|APARTMENT|CONDO|",
   "MIXED[- ]USE|RESIDENTIAL ?/ ?COMMERCIAL|GROUND FLOOR (?:COMMERCIAL|RETAIL|BUSINESS|OFFICE)|",
   "TOWN ?HOUSE|TOWN ?HOME|ROW ?HOUSE|ROW ?HOME|\\bFLATS?\\b|",

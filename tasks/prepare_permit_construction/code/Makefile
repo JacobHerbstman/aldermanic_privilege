@@ -13,6 +13,8 @@ MIN_SQFT_PER_UNIT := 300
 MAX_LAND_SQFT_PER_UNIT := 43560
 LOT_DISTANCE_FT := 150
 TOWNHOUSE_DISTANCE_FT := 300
+LARGE_BUILDING_UNITS := 20
+LARGE_LOT_DISTANCE_FT := 300
 BOUNDARY_WINDOW_FT := 1500
 MAIN_BOUNDARY_WINDOW_FT := 500
 
@@ -28,7 +30,8 @@ all: ../output/construction_buildings.csv ../output/permit_construction.csv
 	../input/parcel_addresses_2025_chicago.csv ../input/parcel_universe_2025_city.csv ../../shared/code/assessor_classification.R \
 	../../shared/code/normalize_chicago_address.R ../../shared/code/save_data.R | ../output ../report
 	$(R) $< $(FIRST_YEAR_BUILT) $(LAST_YEAR_BUILT) $(LAST_UNPERMITTED_YEAR_BUILT) $(ASSESSOR_YEAR_LEAD) $(MAX_BUILD_LAG_YEARS) $(UNIT_TOLERANCE) \
-		$(MIN_SQFT_PER_UNIT) $(MAX_LAND_SQFT_PER_UNIT) $(LOT_DISTANCE_FT) $(TOWNHOUSE_DISTANCE_FT)
+		$(MIN_SQFT_PER_UNIT) $(MAX_LAND_SQFT_PER_UNIT) $(LOT_DISTANCE_FT) $(TOWNHOUSE_DISTANCE_FT) \
+		$(LARGE_BUILDING_UNITS) $(LARGE_LOT_DISTANCE_FT)
 
 ../output/permit_buildings.csv: measure_buildings.R ../output/construction_permits.csv ../adjudication/manual_decisions.csv \
 	../input/residential_assessor_history.parquet ../input/condominium_characteristics.csv ../input/commercial_valuation_data.csv \

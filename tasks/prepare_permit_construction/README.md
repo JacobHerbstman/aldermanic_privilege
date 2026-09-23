@@ -9,7 +9,8 @@ so buildings completed in 2006–2007 are often on earlier permits. This task do
 ## Rules
 
 `select_permits.R` (every `PERMIT - NEW CONSTRUCTION` issued 2006–2022, one `scope` per permit)
-- Braced notes about later permits (`{ALSO SEE PERMIT ...}`) are ignored.
+- Notes about later permits (`{ALSO SEE PERMIT ...}`, `[SEE PERMIT #... TO CONVERT ...]`, `SEE REVISION #...`) are
+  ignored. Common misspellings (`DWELING`, `APARMENT`, `6 UNITBUILDING`, `4(DU)`) are corrected.
 - Dropped: revisions and reinstatements, tent/event structures, additions and conversions, garages, work
   at, for or serving an existing building, and permits whose first object is a deck, porch, stair or fence. Foundation and superstructure phases stay; they are resolved by the
   Assessor claims below. Residential wording includes `S.F.R.`, mixed use and ground-floor commercial.
@@ -25,7 +26,8 @@ so buildings completed in 2006–2007 are often on earlier permits. This task do
   A parcel already showing it before the permit year holds an earlier building. The Assessor codes many 2013 and 2016 permits' buildings two years
   before issue, which sets the lead at 2.
 - Units, floor area and land come from one source and one first-appearance year, never mixed:
-  condominium records first, then residential cards, then commercial apartment valuations (2021 onward).
+  condominium records first, then residential cards, then commercial apartment valuations (2021 onward; hotels,
+  care facilities and parking valuations are not dwellings).
   Prorated buildings count once; land is summed once per parcel.
 - Several permits at one address reaching the same building: the latest permit issued before the building
   appears keeps it. Permits at different addresses reaching the same building are one development.
@@ -58,6 +60,13 @@ so buildings completed in 2006–2007 are often on earlier permits. This task do
   new-construction permit, and permits whose own parcel still holds a building of changed floor area
   (`parcel_changed_after_permit`, possibly the new building under an old year built). Other qualifying pairs are
   listed in `lot_rule_candidates` for review. Hand checks are in `tasks/audits/construction_hand_checks`.
+  Permits for `LARGE_BUILDING_UNITS` or more dwellings search `LARGE_LOT_DISTANCE_FT`: large lots reach farther from
+  the street frontage where permits are geocoded.
+- Condominium successor rule: a condominium declaration retires the lot's parcel number. A permit measured on
+  residential cards whose parcels are all retired by 2025 takes the unclaimed condominium building on the same tax
+  block within `LOT_DISTANCE_FT`, first assessed no earlier than the cards, within the construction lag and matching
+  its dwelling count, when each is the other's only match (`match_basis = condominium_successor`). The condominium
+  measurement replaces the cards, and the building is not counted twice.
 - Townhouse rule: a permit for several townhouses or houses, or a group of single-house permits, reaching fewer
   homes than it authorizes takes the unclaimed new single-family parcels that complete one run of consecutive
   parcel numbers on a block, first assessed within a year of its measured homes, exactly matching its count; a

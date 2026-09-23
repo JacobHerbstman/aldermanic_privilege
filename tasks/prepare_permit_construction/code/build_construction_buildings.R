@@ -9,6 +9,8 @@
 # max_land_sqft_per_unit <- 43560
 # lot_distance_ft <- 150
 # townhouse_distance_ft <- 300
+# large_building_units <- 20
+# large_lot_distance_ft <- 300
 source("../../setup_environment/code/packages.R")
 source("../../shared/code/save_data.R")
 source("../../shared/code/assessor_classification.R")
@@ -16,8 +18,9 @@ source("../../shared/code/normalize_chicago_address.R")
 
 args <- commandArgs(trailingOnly = TRUE)
 if (interactive()) args <- c(first_year_built, last_year_built, last_unpermitted_year_built, assessor_year_lead,
-  max_build_lag_years, unit_tolerance, min_sqft_per_unit, max_land_sqft_per_unit, lot_distance_ft, townhouse_distance_ft)
-stopifnot(length(args) == 10L)
+  max_build_lag_years, unit_tolerance, min_sqft_per_unit, max_land_sqft_per_unit, lot_distance_ft, townhouse_distance_ft,
+  large_building_units, large_lot_distance_ft)
+stopifnot(length(args) == 12L)
 first_year_built <- as.integer(args[1])
 last_year_built <- as.integer(args[2])
 last_unpermitted_year_built <- as.integer(args[3])
@@ -28,6 +31,8 @@ min_sqft_per_unit <- as.numeric(args[7])
 max_land_sqft_per_unit <- as.numeric(args[8])
 lot_distance_ft <- as.numeric(args[9])
 townhouse_distance_ft <- as.numeric(args[10])
+large_building_units <- as.integer(args[11])
+large_lot_distance_ft <- as.numeric(args[12])
 
 permit_buildings <- read_csv("../output/permit_buildings.csv", col_types = cols(building_id = "c", permit_number = "c",
   member_permit_numbers = "c", superseded_permit_numbers = "c", parcel_pin10s = "c", record_ids = "c", issue_date = "D",
@@ -93,8 +98,10 @@ DBI::dbDisconnect(con, shutdown = TRUE)
 
 # Commercial apartment valuations (2021 onward) of buildings reported built in the window.
 commercial <- read_csv("../input/commercial_valuation_data.csv", col_types = cols(.default = col_character()),
-  col_select = c(keypin, pins, year, class_es, tot_units, bldgsf, landsf, yearbuilt)) |>
+  col_select = c(keypin, pins, year, class_es, tot_units, bldgsf, landsf, yearbuilt, property_type_use)) |>
   mutate(across(c(year, tot_units, bldgsf, landsf, yearbuilt), as.numeric), record_id = str_remove_all(keypin, "-")) |>
+  # Hotel rooms and care beds are not dwelling units.
+  group_by(record_id) |> filter(!any(str_detect(str_to_upper(coalesce(property_type_use, "")), "HOTEL|MOTEL|NURSING|HOSP|HEALTH CARE|TREATMENT|PARKING|BOAT"))) |> ungroup() |>
   filter(tot_units > 0, yearbuilt >= first_year_built - assessor_year_lead) |>
   group_by(record_id) |> filter(year == min(year)) |> ungroup() |>
   mutate(pin10s = map_chr(str_extract_all(str_remove_all(pins, "-"), "[0-9]{14}"), \(x) paste(sort(unique(substr(x, 1, 10))), collapse = "/"))) |>
@@ -168,7 +175,8 @@ buildings <- buildings |>
     x_3435 = coalesce(parcel_x, permit_x), y_3435 = coalesce(parcel_y, permit_y), flags = coalesce(flags, ""))
 
 # Lot rule: a permit reaching no new building on its own parcels takes the unclaimed new building within
-# LOT_DISTANCE_FT of its geocoded point that first appears after the permit, within the construction lag, and
+# LOT_DISTANCE_FT of its geocoded point (LARGE_LOT_DISTANCE_FT for LARGE_BUILDING_UNITS or more dwellings, whose lots
+# reach farther from the street frontage) that first appears after the permit, within the construction lag, and
 # matches its dwelling count.
 # Each must be the other's only such match; every other qualifying pair is listed for review.
 units_agree <- function(units, permit_units) {
@@ -189,14 +197,16 @@ open_permits <- buildings |> filter(route == "permit", status %in% c("no_parcel"
   !parcel_changed_after_permit %in% TRUE)
 lots <- buildings |> filter(route == "assessor_only", flags == "", !is.na(x_3435))
 near <- st_is_within_distance(st_as_sf(open_permits, coords = c("permit_x", "permit_y"), crs = 3435),
-  st_as_sf(lots, coords = c("x_3435", "y_3435"), crs = 3435), dist = lot_distance_ft)
+  st_as_sf(lots, coords = c("x_3435", "y_3435"), crs = 3435), dist = max(lot_distance_ft, large_lot_distance_ft))
 lot_pairs <- tibble(permit_id = open_permits$building_id[rep(seq_along(near), lengths(near))],
     lot_id = lots$building_id[unlist(near)]) |>
-  left_join(open_permits |> select(permit_id = building_id, permit_number, issue_year, permit_units),
+  left_join(open_permits |> select(permit_id = building_id, permit_number, issue_year, permit_units, permit_x, permit_y),
     by = "permit_id", relationship = "many-to-one") |>
-  left_join(lots |> select(lot_id = building_id, assessor_year_built, first_assessment_year, dwelling_units),
-    by = "lot_id", relationship = "many-to-one") |>
-  filter(assessor_year_built >= issue_year - assessor_year_lead, assessor_year_built <= issue_year + max_build_lag_years,
+  left_join(lots |> select(lot_id = building_id, assessor_year_built, first_assessment_year, dwelling_units, lot_x = x_3435,
+    lot_y = y_3435), by = "lot_id", relationship = "many-to-one") |>
+  filter(sqrt((permit_x - lot_x)^2 + (permit_y - lot_y)^2) <=
+      if_else(permit_units >= large_building_units, large_lot_distance_ft, lot_distance_ft, lot_distance_ft),
+    assessor_year_built >= issue_year - assessor_year_lead, assessor_year_built <= issue_year + max_build_lag_years,
     first_assessment_year >= issue_year,
     units_agree(dwelling_units, permit_units) %in% TRUE) |>
   left_join(open_permits |> select(permit_id = building_id, permit_address = address), by = "permit_id", relationship = "many-to-one") |>
@@ -223,6 +233,35 @@ linked <- lot_links |> select(building_id = permit_id, lot_id) |>
   mutate(status = "measured", match_basis = "nearby_lot", location_source = "parcel_centroid") |> select(-lot_id)
 buildings <- buildings |> rows_update(linked, by = "building_id") |> filter(!building_id %in% lot_links$lot_id) |>
   left_join(lot_review, by = "building_id", relationship = "one-to-one")
+
+# Condominium successor rule: a condominium declaration retires the lot's parcel number. A permit measured on
+# residential cards whose parcels are all retired by 2025 takes the unclaimed condominium building on the same tax
+# block within LOT_DISTANCE_FT of its geocoded point, first assessed no earlier than the cards, within the construction
+# lag, and matching its dwelling count, when each is the other's only such match. The condominium measurement
+# replaces the cards, as condominium records come first.
+retired_permits <- buildings |>
+  filter(route == "permit", status == "measured", source %in% "residential", !is.na(permit_x),
+    map_lgl(str_split(record_ids, "/"), \(x) !any(substr(x, 1, 10) %in% centroids$pin10)))
+condominium_lots <- buildings |> filter(route == "assessor_only", source == "condominium", flags == "", !is.na(x_3435))
+near <- st_is_within_distance(st_as_sf(retired_permits, coords = c("permit_x", "permit_y"), crs = 3435),
+  st_as_sf(condominium_lots, coords = c("x_3435", "y_3435"), crs = 3435), dist = lot_distance_ft)
+successor_links <- tibble(permit_id = retired_permits$building_id[rep(seq_along(near), lengths(near))],
+    lot_id = condominium_lots$building_id[unlist(near)]) |>
+  left_join(retired_permits |> select(permit_id = building_id, issue_year, permit_units, card_year = first_assessment_year,
+    card_blocks = record_ids), by = "permit_id", relationship = "many-to-one") |>
+  left_join(condominium_lots |> select(lot_id = building_id, assessor_year_built, first_assessment_year, dwelling_units,
+    lot_pin10s = parcel_pin10s), by = "lot_id", relationship = "many-to-one") |>
+  filter(assessor_year_built >= issue_year - assessor_year_lead, assessor_year_built <= issue_year + max_build_lag_years,
+    first_assessment_year >= card_year, units_agree(dwelling_units, permit_units) %in% TRUE,
+    map2_lgl(card_blocks, lot_pin10s, \(a, b) any(substr(str_split_1(a, "/"), 1, 7) %in% substr(str_split_1(b, "/"), 1, 7)))) |>
+  add_count(permit_id, name = "lots_for_permit") |> add_count(lot_id, name = "permits_for_lot") |>
+  filter(lots_for_permit == 1, permits_for_lot == 1)
+successors <- successor_links |> select(building_id = permit_id, lot_id) |>
+  left_join(buildings |> select(lot_id = building_id, source, record_ids, classes, first_assessment_year,
+    assessor_year_built, dwelling_units, building_sqft, land_sqft, multifamily, x_3435, y_3435), by = "lot_id",
+    relationship = "one-to-one") |>
+  mutate(match_basis = "condominium_successor", location_source = "parcel_centroid", flags = "") |> select(-lot_id)
+buildings <- buildings |> rows_update(successors, by = "building_id") |> filter(!building_id %in% successor_links$lot_id)
 
 # Townhouse rule: a permit for several townhouses or houses (or a group of single-house permits) reaching fewer homes
 # than it authorizes takes the unclaimed new single-family parcels that complete one run of consecutive parcel numbers

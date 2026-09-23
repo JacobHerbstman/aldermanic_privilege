@@ -103,8 +103,10 @@ condominiums <- condominiums |> filter(!predates_permit) |>
 
 # Commercial apartment valuations (2021 onward): the earliest valuation of a new building with dwelling units.
 commercial <- read_csv("../input/commercial_valuation_data.csv", col_types = cols(.default = col_character()),
-  col_select = c(keypin, pins, year, class_es, tot_units, bldgsf, landsf, yearbuilt)) |>
+  col_select = c(keypin, pins, year, class_es, tot_units, bldgsf, landsf, yearbuilt, property_type_use)) |>
   mutate(across(c(year, tot_units, bldgsf, landsf, yearbuilt), as.numeric), record_id = str_remove_all(keypin, "-")) |>
+  # Hotel rooms and care beds are not dwelling units.
+  group_by(record_id) |> filter(!any(str_detect(str_to_upper(coalesce(property_type_use, "")), "HOTEL|MOTEL|NURSING|HOSP|HEALTH CARE|TREATMENT|PARKING|BOAT"))) |> ungroup() |>
   filter(tot_units > 0) |>
   mutate(pin10 = map(str_extract_all(str_remove_all(pins, "-"), "[0-9]{14}"), \(x) unique(substr(x, 1, 10)))) |>
   unnest_longer(pin10) |>
