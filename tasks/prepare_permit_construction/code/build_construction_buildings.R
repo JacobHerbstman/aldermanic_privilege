@@ -13,6 +13,7 @@
 # large_lot_distance_ft <- 300
 # measurement_years <- 3
 # min_land_sqft <- 100
+# max_assessment_lag_years <- 4
 source("../../setup_environment/code/packages.R")
 source("../../shared/code/save_data.R")
 source("../../shared/code/assessor_classification.R")
@@ -23,8 +24,8 @@ source("construction_rules.R")
 args <- commandArgs(trailingOnly = TRUE)
 if (interactive()) args <- c(first_year_built, last_year_built, last_unpermitted_year_built, assessor_year_lead,
   max_build_lag_years, unit_tolerance, min_sqft_per_unit, max_land_sqft_per_unit, lot_distance_ft, townhouse_distance_ft,
-  large_building_units, large_lot_distance_ft, measurement_years, min_land_sqft)
-stopifnot(length(args) == 14L)
+  large_building_units, large_lot_distance_ft, measurement_years, min_land_sqft, max_assessment_lag_years)
+stopifnot(length(args) == 15L)
 first_year_built <- as.integer(args[1])
 last_year_built <- as.integer(args[2])
 last_unpermitted_year_built <- as.integer(args[3])
@@ -39,6 +40,7 @@ large_building_units <- as.integer(args[11])
 large_lot_distance_ft <- as.numeric(args[12])
 measurement_years <- as.integer(args[13])
 min_land_sqft <- as.numeric(args[14])
+max_assessment_lag_years <- as.integer(args[15])
 
 permit_buildings <- read_csv("../output/permit_buildings.csv", col_types = cols(building_id = "c", permit_number = "c",
   member_permit_numbers = "c", superseded_permit_numbers = "c", parcel_pin10s = "c", record_ids = "c", issue_date = "D",
@@ -358,14 +360,15 @@ buildings <- buildings |>
     source = if_else(townhouse, "residential", source), status = if_else(townhouse, "measured", status),
     multifamily = if_else(townhouse, FALSE, multifamily))
 
-# Assessor-only townhouses: homes on consecutive parcel numbers of a block, first assessed in the same year with the
-# same year built, on the same side of the same street, are one building, as a townhouse permit is one row. The row keeps its first home's identifier and sums the homes' measurements.
+# Assessor-only townhouses: homes on consecutive parcel numbers of a block (or alternating with garage or yard parcels),
+# first assessed in the same year with the same year built, on the same side of the same street, are one building, as
+# a townhouse permit is one row. The row keeps its first home's identifier and sums the homes' measurements.
 townhouse_homes <- buildings |>
   filter(route == "assessor_only", source == "residential", classes == "295", dwelling_units == 1, flags == "") |>
   mutate(a = address_parts(address), block = substr(record_ids, 1, 7), parcel = as.integer(substr(record_ids, 8, 10))) |>
   unpack(a, names_sep = "_") |>
   arrange(block, parcel) |> group_by(block) |>
-  mutate(next_home = parcel == lag(parcel) + 1L & first_assessment_year == lag(first_assessment_year) &
+  mutate(next_home = parcel - lag(parcel) <= 2L & first_assessment_year == lag(first_assessment_year) &
       assessor_year_built == lag(assessor_year_built) &
       coalesce(a_street == lag(a_street) & a_number %% 2L == lag(a_number) %% 2L, TRUE),
     row_id = building_id[cummax(if_else(coalesce(next_home, FALSE), 0L, row_number()))]) |> ungroup()
@@ -376,6 +379,38 @@ townhouse_rows <- townhouse_homes |> group_by(building_id = row_id) |> filter(n(
 buildings <- buildings |>
   filter(!building_id %in% townhouse_homes$building_id[townhouse_homes$building_id != townhouse_homes$row_id]) |>
   rows_update(townhouse_rows, by = "building_id")
+
+# Two signs that an Assessor-only building (one no permit took) is not new, or not built when reported; reviewers found
+# 3 of 15 and 1 of 12 such buildings right. A permit at its address or parcels, issued by its reported year built, for
+# work on an existing building, with no new-construction or wrecking permit through the lead after it: a rehab or
+# condominium conversion given a new year built. A residential or condominium record first assessed more than
+# MAX_ASSESSMENT_LAG_YEARS after its reported year built: often an older building, or one built years later
+# (commercial valuations begin in 2021).
+permit_history <- read_csv("../input/building_permits_full.csv", col_types = cols(.default = col_character()),
+    col_select = c(permit_type, issue_date, street_number, street_direction, street_name, work_description, pin_list)) |>
+  mutate(year = as.integer(substr(issue_date, 1, 4)), text = str_to_upper(coalesce(work_description, "")),
+    existing_work = str_detect(text, "EXISTING") & !str_detect(permit_type, "WRECK"),
+    new_work = str_detect(permit_type, "WRECK") | str_detect(text, paste0("NEW CONSTRUCTION|\\bERECT|WRECK|DEMOLI|",
+      "NEW (?:[0-9A-Z-]+ ){0,4}(?:BUILDING|BLDG|RESIDENCE|HOME|HOUSE|S\\.?F\\.?R|DWELLING|TOWN ?HO|CONDO)")))
+permit_history <- bind_rows(
+    permit_history |> transmute(key = street_key(paste(str_remove(street_number, "^0+"), street_direction, street_name)),
+      year, existing_work, new_work),
+    permit_history |> transmute(key = str_extract_all(coalesce(pin_list, ""), "[0-9]{10}"), year, existing_work, new_work) |>
+      unnest_longer(key)) |>
+  filter(!is.na(key)) |> group_by(key) |>
+  summarise(first_existing_work = min(c(Inf, year[existing_work])), first_new_work = min(c(Inf, year[new_work])), .groups = "drop")
+assessor_only <- buildings |> filter(route == "assessor_only")
+existing_building <- bind_rows(assessor_only |> transmute(building_id, assessor_year_built, key = street_key(address)),
+    assessor_only |> transmute(building_id, assessor_year_built, key = parcel_pin10s) |> separate_longer_delim(key, "/")) |>
+  inner_join(permit_history, by = "key", relationship = "many-to-one") |>
+  group_by(building_id) |>
+  filter(any(first_existing_work <= assessor_year_built), !any(first_new_work <= assessor_year_built + assessor_year_lead)) |>
+  ungroup() |> distinct(building_id)
+buildings <- buildings |>
+  mutate(flags = str_c(flags,
+    if_else(building_id %in% existing_building$building_id, "existing_building_permit;", ""),
+    if_else(route == "assessor_only" & source != "commercial" &
+      first_assessment_year - assessor_year_built > max_assessment_lag_years, "assessed_long_after_year_built;", "")))
 
 # Hand-checked links from adjudication/manual_decisions.csv. Named lots and homes (assign_lot, add_homes,
 # replace_homes) joined their permit's parcels in measure_buildings.R; each must now be measured in the row holding its

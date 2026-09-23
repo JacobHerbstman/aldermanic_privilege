@@ -15,6 +15,7 @@ REBUILT_AREA_GROWTH := 0.25
 ADDRESS_MATCH_FT := 1000
 MEASUREMENT_YEARS := 3
 MIN_LAND_SQFT := 100
+MAX_ASSESSMENT_LAG_YEARS := 4
 LOT_DISTANCE_FT := 150
 TOWNHOUSE_DISTANCE_FT := 300
 LARGE_BUILDING_UNITS := 20
@@ -29,13 +30,13 @@ all: ../output/construction_buildings.csv ../output/permit_construction.csv
 	$(R) $< $(BOUNDARY_WINDOW_FT) $(MAIN_BOUNDARY_WINDOW_FT)
 
 ../output/construction_buildings.csv: build_construction_buildings.R construction_rules.R ../output/permit_buildings.csv \
-	../output/construction_permits.csv ../adjudication/manual_decisions.csv \
+	../output/construction_permits.csv ../adjudication/manual_decisions.csv ../input/building_permits_full.csv \
 	../input/residential_assessor_history.parquet ../input/condominium_characteristics.csv ../input/commercial_valuation_data.csv \
 	../input/parcel_addresses_2025_chicago.csv ../input/parcel_centroids.csv ../../shared/code/assessor_classification.R \
 	../../shared/code/normalize_chicago_address.R ../../shared/code/street_key.R ../../shared/code/save_data.R | ../output ../report
 	$(R) $< $(FIRST_YEAR_BUILT) $(LAST_YEAR_BUILT) $(LAST_UNPERMITTED_YEAR_BUILT) $(ASSESSOR_YEAR_LEAD) $(MAX_BUILD_LAG_YEARS) $(UNIT_TOLERANCE) \
 		$(MIN_SQFT_PER_UNIT) $(MAX_LAND_SQFT_PER_UNIT) $(LOT_DISTANCE_FT) $(TOWNHOUSE_DISTANCE_FT) \
-		$(LARGE_BUILDING_UNITS) $(LARGE_LOT_DISTANCE_FT) $(MEASUREMENT_YEARS) $(MIN_LAND_SQFT)
+		$(LARGE_BUILDING_UNITS) $(LARGE_LOT_DISTANCE_FT) $(MEASUREMENT_YEARS) $(MIN_LAND_SQFT) $(MAX_ASSESSMENT_LAG_YEARS)
 
 ../output/permit_buildings.csv: measure_buildings.R construction_rules.R ../output/construction_permits.csv \
 	../adjudication/manual_decisions.csv ../input/residential_assessor_history.parquet ../input/condominium_characteristics.csv \

@@ -115,9 +115,16 @@ yet; `tasks/audits/permit_density_comparison` compares it with the paper's curre
   (`match_basis` includes `townhouse_lots`). Parcels of other permits in the construction window and homes two
   permits would take are excluded; other qualifying homes are listed in `townhouse_candidates` for review.
   Buildings reported built after `LAST_YEAR_BUILT` are kept only as possible matches for late permits.
-- Assessor-only townhouses: class 295 homes on consecutive parcel numbers of a block, first assessed in the same year
-  with the same year built, on the same side of the same street, are one building, as a townhouse permit is one row.
+- Assessor-only townhouses: class 295 homes on consecutive parcel numbers of a block (or alternating with garage or
+  yard parcels), first assessed in the same year with the same year built, on the same side of the same street, are one
+  building, as a townhouse permit is one row.
   The row keeps its first home's `building_id` and sums the homes' measurements; it is not multifamily.
+- Two flags withhold density for buildings left Assessor-only (reviewers found 3 of 15 and 1 of 12 such buildings
+  right): a permit of any type at the address or parcels, issued by the reported year built, for work on an existing
+  building, with no new-construction or wrecking permit through the lead after it (`existing_building_permit`, mostly
+  condominium conversions and rehabs given a new year built), and a residential or condominium record first assessed
+  more than `MAX_ASSESSMENT_LAG_YEARS` after its reported year built (`assessed_long_after_year_built`: an older
+  building, or one built years later). Permit-linked buildings are dated by their permits and are not checked.
 - Every hand-named lot and home must be measured in the row holding its permit, and no Assessor record may measure
   two rows first assessed in the same year; the build stops otherwise.
 

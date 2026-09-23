@@ -60,3 +60,22 @@ parcels, successors and added homes 25 of 25 again, lot and hand links 24, Asses
 The file has 14,143 eligible buildings (11,846 permitted, 2,297 Assessor-only, 4,937 multifamily), 13,100 by
 completion year 2006--2022, 1,042 ``no permit found'' buildings and 909 flagged. No regressions have been run on these
 data.
+
+\textit{Third update.} Assessor-only townhouses are now counted as permitted ones are: class 295 homes on consecutive
+parcel numbers of a block (or alternating with garage parcels), first assessed in the same year with the same year
+built, on the same side of the same street, are one building. Before, each of 877 such homes was a row, while a
+townhouse permit is one row; 58 percent of Assessor-only single-family 2006--2007 buildings were townhouse homes,
+against 6 percent of permitted ones. The rows are not multifamily, as permitted townhouse rows are not, and their
+density is unchanged because the homes' floor area and land are summed. A permit erecting eight townhouses ``an
+addition to'' four existing ones now counts as new construction (three permits gained, removing two fragments). A
+fourth review round (dataset at commit \texttt{2ad05afb}) covered 50 random Assessor-only buildings and two groups
+flagged by candidate precision rules, reviewers not told which case came from which group. Of 15 buildings at an
+address with a permit for work on an existing building by the reported year built and no new-construction or wrecking
+permit, 3 were correct and 10 were condominium conversions or rehabs given a new year built; of 12 first assessed five
+or more years after the reported year built, 1 was correct (three were real buildings finished around 2012 under
+permits, six could not be dated). Both are now flags that withhold density (57, 206 and 2 formerly eligible buildings).
+The 50 unflagged buildings were 38 correct, 2 unsure, 3 not new, 4 mismeasured and 3 fragments, two of them of one
+Monroe Street row now grouped. Assessor-only buildings remain the least accurate group (about 80 percent correct across rounds, against 96.5
+for the data as a whole in round three). The file has 13,391 eligible buildings (11,849 permitted, 1,542
+Assessor-only, 4,798 multifamily), 12,347 by completion year 2006--2022; a building-by-building comparison with the
+previous version finds no eligible building lost except those the two new flags withhold.
