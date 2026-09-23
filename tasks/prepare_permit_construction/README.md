@@ -17,7 +17,8 @@ yet; `tasks/audits/permit_density_comparison` compares it with the paper's curre
 - Notes about later permits (`{ALSO SEE PERMIT ...}`, `[SEE PERMIT #... TO CONVERT ...]`, `SEE REVISION #...`) and
   review-program notes (`***SELF CERT PROJECT***`) are ignored. Common misspellings and abbreviations (`DWELING`,
   `APARMENT`, `6 UNITBUILDING`, `4(DU)`, `EXIST.`, `SRF`, `STRY`) are corrected.
-- Dropped: revisions and reinstatements, tent/event structures, additions, conversions and rehabs, accessory
+- Dropped: revisions and reinstatements, tent/event structures, additions, conversions and rehabs (unless the first
+  clause erects dwellings: `ERECT EIGHT TOWNHOUSE, AN ADDITION TO A FOUR EXISTING ... TOWNHOUSES`), accessory
   structures (a garage, carport, deck, porch, stair, fence, pergola or shed named in the first clause, before any
   dwelling or building: `ERECT A 33X24 FRAME GARAGE PER PLANS, TO AN EXISTING ...`), and work at, for or serving an
   existing building. Foundation and superstructure phases stay; they are resolved by the Assessor claims below.
@@ -114,6 +115,9 @@ yet; `tasks/audits/permit_density_comparison` compares it with the paper's curre
   (`match_basis` includes `townhouse_lots`). Parcels of other permits in the construction window and homes two
   permits would take are excluded; other qualifying homes are listed in `townhouse_candidates` for review.
   Buildings reported built after `LAST_YEAR_BUILT` are kept only as possible matches for late permits.
+- Assessor-only townhouses: class 295 homes on consecutive parcel numbers of a block, first assessed in the same year
+  with the same year built, on the same side of the same street, are one building, as a townhouse permit is one row.
+  The row keeps its first home's `building_id` and sums the homes' measurements; it is not multifamily.
 - Every hand-named lot and home must be measured in the row holding its permit, and no Assessor record may measure
   two rows first assessed in the same year; the build stops otherwise.
 

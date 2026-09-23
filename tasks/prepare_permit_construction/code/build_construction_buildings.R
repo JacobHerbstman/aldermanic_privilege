@@ -358,6 +358,25 @@ buildings <- buildings |>
     source = if_else(townhouse, "residential", source), status = if_else(townhouse, "measured", status),
     multifamily = if_else(townhouse, FALSE, multifamily))
 
+# Assessor-only townhouses: homes on consecutive parcel numbers of a block, first assessed in the same year with the
+# same year built, on the same side of the same street, are one building, as a townhouse permit is one row. The row keeps its first home's identifier and sums the homes' measurements.
+townhouse_homes <- buildings |>
+  filter(route == "assessor_only", source == "residential", classes == "295", dwelling_units == 1, flags == "") |>
+  mutate(a = address_parts(address), block = substr(record_ids, 1, 7), parcel = as.integer(substr(record_ids, 8, 10))) |>
+  unpack(a, names_sep = "_") |>
+  arrange(block, parcel) |> group_by(block) |>
+  mutate(next_home = parcel == lag(parcel) + 1L & first_assessment_year == lag(first_assessment_year) &
+      assessor_year_built == lag(assessor_year_built) &
+      coalesce(a_street == lag(a_street) & a_number %% 2L == lag(a_number) %% 2L, TRUE),
+    row_id = building_id[cummax(if_else(coalesce(next_home, FALSE), 0L, row_number()))]) |> ungroup()
+townhouse_rows <- townhouse_homes |> group_by(building_id = row_id) |> filter(n() > 1) |>
+  summarise(record_ids = paste(record_ids, collapse = "/"), parcel_pin10s = paste(parcel_pin10s, collapse = "/"),
+    dwelling_units = n(), building_sqft = sum(building_sqft), land_sqft = sum(land_sqft),
+    x_3435 = mean(x_3435), y_3435 = mean(y_3435), .groups = "drop")
+buildings <- buildings |>
+  filter(!building_id %in% townhouse_homes$building_id[townhouse_homes$building_id != townhouse_homes$row_id]) |>
+  rows_update(townhouse_rows, by = "building_id")
+
 # Hand-checked links from adjudication/manual_decisions.csv. Named lots and homes (assign_lot, add_homes,
 # replace_homes) joined their permit's parcels in measure_buildings.R; each must now be measured in the row holding its
 # permit (as the row's permit, a member or a superseded alternative). Here a permit is another phase of a named

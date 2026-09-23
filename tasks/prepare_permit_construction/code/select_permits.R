@@ -115,10 +115,15 @@ first_clause <- str_split_i(permits$main_text, ",|;|\\. |\\b(?:WITH|W/|AND|FOR|T
 # Every new-construction permit keeps one scope reason. New residential buildings continue, and so do new buildings
 # whose use the permit does not state ("ERECT NEW 3 STORY MASONRY BUILDING AS PER PLANS"): the Assessor decides those.
 # Foundation and superstructure phases remain: they are grouped with the full permit or resolved by Assessor claims.
+# A first clause erecting dwellings makes them new even when an addition follows ("ERECT EIGHT TOWNHOUSE, AN ADDITION TO
+# A FOUR EXISTING ... TOWNHOUSES").
+erects_dwellings <- str_detect(first_clause, "^(?:ERECT|CONSTRUCT|BUILD)\\b") & str_detect(first_clause, dwelling_words) &
+  !str_detect(first_clause, "ADDI|CONVER|REHAB|EXISTING|FLOOR")
 permits <- permits |> mutate(scope = case_when(
   str_detect(main_text, "\\bREVISION TO\\b|\\bREVISIONS? (?:OF|FOR|TO) (?:THE )?(?:DDS )?PERMIT\\b|\\bPERMIT REVISION\\b|\\bREINSTAT") ~ "revision",
   str_detect(main_text, "\\bERECTION STARTS\\b|\\bPERMIT EXPIRES ON\\b|\\bTENTS?\\b|\\bTEMPORARY (?:STRUCTURE|EXHIBIT|STAGE)") ~ "temporary_structure",
-  str_detect(main_text, "(?<!IN )\\bADDITIONS?\\b|CONVER(?:T|SION)|\\bREHAB|\\bINTERIOR (?:ALTERATION|RENOVATION|REMODEL)") ~ "addition_or_conversion",
+  str_detect(main_text, "(?<!IN )\\bADDITIONS?\\b|CONVER(?:T|SION)|\\bREHAB|\\bINTERIOR (?:ALTERATION|RENOVATION|REMODEL)") &
+    !erects_dwellings ~ "addition_or_conversion",
   str_detect(first_clause, paste0("\\b(?:GARAGES?|CARPORTS?|DECKS?|PORCH(?:ES)?|STAIRS?|STAIRWAYS?|FENCES?|PERGOLAS?|GAZEBOS?|SHEDS?|",
     "BREEZEWAY|RAMPS?|LANDINGS?|SUNROOMS?|CANOP(?:Y|IES))\\b")) &
     !str_detect(first_clause, dwelling_words) & !str_detect(first_clause, "\\b(?:BUILDING|BLDG|UNITS?|D\\.?U)\\b") ~ "accessory_structure",
