@@ -99,6 +99,11 @@ yet; `tasks/audits/permit_density_comparison` compares it with the paper's curre
   permit point is used only when no parcel is found.
 - An Assessor-only record on a parcel whose successor parcels hold a new building reported built within its lead and
   lag is that building counted twice (before and after a condominium declaration or subdivision), and is removed.
+- New-parcel rule: a permit that reaches no new building takes the Assessor-only building on a parcel it lists that was
+  created after the permit was issued and first assessed within the construction lag, with a matching dwelling count,
+  when each is the other's only such match (`match_basis = new_parcel`). The parcel did not exist before the permit, so
+  the building is the permit's even when the Assessor reports it built years earlier (Lake Park Crescent: twelve 2012
+  permits, parcels from 2014, `assessor_year_built` 2006, kept as reported).
 - Lot rule: a permit that reaches no new building on its own parcels takes the unclaimed new building within
   `LOT_DISTANCE_FT` of its geocoded point (`LARGE_LOT_DISTANCE_FT` for `LARGE_BUILDING_UNITS` or more dwellings, whose
   lots reach farther from the street frontage) that first appears after it, within the construction lag, with a

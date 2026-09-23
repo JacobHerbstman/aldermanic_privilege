@@ -212,6 +212,32 @@ counted_twice <- buildings |> filter(route == "assessor_only") |> select(buildin
   distinct(building_id)
 buildings <- buildings |> filter(!building_id %in% counted_twice$building_id)
 
+# New-parcel rule: a permit reaching no building takes the Assessor-only building on a parcel it lists that was created
+# after the permit was issued, first assessed within the construction lag, with a matching dwelling count, when each
+# is the other's only such match. The parcel did not exist before the permit, so the building is the permit's even
+# when the Assessor reports it built earlier (Lake Park Crescent: 2012 permits, 2014 parcels, reported built 2006).
+open_permit_parcels <- buildings |>
+  filter(route == "permit", status %in% c("no_parcel", "no_new_building"), !is.na(parcel_pin10s)) |>
+  select(permit_id = building_id, pin10 = parcel_pin10s) |> separate_longer_delim(pin10, "/") |> distinct() |>
+  group_by(pin10) |> summarise(permit_ids = paste(permit_id, collapse = "/"), .groups = "drop")
+new_parcel_pairs <- buildings |> filter(route == "assessor_only", flags == "") |>
+  select(lot_id = building_id, pin10 = record_ids, first_assessment_year, dwelling_units) |>
+  separate_longer_delim(pin10, "/") |> mutate(pin10 = substr(pin10, 1, 10)) |>
+  inner_join(open_permit_parcels, by = "pin10", relationship = "many-to-one") |>
+  inner_join(parcels |> select(pin10, parcel_first_year = first_year), by = "pin10", relationship = "many-to-one") |>
+  separate_longer_delim(permit_ids, "/") |> rename(permit_id = permit_ids) |>
+  left_join(buildings |> select(permit_id = building_id, issue_year, permit_units), by = "permit_id", relationship = "many-to-one") |>
+  filter(parcel_first_year >= issue_year, first_assessment_year >= issue_year,
+    first_assessment_year <= issue_year + max_build_lag_years, units_agree(dwelling_units, permit_units, unit_tolerance) %in% TRUE) |>
+  distinct(permit_id, lot_id) |> add_count(permit_id, name = "lots_for_permit") |> add_count(lot_id, name = "permits_for_lot")
+new_parcel_links <- new_parcel_pairs |> filter(lots_for_permit == 1, permits_for_lot == 1) |>
+  left_join(buildings |> select(lot_id = building_id, source, record_ids, classes, first_assessment_year, assessor_year_built,
+    dwelling_units, building_sqft, land_sqft, multifamily, x_3435, y_3435), by = "lot_id", relationship = "one-to-one") |>
+  mutate(status = "measured", match_basis = "new_parcel", location_source = "parcel_centroid")
+buildings <- buildings |> rows_update(new_parcel_links |> select(-lot_id, -lots_for_permit, -permits_for_lot) |>
+    rename(building_id = permit_id), by = "building_id") |>
+  filter(!building_id %in% new_parcel_links$lot_id)
+
 # Lot rule: a permit reaching no new building on its own parcels takes the unclaimed new building within
 # LOT_DISTANCE_FT of its geocoded point (LARGE_LOT_DISTANCE_FT for LARGE_BUILDING_UNITS or more dwellings, whose lots
 # reach farther from the street frontage) that first appears after the permit, within the construction lag, and
