@@ -23,7 +23,7 @@ all: ../output/lot_review.csv ../output/townhouse_review.csv ../output/queue_rev
 	../../../shared/code/normalize_chicago_address.R ../../../shared/code/street_key.R ../../../shared/code/save_data.R | ../output ../report
 	$(R) $< $(FIRST_RECORD_YEAR_BUILT)
 
-../output/validation_sample.csv: draw_validation_sample.R ../input/construction_buildings.csv ../input/building_permits_full.csv \
+../output/validation_sample.csv: draw_validation_sample.R Makefile ../input/construction_buildings.csv ../input/building_permits_full.csv \
 	../input/residential_assessor_history.parquet ../input/condominium_characteristics.csv \
 	../../../shared/code/normalize_chicago_address.R ../../../shared/code/street_key.R ../../../shared/code/save_data.R | ../output ../report
 	$(R) $< $(VALIDATION_SEED) $(VALIDATION_STRATUM_SIZE)
