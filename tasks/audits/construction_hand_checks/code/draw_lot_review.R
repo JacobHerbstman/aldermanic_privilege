@@ -42,7 +42,7 @@ lot_pins <- cases |> filter(!is.na(lot_pin10)) |> distinct(lot_pin10)
 con <- DBI::dbConnect(duckdb::duckdb())
 duckdb::duckdb_register(con, "lot_pins", lot_pins)
 history <- DBI::dbGetQuery(con, "
-  SELECT substr(pin, 1, 10) AS lot_pin10, tax_year, string_agg(DISTINCT class, '+') AS class,
+  SELECT substr(pin, 1, 10) AS lot_pin10, tax_year, string_agg(DISTINCT class, '+' ORDER BY class) AS class,
     min(year_built) AS year_built, sum(building_sqft) AS sqft, sum(num_apartments) AS apartments
   FROM read_parquet('../input/residential_assessor_history.parquet') WHERE substr(pin, 1, 10) IN (SELECT lot_pin10 FROM lot_pins)
   GROUP BY 1, 2 ORDER BY 1, 2")

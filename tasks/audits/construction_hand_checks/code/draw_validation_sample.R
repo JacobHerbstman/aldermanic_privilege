@@ -36,7 +36,7 @@ parcels <- sample |> transmute(building_id, pin10 = paste(coalesce(record_ids, "
 con <- DBI::dbConnect(duckdb::duckdb())
 duckdb::duckdb_register(con, "parcels", parcels |> distinct(pin10))
 history <- DBI::dbGetQuery(con, "
-  SELECT substr(pin, 1, 10) AS pin10, tax_year, string_agg(DISTINCT class, '+') AS classes, max(year_built) AS year_built,
+  SELECT substr(pin, 1, 10) AS pin10, tax_year, string_agg(DISTINCT class, '+' ORDER BY class) AS classes, max(year_built) AS year_built,
     sum(building_sqft) AS sqft, sum(num_apartments) AS apartments
   FROM read_parquet('../input/residential_assessor_history.parquet') WHERE substr(pin, 1, 10) IN (SELECT pin10 FROM parcels)
   GROUP BY 1, 2 ORDER BY 1, 2")
