@@ -1,18 +1,18 @@
 # setwd("tasks/audits/construction_hand_checks/code")
+# first_record_year_built <- 2004
 source("../../../setup_environment/code/packages.R")
 source("../../../shared/code/save_data.R")
 source("../../../shared/code/normalize_chicago_address.R")
+source("../../../shared/code/street_key.R")
+
+args <- commandArgs(trailingOnly = TRUE)
+if (interactive()) args <- c(first_record_year_built)
+stopifnot(length(args) == 1L)
+first_record_year_built <- as.integer(args[1])
 
 buildings <- read_csv("../input/construction_buildings.csv", col_types = cols(building_id = "c", permit_number = "c",
   member_permit_numbers = "c", superseded_permit_numbers = "c", lot_rule_candidates = "c", townhouse_candidates = "c",
   record_ids = "c", parcel_pin10s = "c", .default = col_guess()))
-street_key <- function(x) {
-  x <- normalize_address(x) |> str_replace_all("\\bPKY\\b", "PKWY") |> str_replace_all("\\bAV\\b", "AVE") |>
-    str_replace_all("\\bSAINT\\b", "ST") |>
-    str_replace_all("\\b(?:DR )?(?:MARTIN L(?:UTHER)?|M L) KING(?: JR)?\\b", "MARTIN LUTHER KING")
-  coalesce(str_match(x, "^([0-9]+ [NSEW] .+?) (?:AVE|ST|RD|BLVD|DR|PL|CT|PKWY|TER|HWY|LN|WAY|SQ|CIR)\\b")[, 2],
-    str_extract(x, "^[0-9]+ [NSEW] [A-Z]+(?: [A-Z]+)*"))
-}
 addresses <- read_csv("../input/parcel_addresses_2025_chicago.csv", col_types = cols(.default = col_character()),
   col_select = c(pin, pin10, prop_address_full))
 pin10_addresses <- addresses |> group_by(pin10) |> summarise(address = first(prop_address_full), .groups = "drop")
@@ -34,12 +34,12 @@ home_candidates <- queue |> filter(case == "townhouse") |>
   mutate(measured_home = map2_lgl(candidate, measured, \(x, m) x %in% str_split_1(m, "/")), pin10 = substr(candidate, 1, 10))
 con <- DBI::dbConnect(duckdb::duckdb())
 duckdb::duckdb_register(con, "home_pins", home_candidates |> distinct(pin = candidate))
-home_records <- DBI::dbGetQuery(con, "
-  SELECT pin, min(tax_year) FILTER (WHERE year_built >= 2004) AS first_year,
-    arg_min(year_built, tax_year) FILTER (WHERE year_built >= 2004) AS year_built,
-    arg_min(building_sqft, tax_year) FILTER (WHERE year_built >= 2004) AS sqft,
-    arg_min(land_sqft, tax_year) FILTER (WHERE year_built >= 2004) AS land, arg_min(class, tax_year) FILTER (WHERE year_built >= 2004) AS class
-  FROM read_parquet('../input/residential_assessor_history.parquet') WHERE pin IN (SELECT pin FROM home_pins) GROUP BY 1")
+home_records <- DBI::dbGetQuery(con, sprintf("
+  SELECT pin, min(tax_year) FILTER (WHERE year_built >= %1$d) AS first_year,
+    arg_min(year_built, tax_year) FILTER (WHERE year_built >= %1$d) AS year_built,
+    arg_min(building_sqft, tax_year) FILTER (WHERE year_built >= %1$d) AS sqft,
+    arg_min(land_sqft, tax_year) FILTER (WHERE year_built >= %1$d) AS land, arg_min(class, tax_year) FILTER (WHERE year_built >= %1$d) AS class
+  FROM read_parquet('../input/residential_assessor_history.parquet') WHERE pin IN (SELECT pin FROM home_pins) GROUP BY 1", first_record_year_built))
 DBI::dbDisconnect(con, shutdown = TRUE)
 
 # Permits without a measured building are located at their geocoded permit point.

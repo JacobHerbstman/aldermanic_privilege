@@ -4,6 +4,7 @@
 source("../../../setup_environment/code/packages.R")
 source("../../../shared/code/save_data.R")
 source("../../../shared/code/normalize_chicago_address.R")
+source("../../../shared/code/street_key.R")
 
 args <- commandArgs(trailingOnly = TRUE)
 if (interactive()) args <- c(review_seed, sample_size)
@@ -14,13 +15,6 @@ sample_size <- as.integer(args[2])
 buildings <- read_csv("../input/construction_buildings.csv", col_types = cols(building_id = "c", permit_number = "c",
   member_permit_numbers = "c", superseded_permit_numbers = "c", lot_rule_candidates = "c", record_ids = "c",
   parcel_pin10s = "c", .default = col_guess()))
-street_key <- function(x) {
-  x <- normalize_address(x) |> str_replace_all("\\bPKY\\b", "PKWY") |> str_replace_all("\\bAV\\b", "AVE") |>
-    str_replace_all("\\bSAINT\\b", "ST") |>
-    str_replace_all("\\b(?:DR )?(?:MARTIN L(?:UTHER)?|M L) KING(?: JR)?\\b", "MARTIN LUTHER KING")
-  coalesce(str_match(x, "^([0-9]+ [NSEW] .+?) (?:AVE|ST|RD|BLVD|DR|PL|CT|PKWY|TER|HWY|LN|WAY|SQ|CIR)\\b")[, 2],
-    str_extract(x, "^[0-9]+ [NSEW] [A-Z]+(?: [A-Z]+)*"))
-}
 addresses <- read_csv("../input/parcel_addresses_2025_chicago.csv", col_types = cols(.default = col_character()),
   col_select = c(pin10, prop_address_full)) |> group_by(pin10) |> summarise(lot_address = first(prop_address_full), .groups = "drop")
 

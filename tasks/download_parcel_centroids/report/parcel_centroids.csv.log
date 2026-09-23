@@ -1,0 +1,15 @@
+File: parcel_centroids.csv
+Rows: 642267
+Columns: 5
+SHA-256 (saved bytes): 643d7f5543045bb2c255cea4b970f74972ef50fe91ed2d0884f471c47ec9ec46
+Key: pin10
+Types: DuckDB inference from the complete saved CSV.
+Distinct counts: approximate (exact up to 100,000 rows).
+Row counts, non-missing counts, and declared-key checks: exact.
+
+    column inferred_type  non_missing  distinct                min                max               mean                sd
+     pin10       VARCHAR       642267    494539                  -                  -                  -                 -
+first_year        BIGINT       642267        29               1999               2025 1999.6560994103697 2.992184281971558
+ last_year        BIGINT       642267        29               1999               2025  2024.050860467687 4.189181009553023
+    x_3435        DOUBLE       639880    851086 1091389.2473838252 1205119.4391988367 1161019.5183685569 17525.21429919139
+    y_3435        DOUBLE       639880    595400 1813952.9199676826 1951596.3047781882  1886470.833305887 35302.09955993239

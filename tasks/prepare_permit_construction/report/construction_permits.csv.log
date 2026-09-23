@@ -1,7 +1,7 @@
 File: construction_permits.csv
 Rows: 26854
 Columns: 16
-SHA-256 (saved bytes): b7be2509d675f543b11f76e92904956cb50bed09107e68f6609c9942d8e0257c
+SHA-256 (saved bytes): 3aca3349dc73f768d972786513f27b733c287aaab3c01ed8cd3cc4193823d67f
 Key: permit_id
 Types: DuckDB inference from the complete saved CSV.
 Distinct counts: exact (exact up to 100,000 rows).
@@ -10,17 +10,17 @@ Row counts, non-missing counts, and declared-key checks: exact.
                column inferred_type  non_missing  distinct                min                max               mean                  sd
             permit_id        BIGINT        26854     26854            1358358            3297826 2487104.3360020854   527067.7107648131
         permit_number       VARCHAR        26854     26854                  -                  -                  -                   -
-                scope       VARCHAR        26854         8                  -                  -                  -                   -
+                scope       VARCHAR        26854         9                  -                  -                  -                   -
            issue_date          DATE        26854      4232                  -                  -                  -                   -
            issue_year        BIGINT        26854        17               2006               2022 2013.6520816265734    5.24736980835384
               address       VARCHAR        26854     19849                  -                  -                  -                   -
         permit_pin10s       VARCHAR        14538     11815                  -                  -                  -                   -
-         permit_units        BIGINT        15437       248                  0                958  9.388352659195439   46.69667523732566
-        stated_counts       VARCHAR         6193       306                  -                  -                  -                   -
+         permit_units        BIGINT        15433       248                  0                958  9.382038488952245  46.698354998671846
+        stated_counts       VARCHAR         6189       306                  -                  -                  -                   -
         permit_status       VARCHAR        26854         7                  -                  -                  -                   -
      permit_milestone       VARCHAR        26854         7                  -                  -                  -                   -
-  any_permit_complete       BOOLEAN        14863         2                  -                  -                  -                   -
-repeat_permit_numbers       VARCHAR          316       316                  -                  -                  -                   -
+  any_permit_complete       BOOLEAN        14778         2                  -                  -                  -                   -
+repeat_permit_numbers       VARCHAR          305       305                  -                  -                  -                   -
              latitude        DOUBLE        26750     19772  41.64809709816912  42.02261774982914    41.884776340273 0.07031472954095601
             longitude        DOUBLE        26750     19772 -87.94020267400954 -87.52571242675982 -87.67099010169268 0.05064162780793181
           description       VARCHAR        26854     24488                  -                  -                  -                   -

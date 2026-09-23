@@ -15,6 +15,7 @@ source("../../setup_environment/code/packages.R")
 source("../../shared/code/save_data.R")
 source("../../shared/code/assessor_classification.R")
 source("../../shared/code/normalize_chicago_address.R")
+source("construction_rules.R")
 
 args <- commandArgs(trailingOnly = TRUE)
 if (interactive()) args <- c(first_year_built, last_year_built, last_unpermitted_year_built, assessor_year_lead,
@@ -38,12 +39,29 @@ permit_buildings <- read_csv("../output/permit_buildings.csv", col_types = cols(
   member_permit_numbers = "c", superseded_permit_numbers = "c", parcel_pin10s = "c", record_ids = "c", issue_date = "D",
   .default = col_guess()))
 
+# Whether a permit in "id:year/id:year", other than `except`, was issued within the construction lag before, or the lead
+# after, a building's reported year built.
+permit_in_window <- function(claims, year_built, except = NA_character_) {
+  pmap_lgl(list(coalesce(claims, ""), year_built, coalesce(except, "")), \(claims, built, except) {
+    claims <- str_split_1(claims, "/")
+    claims <- claims[claims != ""]
+    years <- as.integer(str_extract(claims, "[0-9]+$"))
+    any(str_extract(claims, "^[^:]+") != except & years >= built - max_build_lag_years & years <= built + assessor_year_lead,
+      na.rm = TRUE)
+  })
+}
+
 # Parcels that already belong to the permit arm: measured records, and every parcel of a new residential permit.
 claimed_records <- permit_buildings |> filter(status == "measured") |> select(record_ids) |>
   separate_longer_delim(record_ids, "/") |> distinct(record_id = record_ids)
-permitted_parcels <- permit_buildings |> select(issue_year, parcel_pin10s) |> filter(!is.na(parcel_pin10s)) |>
+permitted_parcels <- permit_buildings |> select(permit_number, issue_year, parcel_pin10s) |> filter(!is.na(parcel_pin10s)) |>
   separate_longer_delim(parcel_pin10s, "/") |> group_by(pin10 = parcel_pin10s) |>
-  summarise(permit_years = paste(sort(unique(issue_year)), collapse = "/"), .groups = "drop")
+  summarise(parcel_permits = paste(permit_number, issue_year, sep = ":", collapse = "/"), .groups = "drop")
+# Chicago parcels assessed in any year from 1999, with centroids, so parcels later retired by condominium declarations
+# and subdivisions keep a location.
+parcels <- read_csv("../input/parcel_centroids.csv", col_types = cols(pin10 = "c", .default = "d")) |>
+  filter(is.finite(x_3435), is.finite(y_3435))
+centroids <- parcels |> select(pin10, x = x_3435, y = y_3435)
 
 con <- DBI::dbConnect(duckdb::duckdb())
 
@@ -97,25 +115,18 @@ condominiums <- DBI::dbGetQuery(con, sprintf("
 DBI::dbDisconnect(con, shutdown = TRUE)
 
 # Commercial apartment valuations (2021 onward) of buildings reported built in the window.
-commercial <- read_csv("../input/commercial_valuation_data.csv", col_types = cols(.default = col_character()),
-  col_select = c(keypin, pins, year, class_es, tot_units, bldgsf, landsf, yearbuilt, property_type_use)) |>
-  mutate(across(c(year, tot_units, bldgsf, landsf, yearbuilt), as.numeric), record_id = str_remove_all(keypin, "-")) |>
-  # Hotel rooms and care beds are not dwelling units.
-  group_by(record_id) |> filter(!any(str_detect(str_to_upper(coalesce(property_type_use, "")), "HOTEL|MOTEL|NURSING|HOSP|HEALTH CARE|TREATMENT|PARKING|BOAT"))) |> ungroup() |>
-  filter(tot_units > 0, yearbuilt >= first_year_built - assessor_year_lead) |>
+commercial <- read_commercial_valuations() |> filter(year_built >= first_year_built - assessor_year_lead) |>
   group_by(record_id) |> filter(year == min(year)) |> ungroup() |>
-  mutate(pin10s = map_chr(str_extract_all(str_remove_all(pins, "-"), "[0-9]{14}"), \(x) paste(sort(unique(substr(x, 1, 10))), collapse = "/"))) |>
-  distinct(record_id, pin10s, first_year = year, year_built = yearbuilt, classes = class_es,
-    units = tot_units, building_sqft = bldgsf, land_sqft = landsf) |>
+  distinct(record_id, pin10s, first_year = year, year_built, classes, units, building_sqft, land_sqft) |>
   # A valuation reporting different measurements in the same year has no usable measurement.
   group_by(record_id) |> mutate(across(c(units, building_sqft, land_sqft), \(x) if (n() > 1) NA_real_ else x)) |>
   slice(1) |> ungroup() |>
   mutate(older_building = FALSE, single_family = FALSE, source = "commercial")
 stopifnot(!anyDuplicated(commercial$record_id), !anyDuplicated(residential$record_id), !anyDuplicated(condominiums$record_id))
 
-# Assessor-only buildings: in the window, not measured by a permit, and on no parcel of a new residential permit
-# issued within the construction lag before, or the lead after, the reported year built. Condominium records take a parcel before residential
-# cards, and both before commercial valuations, as in the permit arm.
+# Assessor-only buildings: on Chicago parcels, in the window, not measured by a permit, and on no parcel of a new
+# residential permit issued within the construction lag before, or the lead after, the reported year built.
+# Condominium records take a parcel before residential cards, and both before commercial valuations, as in the permit arm.
 # Buildings reported built after the window are kept only as possible matches for late permits.
 candidates <- bind_rows(condominiums, residential, commercial) |>
   filter(year_built >= first_year_built, year_built <= last_year_built + max_build_lag_years,
@@ -126,40 +137,29 @@ candidates <- bind_rows(condominiums, residential, commercial) |>
       if_else(land_sqft / units > max_land_sqft_per_unit, "land_per_unit_implausible;", "", ""),
       if_else(older_building, "older_building_on_parcel;", "", ""),
       if_else(same_floor_area %in% TRUE, "year_built_revised_same_floor_area;", "", "")) |> coalesce(""))
-parcel_candidates <- candidates |> select(source, record_id, priority, first_year, year_built, pin10s) |>
+parcel_candidates <- candidates |> select(source, record_id, priority, year_built, pin10s) |>
   separate_longer_delim(pin10s, "/") |> rename(pin10 = pin10s) |>
   left_join(permitted_parcels, by = "pin10", relationship = "many-to-one") |>
   group_by(pin10) |> mutate(best_priority = min(priority)) |> ungroup() |>
-  group_by(source, record_id) |> summarise(
-    permitted = any(map2_lgl(permit_years, year_built, \(years, year) {
-      years <- as.integer(str_split_1(coalesce(years, ""), "/"))
-      any(years >= year - max_build_lag_years & years <= year + assessor_year_lead, na.rm = TRUE)
-    })),
-    outranked = any(priority > best_priority), .groups = "drop")
+  group_by(source, record_id) |>
+  summarise(permitted = any(permit_in_window(parcel_permits, year_built)), outranked = any(priority > best_priority),
+    chicago = any(pin10 %in% centroids$pin10), .groups = "drop")
 addresses <- read_csv("../input/parcel_addresses_2025_chicago.csv", col_types = cols(.default = col_character()),
   col_select = c(pin10, prop_address_full)) |> group_by(pin10) |> summarise(address = first(prop_address_full), .groups = "drop")
 unpermitted <- candidates |> left_join(parcel_candidates, by = c("source", "record_id"), relationship = "one-to-one") |>
-  filter(!permitted, !outranked) |>
+  filter(chicago, !permitted, !outranked) |>
   mutate(pin10 = substr(pin10s, 1, 10)) |> left_join(addresses, by = "pin10", relationship = "many-to-one") |>
   mutate(
     building_id = paste0("assessor_", source, "_", record_id), route = "assessor_only",
     status = case_when(year_built <= last_unpermitted_year_built ~ "measured_without_permit",
-      year_built <= last_year_built ~ "no_permit_found", TRUE ~ "built_after_window"),
-    allow_dupac = coalesce(status == "measured_without_permit" & flags == "" & units > 0 & land_sqft > 0, FALSE),
-    allow_far = allow_dupac & coalesce(building_sqft > 0, FALSE)) |>
+      year_built <= last_year_built ~ "no_permit_found", TRUE ~ "built_after_window")) |>
   transmute(building_id, route, status, flags, address, source, record_ids = record_id, parcel_pin10s = pin10s, classes,
     first_assessment_year = first_year, assessor_year_built = year_built, dwelling_units = units, building_sqft, land_sqft,
-    allow_far, allow_dupac, multifamily = units >= 2 & !single_family)
+    multifamily = units >= 2 & !single_family)
 
 # One row per building: every new residential permit's outcome, and every Assessor-only building.
 # Each building sits at the centroid of its measured parcels; permit coordinates are geocoded at the street frontage.
-buildings <- bind_rows(
-  permit_buildings |> mutate(route = "permit", match_basis = if_else(status == "measured", "permit_parcels", NA_character_)),
-  unpermitted)
-centroids <- read_csv("../input/parcel_universe_2025_city.csv", col_types = cols(pin10 = "c", .default = "d"),
-    col_select = c(pin10, centroid_x_crs_3435, centroid_y_crs_3435)) |>
-  filter(is.finite(centroid_x_crs_3435), is.finite(centroid_y_crs_3435)) |>
-  group_by(pin10) |> summarise(x = mean(centroid_x_crs_3435), y = mean(centroid_y_crs_3435), .groups = "drop")
+buildings <- bind_rows(permit_buildings |> mutate(route = "permit"), unpermitted)
 building_centroids <- buildings |> filter(!is.na(record_ids)) |> select(building_id, record_ids) |>
   separate_longer_delim(record_ids, "/") |> distinct(building_id, pin10 = substr(record_ids, 1, 10)) |>
   inner_join(centroids, by = "pin10", relationship = "many-to-one") |>
@@ -174,14 +174,66 @@ buildings <- buildings |>
   mutate(location_source = case_when(!is.na(parcel_x) ~ "parcel_centroid", !is.na(permit_x) ~ "permit_point"),
     x_3435 = coalesce(parcel_x, permit_x), y_3435 = coalesce(parcel_y, permit_y), flags = coalesce(flags, ""))
 
+# A permit's row takes the measurement of named Assessor-only buildings (parcel successors, the lot rule, hand-checked
+# lots), which leave the data as separate rows.
+take_buildings <- function(buildings, links, basis) {
+  stopifnot(!anyDuplicated(links$lot_id), all(links$lot_id %in% buildings$building_id[buildings$route == "assessor_only"]))
+  taken <- links |>
+    left_join(buildings |> select(lot_id = building_id, source, record_ids, classes, first_assessment_year, assessor_year_built,
+      dwelling_units, building_sqft, land_sqft, multifamily, flags, x_3435, y_3435), by = "lot_id", relationship = "many-to-one") |>
+    group_by(building_id) |>
+    summarise(source = first(source), record_ids = paste(record_ids, collapse = "/"),
+      classes = paste(sort(unique(unlist(str_split(classes, "/")))), collapse = "/"),
+      first_assessment_year = min(first_assessment_year), assessor_year_built = min(assessor_year_built),
+      dwelling_units = sum(dwelling_units), building_sqft = sum(building_sqft), land_sqft = sum(land_sqft),
+      multifamily = any(multifamily), flags = paste(unique(flags), collapse = ""), x_3435 = mean(x_3435), y_3435 = mean(y_3435),
+      .groups = "drop") |>
+    mutate(status = "measured", match_basis = basis, location_source = "parcel_centroid")
+  buildings |> rows_update(taken, by = "building_id") |> filter(!building_id %in% links$lot_id)
+}
+
+# Parcel succession: a condominium declaration or subdivision retires a parcel number, and the building reappears on
+# the successor parcels. The new records on the same tax block within LOT_DISTANCE_FT of a record whose parcels are all
+# retired, first assessed within a year of the retirement and from one source, are its successors when their dwelling
+# units add up to its own and they succeed no other record. A permit's building takes the measurement of Assessor-only
+# successors (the final parcels). An Assessor-only record with successors is a building counted twice and is removed.
+last_assessed <- buildings |> filter(!is.na(record_ids)) |> select(building_id, record_ids) |>
+  separate_longer_delim(record_ids, "/") |> mutate(pin10 = substr(record_ids, 1, 10)) |>
+  left_join(parcels |> select(pin10, last_year), by = "pin10", relationship = "many-to-one") |>
+  group_by(building_id) |>
+  summarise(block = substr(first(pin10), 1, 7), retired = all(last_year < max(parcels$last_year)),
+    retirement_year = max(last_year) + 1, .groups = "drop")
+records <- buildings |> inner_join(last_assessed, by = "building_id", relationship = "one-to-one") |>
+  filter(status %in% c("measured", "measured_without_permit", "no_permit_found"), !is.na(x_3435))
+retired <- records |> filter(retired %in% TRUE, source %in% c("residential", "commercial"))
+successors <- records |> filter(!retired %in% TRUE)
+near <- st_is_within_distance(st_as_sf(retired, coords = c("x_3435", "y_3435"), crs = 3435),
+  st_as_sf(successors, coords = c("x_3435", "y_3435"), crs = 3435), dist = lot_distance_ft)
+succession <- tibble(record_id = retired$building_id[rep(seq_along(near), lengths(near))],
+    successor_id = successors$building_id[unlist(near)]) |>
+  left_join(retired |> select(record_id = building_id, record_route = route, record_block = block,
+    record_units = dwelling_units, retirement_year), by = "record_id", relationship = "many-to-one") |>
+  left_join(successors |> select(successor_id = building_id, successor_route = route, block, first_assessment_year,
+    dwelling_units, source), by = "successor_id", relationship = "many-to-one") |>
+  filter(block == record_block, abs(first_assessment_year - retirement_year) <= 1) |>
+  add_count(successor_id, name = "records_for_successor") |>
+  group_by(record_id) |>
+  filter(all(records_for_successor == 1), n_distinct(source) == 1,
+    units_agree(sum(dwelling_units), first(record_units), unit_tolerance) %in% TRUE) |>
+  ungroup()
+permit_successions <- succession |> filter(record_route == "permit") |>
+  group_by(record_id) |> filter(all(successor_route == "assessor_only")) |> ungroup()
+buildings <- buildings |>
+  take_buildings(permit_successions |> select(building_id = record_id, lot_id = successor_id), "parcel_successor") |>
+  mutate(flags = if_else(match_basis %in% "parcel_successor" & units_agree(dwelling_units, permit_units, unit_tolerance) %in% FALSE,
+    paste0(flags, "units_disagree;"), flags)) |>
+  filter(!building_id %in% succession$record_id[succession$record_route == "assessor_only"])
+
 # Lot rule: a permit reaching no new building on its own parcels takes the unclaimed new building within
 # LOT_DISTANCE_FT of its geocoded point (LARGE_LOT_DISTANCE_FT for LARGE_BUILDING_UNITS or more dwellings, whose lots
 # reach farther from the street frontage) that first appears after the permit, within the construction lag, and
 # matches its dwelling count.
 # Each must be the other's only such match; every other qualifying pair is listed for review.
-units_agree <- function(units, permit_units) {
-  if_else(permit_units <= 1L, units == permit_units, abs(units - permit_units) <= pmax(1, unit_tolerance * permit_units))
-}
 # A permit whose own parcel changed floor area after the permit is held for review instead. Lots on the opposite
 # side of the permit's street, or at an address with its own new-construction permit, are not candidates.
 address_parts <- function(x) {
@@ -192,7 +244,9 @@ address_parts <- function(x) {
 lot_permits <- read_csv("../output/construction_permits.csv", col_types = cols(permit_number = "c", issue_year = "i",
     .default = col_character()), col_select = c(permit_number, scope, issue_year, address)) |>
   filter(!scope %in% c("revision", "temporary_structure"))
-lot_permits <- bind_cols(lot_permits, address_parts(lot_permits$address)) |> filter(!is.na(number))
+address_permits <- bind_cols(lot_permits, address_parts(lot_permits$address)) |> filter(!is.na(number)) |>
+  group_by(l_number = number, l_street = street) |>
+  summarise(address_permits = paste(permit_number, issue_year, sep = ":", collapse = "/"), .groups = "drop")
 open_permits <- buildings |> filter(route == "permit", status %in% c("no_parcel", "no_new_building"), !is.na(permit_x),
   !parcel_changed_after_permit %in% TRUE)
 lots <- buildings |> filter(route == "assessor_only", flags == "", !is.na(x_3435))
@@ -200,26 +254,20 @@ near <- st_is_within_distance(st_as_sf(open_permits, coords = c("permit_x", "per
   st_as_sf(lots, coords = c("x_3435", "y_3435"), crs = 3435), dist = max(lot_distance_ft, large_lot_distance_ft))
 lot_pairs <- tibble(permit_id = open_permits$building_id[rep(seq_along(near), lengths(near))],
     lot_id = lots$building_id[unlist(near)]) |>
-  left_join(open_permits |> select(permit_id = building_id, permit_number, issue_year, permit_units, permit_x, permit_y),
-    by = "permit_id", relationship = "many-to-one") |>
+  left_join(open_permits |> select(permit_id = building_id, permit_number, issue_year, permit_units, permit_x, permit_y,
+    permit_address = address), by = "permit_id", relationship = "many-to-one") |>
   left_join(lots |> select(lot_id = building_id, assessor_year_built, first_assessment_year, dwelling_units, lot_x = x_3435,
-    lot_y = y_3435), by = "lot_id", relationship = "many-to-one") |>
+    lot_y = y_3435, lot_address = address), by = "lot_id", relationship = "many-to-one") |>
   filter(sqrt((permit_x - lot_x)^2 + (permit_y - lot_y)^2) <=
       if_else(permit_units >= large_building_units, large_lot_distance_ft, lot_distance_ft, lot_distance_ft),
     assessor_year_built >= issue_year - assessor_year_lead, assessor_year_built <= issue_year + max_build_lag_years,
     first_assessment_year >= issue_year,
-    units_agree(dwelling_units, permit_units) %in% TRUE) |>
-  left_join(open_permits |> select(permit_id = building_id, permit_address = address), by = "permit_id", relationship = "many-to-one") |>
-  left_join(lots |> select(lot_id = building_id, lot_address = address), by = "lot_id", relationship = "many-to-one") |>
+    units_agree(dwelling_units, permit_units, unit_tolerance) %in% TRUE) |>
   mutate(p = address_parts(permit_address), l = address_parts(lot_address)) |> unpack(c(p, l), names_sep = "_") |>
-  filter(!(coalesce(p_street == l_street, FALSE) & (p_number %% 2L) != (l_number %% 2L)))
-lot_blocked <- lot_pairs |> select(permit_id, lot_id, permit_number, p_number, p_street, l_number, l_street, assessor_year_built) |>
-  inner_join(lot_permits |> select(blocker = permit_number, blocker_year = issue_year, l_number = number, l_street = street),
-    by = c("l_number", "l_street"), relationship = "many-to-many") |>
-  filter(blocker != permit_number, !coalesce(l_number == p_number & l_street == p_street, FALSE),
-    blocker_year >= assessor_year_built - max_build_lag_years, blocker_year <= assessor_year_built + assessor_year_lead) |>
-  distinct(permit_id, lot_id)
-lot_pairs <- lot_pairs |> anti_join(lot_blocked, by = c("permit_id", "lot_id")) |>
+  filter(!(coalesce(p_street == l_street, FALSE) & (p_number %% 2L) != (l_number %% 2L))) |>
+  left_join(address_permits, by = c("l_number", "l_street"), relationship = "many-to-one") |>
+  filter(coalesce(l_number == p_number & l_street == p_street, FALSE) |
+    !permit_in_window(address_permits, assessor_year_built, except = permit_number)) |>
   add_count(permit_id, name = "lots_for_permit") |> add_count(lot_id, name = "permits_for_lot")
 lot_links <- lot_pairs |> filter(lots_for_permit == 1, permits_for_lot == 1)
 lot_review <- bind_rows(
@@ -227,41 +275,35 @@ lot_review <- bind_rows(
     summarise(lot_rule_candidates = paste(sort(lot_id), collapse = "/"), .groups = "drop"),
   lot_pairs |> filter(lots_for_permit > 1 | permits_for_lot > 1) |> group_by(building_id = lot_id) |>
     summarise(lot_rule_candidates = paste(sort(permit_number), collapse = "/"), .groups = "drop"))
-linked <- lot_links |> select(building_id = permit_id, lot_id) |>
-  left_join(buildings |> select(lot_id = building_id, source, record_ids, classes, first_assessment_year, assessor_year_built,
-    dwelling_units, building_sqft, land_sqft, multifamily, x_3435, y_3435), by = "lot_id", relationship = "one-to-one") |>
-  mutate(status = "measured", match_basis = "nearby_lot", location_source = "parcel_centroid") |> select(-lot_id)
-buildings <- buildings |> rows_update(linked, by = "building_id") |> filter(!building_id %in% lot_links$lot_id) |>
+buildings <- buildings |> take_buildings(lot_links |> select(building_id = permit_id, lot_id), "nearby_lot") |>
   left_join(lot_review, by = "building_id", relationship = "one-to-one")
 
-# Condominium successor rule: a condominium declaration retires the lot's parcel number. A permit measured on
-# residential cards whose parcels are all retired by 2025 takes the unclaimed condominium building on the same tax
-# block within LOT_DISTANCE_FT of its geocoded point, first assessed no earlier than the cards, within the construction
-# lag, and matching its dwelling count, when each is the other's only such match. The condominium measurement
-# replaces the cards, as condominium records come first.
-retired_permits <- buildings |>
-  filter(route == "permit", status == "measured", source %in% "residential", !is.na(permit_x),
-    map_lgl(str_split(record_ids, "/"), \(x) !any(substr(x, 1, 10) %in% centroids$pin10)))
-condominium_lots <- buildings |> filter(route == "assessor_only", source == "condominium", flags == "", !is.na(x_3435))
-near <- st_is_within_distance(st_as_sf(retired_permits, coords = c("permit_x", "permit_y"), crs = 3435),
-  st_as_sf(condominium_lots, coords = c("x_3435", "y_3435"), crs = 3435), dist = lot_distance_ft)
-successor_links <- tibble(permit_id = retired_permits$building_id[rep(seq_along(near), lengths(near))],
-    lot_id = condominium_lots$building_id[unlist(near)]) |>
-  left_join(retired_permits |> select(permit_id = building_id, issue_year, permit_units, card_year = first_assessment_year,
-    card_blocks = record_ids), by = "permit_id", relationship = "many-to-one") |>
-  left_join(condominium_lots |> select(lot_id = building_id, assessor_year_built, first_assessment_year, dwelling_units,
-    lot_pin10s = parcel_pin10s), by = "lot_id", relationship = "many-to-one") |>
-  filter(assessor_year_built >= issue_year - assessor_year_lead, assessor_year_built <= issue_year + max_build_lag_years,
-    first_assessment_year >= card_year, units_agree(dwelling_units, permit_units) %in% TRUE,
-    map2_lgl(card_blocks, lot_pin10s, \(a, b) any(substr(str_split_1(a, "/"), 1, 7) %in% substr(str_split_1(b, "/"), 1, 7)))) |>
-  add_count(permit_id, name = "lots_for_permit") |> add_count(lot_id, name = "permits_for_lot") |>
-  filter(lots_for_permit == 1, permits_for_lot == 1)
-successors <- successor_links |> select(building_id = permit_id, lot_id) |>
-  left_join(buildings |> select(lot_id = building_id, source, record_ids, classes, first_assessment_year,
-    assessor_year_built, dwelling_units, building_sqft, land_sqft, multifamily, x_3435, y_3435), by = "lot_id",
-    relationship = "one-to-one") |>
-  mutate(match_basis = "condominium_successor", location_source = "parcel_centroid", flags = "") |> select(-lot_id)
-buildings <- buildings |> rows_update(successors, by = "building_id") |> filter(!building_id %in% successor_links$lot_id)
+# A permit's row adds single-family homes to its measured records, or replaces them (townhouse rule, hand-checked
+# homes). `homes` has one row per building: the homes' ids, units, floor area, land, classes, first assessment,
+# year built and centroid (h_ columns), and whether the permit's own records are kept (h_keep).
+merge_homes <- function(buildings, homes, basis) {
+  buildings |> left_join(homes, by = "building_id", relationship = "one-to-one") |>
+    mutate(merged = !is.na(h_ids), keep = merged & h_keep,
+      kept_units = if_else(keep, coalesce(dwelling_units, 0), 0),
+      x_3435 = if_else(merged, (if_else(keep, coalesce(x_3435 * dwelling_units, 0), 0) + h_x * h_units) / (kept_units + h_units), x_3435),
+      y_3435 = if_else(merged, (if_else(keep, coalesce(y_3435 * dwelling_units, 0), 0) + h_y * h_units) / (kept_units + h_units), y_3435),
+      location_source = if_else(merged, "parcel_centroid", location_source),
+      record_ids = if_else(merged, if_else(keep & !is.na(record_ids), paste(record_ids, h_ids, sep = "/"), h_ids), record_ids),
+      classes = if_else(merged, if_else(keep & !is.na(classes), paste(classes, h_classes, sep = "/"), h_classes), classes),
+      first_assessment_year = if_else(merged, if_else(keep, pmin(first_assessment_year, h_first, na.rm = TRUE), h_first),
+        first_assessment_year),
+      assessor_year_built = if_else(merged, if_else(keep, pmin(assessor_year_built, h_built, na.rm = TRUE), h_built),
+        assessor_year_built),
+      building_sqft = if_else(merged, if_else(keep, coalesce(building_sqft, 0), 0) + h_sqft, building_sqft),
+      land_sqft = if_else(merged, if_else(keep, coalesce(land_sqft, 0), 0) + h_land, land_sqft),
+      dwelling_units = if_else(merged, kept_units + h_units, dwelling_units),
+      flags = if_else(merged & dwelling_units == permit_units, str_remove(flags, "units_disagree;"), flags),
+      match_basis = if_else(merged, if_else(keep & !is.na(match_basis), paste0(match_basis, "+", basis), basis),
+        match_basis),
+      source = if_else(merged, "residential", source), status = if_else(merged, "measured", status),
+      multifamily = if_else(merged, FALSE, multifamily)) |>
+    select(-starts_with("h_"), -merged, -keep, -kept_units)
+}
 
 # Townhouse rule: a permit for several townhouses or houses (or a group of single-house permits) reaching fewer homes
 # than it authorizes takes the unclaimed new single-family parcels that complete one run of consecutive parcel numbers
@@ -275,10 +317,11 @@ permits_by_parcel <- permit_buildings |> filter(!is.na(parcel_pin10s)) |>
   select(permit_id = building_id, permit_year = issue_year, parcel_pin10s) |>
   separate_longer_delim(parcel_pin10s, "/") |> distinct(pin10 = parcel_pin10s, permit_id, permit_year) |>
   group_by(pin10) |> summarise(parcel_permits = paste(permit_id, permit_year, sep = ":", collapse = "/"), .groups = "drop")
+taken_rows <- setdiff(unpermitted$building_id, buildings$building_id)
 homes <- candidates |>
   left_join(parcel_candidates |> select(source, record_id, outranked), by = c("source", "record_id"), relationship = "one-to-one") |>
   filter(source == "residential", units == 1, flags == "", single_family, !outranked, str_detect(record_id, "^[0-9]{14}$"),
-    !paste0("assessor_residential_", record_id) %in% lot_links$lot_id) |>
+    !paste0("assessor_residential_", record_id) %in% taken_rows) |>
   transmute(home_id = record_id, pin10 = substr(record_id, 1, 10), block = substr(record_id, 1, 7),
     parcel = as.integer(substr(record_id, 8, 10)), home_first_year = first_year, home_year_built = year_built,
     home_classes = classes, home_sqft = building_sqft, home_land = land_sqft) |>
@@ -309,14 +352,7 @@ home_pairs <- bind_rows(
   left_join(targets |> select(building_id, issue_year), by = "building_id", relationship = "many-to-one") |>
   filter(is.na(anchor_year) | abs(home_first_year - anchor_year) <= 1,
     home_year_built >= issue_year - assessor_year_lead, home_year_built <= issue_year + max_build_lag_years,
-    home_first_year >= issue_year) |>
-  mutate(other_permit = pmap_lgl(list(parcel_permits, building_id, home_year_built), \(claims, id, built) {
-      claims <- str_split_1(coalesce(claims, ""), "/")
-      claims <- claims[claims != ""]
-      years <- as.integer(str_extract(claims, "[0-9]+$"))
-      any(str_extract(claims, "^[^:]+") != id & years >= built - max_build_lag_years & years <= built + assessor_year_lead)
-    })) |>
-  filter(!other_permit)
+    home_first_year >= issue_year, !permit_in_window(parcel_permits, home_year_built, except = building_id))
 
 # Runs of consecutive parcel numbers: measured homes plus candidates for permits with measured homes, candidates alone
 # (within a year of each other) for permits without.
@@ -342,29 +378,14 @@ townhouse_links <- runs |>
   select(building_id, home_id)
 townhouse_review <- home_pairs |> filter(!building_id %in% townhouse_links$building_id) |>
   group_by(building_id) |> summarise(townhouse_candidates = paste(sort(unique(home_id)), collapse = "/"), .groups = "drop")
-added <- townhouse_links |> left_join(homes, by = "home_id", relationship = "one-to-one") |>
-  group_by(building_id) |> summarise(add_ids = paste(home_id, collapse = "/"), add_units = n(), add_sqft = sum(home_sqft),
-    add_land = sum(home_land), add_classes = paste(sort(unique(home_classes)), collapse = "/"),
-    add_first = min(home_first_year), add_built = min(home_year_built), add_x = mean(x), add_y = mean(y), .groups = "drop")
-buildings <- buildings |>
-  left_join(added, by = "building_id", relationship = "one-to-one") |>
+townhouse_homes <- townhouse_links |> left_join(homes, by = "home_id", relationship = "one-to-one") |>
+  group_by(building_id) |>
+  summarise(h_ids = paste(home_id, collapse = "/"), h_units = n(), h_sqft = sum(home_sqft), h_land = sum(home_land),
+    h_classes = paste(sort(unique(home_classes)), collapse = "/"), h_first = min(home_first_year),
+    h_built = min(home_year_built), h_x = mean(x), h_y = mean(y), h_keep = TRUE, .groups = "drop")
+buildings <- buildings |> merge_homes(townhouse_homes, "townhouse_lots") |>
   left_join(townhouse_review, by = "building_id", relationship = "one-to-one") |>
-  filter(!building_id %in% paste0("assessor_residential_", townhouse_links$home_id)) |>
-  mutate(townhouse = !is.na(add_ids),
-    x_3435 = if_else(townhouse, (coalesce(x_3435 * dwelling_units, 0) + add_x * add_units) / (coalesce(dwelling_units, 0) + add_units), x_3435),
-    y_3435 = if_else(townhouse, (coalesce(y_3435 * dwelling_units, 0) + add_y * add_units) / (coalesce(dwelling_units, 0) + add_units), y_3435),
-    location_source = if_else(townhouse, "parcel_centroid", location_source),
-    record_ids = if_else(townhouse, if_else(is.na(record_ids), add_ids, paste(record_ids, add_ids, sep = "/")), record_ids),
-    classes = if_else(townhouse, if_else(is.na(classes), add_classes, paste(classes, add_classes, sep = "/")), classes),
-    first_assessment_year = if_else(townhouse, pmin(first_assessment_year, add_first, na.rm = TRUE), first_assessment_year),
-    assessor_year_built = if_else(townhouse, pmin(assessor_year_built, add_built, na.rm = TRUE), assessor_year_built),
-    building_sqft = if_else(townhouse, coalesce(building_sqft, 0) + add_sqft, building_sqft),
-    land_sqft = if_else(townhouse, coalesce(land_sqft, 0) + add_land, land_sqft),
-    dwelling_units = if_else(townhouse, coalesce(dwelling_units, 0) + add_units, dwelling_units),
-    flags = if_else(townhouse, str_remove(flags, "units_disagree;"), flags),
-    match_basis = if_else(townhouse, if_else(is.na(match_basis), "townhouse_lots", paste0(match_basis, "+townhouse_lots")), match_basis),
-    source = if_else(townhouse, "residential", source), status = if_else(townhouse, "measured", status),
-    multifamily = if_else(townhouse, FALSE, multifamily))
+  filter(!building_id %in% paste0("assessor_residential_", townhouse_links$home_id))
 
 # Hand-checked links from adjudication/manual_decisions.csv, applied after the rules: a permit takes a named
 # Assessor-only building (assign_lot), adds or replaces its homes with named single-family parcels (add_homes,
@@ -375,16 +396,8 @@ manual <- read_csv("../adjudication/manual_decisions.csv", col_types = cols(.def
   left_join(buildings |> filter(route == "permit") |> select(permit_number, building_id), by = "permit_number",
     relationship = "many-to-one")
 stopifnot(!anyNA(manual$building_id), !anyDuplicated(manual$building_id))
-assigned_lots <- manual |> filter(field == "assign_lot") |> select(building_id, lot_id = value)
-stopifnot(all(assigned_lots$lot_id %in% buildings$building_id[buildings$route == "assessor_only"]),
-  !anyDuplicated(assigned_lots$lot_id))
 buildings <- buildings |>
-  rows_update(assigned_lots |>
-    left_join(buildings |> select(lot_id = building_id, source, record_ids, classes, first_assessment_year, assessor_year_built,
-      dwelling_units, building_sqft, land_sqft, multifamily, x_3435, y_3435), by = "lot_id", relationship = "one-to-one") |>
-    mutate(status = "measured", match_basis = "hand_checked_lot", location_source = "parcel_centroid", flags = "") |>
-    select(-lot_id), by = "building_id") |>
-  filter(!building_id %in% assigned_lots$lot_id)
+  take_buildings(manual |> filter(field == "assign_lot") |> select(building_id, lot_id = value), "hand_checked_lot")
 named_homes <- manual |> filter(field %in% c("add_homes", "replace_homes")) |> separate_longer_delim(value, "/")
 home_records <- candidates |> filter(source == "residential") |>
   transmute(value = record_id, units, building_sqft, land_sqft, classes, first_year, year_built, pin10 = substr(record_id, 1, 10)) |>
@@ -394,40 +407,20 @@ hand_homes <- named_homes |> left_join(home_records, by = "value", relationship 
   group_by(building_id, field) |>
   summarise(h_ids = paste(value, collapse = "/"), h_units = sum(units), h_sqft = sum(building_sqft), h_land = sum(land_sqft),
     h_classes = paste(sort(unique(classes)), collapse = "/"), h_first = min(first_year), h_built = min(year_built),
-    h_x = mean(x), h_y = mean(y), .groups = "drop")
+    h_x = mean(x), h_y = mean(y), .groups = "drop") |>
+  mutate(h_keep = field == "add_homes") |> select(-field)
 same_building <- manual |> filter(field == "same_building") |>
   left_join(buildings |> filter(route == "permit") |> select(target_id = building_id, value = permit_number), by = "value",
     relationship = "many-to-one") |>
   left_join(buildings |> select(building_id, a_members = member_permit_numbers, a_date = issue_date), by = "building_id",
     relationship = "one-to-one")
 stopifnot(!anyNA(same_building$target_id), !any(same_building$target_id %in% same_building$building_id))
-buildings <- buildings |>
-  left_join(hand_homes, by = "building_id", relationship = "one-to-one") |>
+buildings <- buildings |> merge_homes(hand_homes, "hand_checked_homes") |>
   filter(!building_id %in% paste0("assessor_residential_", named_homes$value), !building_id %in% same_building$building_id) |>
   left_join(same_building |> group_by(building_id = target_id) |>
     summarise(add_members = paste(a_members, collapse = "/"), add_date = min(a_date), .groups = "drop"),
     by = "building_id", relationship = "one-to-one") |>
-  mutate(keep = field %in% "add_homes", homes = !is.na(h_ids),
-    x_3435 = if_else(homes, (if_else(keep, coalesce(x_3435 * dwelling_units, 0), 0) + h_x * h_units) /
-      (if_else(keep, coalesce(dwelling_units, 0), 0) + h_units), x_3435),
-    y_3435 = if_else(homes, (if_else(keep, coalesce(y_3435 * dwelling_units, 0), 0) + h_y * h_units) /
-      (if_else(keep, coalesce(dwelling_units, 0), 0) + h_units), y_3435),
-    location_source = if_else(homes, "parcel_centroid", location_source),
-    record_ids = if_else(homes, if_else(keep & !is.na(record_ids), paste(record_ids, h_ids, sep = "/"), h_ids), record_ids),
-    classes = if_else(homes, if_else(keep & !is.na(classes), paste(classes, h_classes, sep = "/"), h_classes), classes),
-    first_assessment_year = if_else(homes, if_else(keep, pmin(first_assessment_year, h_first, na.rm = TRUE), h_first),
-      first_assessment_year),
-    assessor_year_built = if_else(homes, if_else(keep, pmin(assessor_year_built, h_built, na.rm = TRUE), h_built),
-      assessor_year_built),
-    building_sqft = if_else(homes, if_else(keep, coalesce(building_sqft, 0), 0) + h_sqft, building_sqft),
-    land_sqft = if_else(homes, if_else(keep, coalesce(land_sqft, 0), 0) + h_land, land_sqft),
-    dwelling_units = if_else(homes, if_else(keep, coalesce(dwelling_units, 0), 0) + h_units, dwelling_units),
-    flags = if_else(homes & dwelling_units == permit_units, str_remove(flags, "units_disagree;"), flags),
-    match_basis = if_else(homes, if_else(is.na(match_basis) | !keep, "hand_checked_homes", paste0(match_basis, "+hand_checked_homes")),
-      match_basis),
-    source = if_else(homes, "residential", source), status = if_else(homes, "measured", status),
-    multifamily = if_else(homes, FALSE, multifamily),
-    member_permit_numbers = if_else(is.na(add_members), member_permit_numbers, paste(member_permit_numbers, add_members, sep = "/")),
+  mutate(member_permit_numbers = if_else(is.na(add_members), member_permit_numbers, paste(member_permit_numbers, add_members, sep = "/")),
     issue_date = if_else(is.na(add_date), issue_date, pmin(issue_date, add_date)),
     issue_year = as.integer(format(issue_date, "%Y")),
     reviewed = building_id %in% manual$building_id,
@@ -442,11 +435,9 @@ buildings <- buildings |>
     dupac = if_else(allow_dupac, dwelling_units / (land_sqft / 43560), NA_real_),
     far = if_else(allow_far, building_sqft / land_sqft, NA_real_)) |>
   select(building_id, route, status, match_basis, flags, lot_rule_candidates, townhouse_candidates, permit_number,
-    member_permit_numbers,
-    superseded_permit_numbers, issue_date, issue_year, address, permit_units, stated_counts, permit_status,
-    any_permit_complete, parcel_pin10s, parcel_changed_after_permit, source, record_ids, classes, first_assessment_year,
-    assessor_year_built,
-    dwelling_units, building_sqft, land_sqft, allow_far, allow_dupac, far, dupac, multifamily, location_source,
-    x_3435, y_3435, description) |>
+    member_permit_numbers, superseded_permit_numbers, issue_date, issue_year, address, permit_units, stated_counts,
+    permit_status, any_permit_complete, parcel_pin10s, parcel_changed_after_permit, source, record_ids, classes,
+    first_assessment_year, assessor_year_built, dwelling_units, building_sqft, land_sqft, allow_far, allow_dupac, far, dupac,
+    multifamily, location_source, x_3435, y_3435, description) |>
   arrange(route, coalesce(issue_date, make_date(assessor_year_built, 6L, 15L)), building_id)
 SaveData(buildings, "building_id", "../output/construction_buildings.csv", na = "")

@@ -1,0 +1,46 @@
+\clearpage
+\section*{Which new buildings do the permit rules miss, and which do they count twice?}
+\textit{September 23, 2026. Agent-drafted data review requested by Jacob.}
+
+The permit-based construction data (\texttt{tasks/prepare\_permit\_construction}) link each City of Chicago
+new-construction permit issued 2006--2022 to the Assessor records of the building it authorized, and keep Assessor
+buildings that no permit reaches as a separate route. Two groups looked like coverage failures: 2,043 Assessor
+buildings from 2008 on with no permit, and 2,018 residential permits that reached no building. Most of both were
+problems in how the data were read, not missing records. After general rule changes the file has 18,864 rows
+and 14,033 density-eligible buildings (14,047 before). Of those, 11,562 are permitted (11,378 before) and 4,959 are
+multifamily (4,951 before). The total barely moves because the gains among permits offset duplicates removed from
+the Assessor-only route.
+
+Three reading errors hid permits. The permit classifier treated notes about later permits
+(\texttt{[SEE PERMIT \#\ldots\ TO CONVERT TO 4 DWELLING UNITS]}) and misspellings (\texttt{DWELING},
+\texttt{6 UNITBUILDING}) as conversions or non-residential work. A garage rule dropped every permit that mentioned a
+garage without a dwelling word, which removed 282 new buildings such as \texttt{ERECT 2 STORY MASONRY BLDG PER PLANS
+WITH DETACHED GARAGE}. Accessory structures are now identified by the object of the first clause, and permits
+for a new building of unstated use are kept when their own parcels receive a new residential record that no
+residential permit reaches (114 measured, 105 eligible). A list of non-residential uses keeps hotel foundations,
+office build-outs, dormitories and equipment buildings out. On the Assessor side, hotel rooms and care beds in the
+commercial valuations were counted as apartments; those uses are now excluded.
+
+Two Assessor practices hid buildings from the permits that authorized them. For 247 permits the Assessor recorded
+the new building under the old year built (a three-flat still dated 1890). The parcel's floor area jumps after the
+permit, so a parcel without a new record whose floor area rises by at least 25 percent within the construction lag,
+and stays there, is measured in that year. Of these, 228 are eligible; most were first assessed one or two years
+after the permit, and the units agree with the permit in all but 17. Second, a condominium declaration or subdivision
+retires a parcel number, and the building reappears on new parcels. The permit was then measured on the old lot,
+often at zero floor area mid-construction, while the finished building appeared again as a separate no-permit
+building. A parcel-succession rule links a record on retired parcels to the new records on the same tax block within
+150 feet, first assessed within a year of the retirement, when their units add up to its own and they succeed no
+other record. It gives 105 permits their final measurements and removes about 500 Assessor-only rows that counted a
+building twice, 209 of them in the eligible 2006--2007 group. Historical parcel centroids from every assessment year
+1999--2025 (\texttt{tasks/download\_parcel\_centroids}) locate 18,851 of the 18,864 rows (18,163 before), which
+the succession rule needs. The 98 commercial records that were never located are suburban and were dropped.
+
+What remains open: 236 permits are followed by a measured permit on the same parcel or address and were not built
+under the earlier permit (\texttt{later\_permit\_built}); 1,603 permits still reach no building. Of those, 272 are
+cancelled, expired or revoked, 113 sit on parcels whose floor area changed too little for the rule, and 120 are in
+the review queues. Samples of the rest include tax-exempt affordable and senior housing without Assessor
+characteristics, pre-2021 commercial apartment buildings, and genuinely unbuilt permits. Another 1,763 Assessor
+buildings from 2008 on have no permit (600 with three or more units); sampled permits at their parcels are mostly
+conversions and gut rehabs, which the Assessor re-dates but which are not new construction. A six-year construction
+window instead of four added only 52 eligible buildings and made some large buildings' measurements worse, so the
+window stays at four years. No regressions have been run on these data.

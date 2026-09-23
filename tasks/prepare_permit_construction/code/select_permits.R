@@ -22,12 +22,14 @@ permits <- read_csv("../input/building_permits_full.csv", col_types = cols(.defa
   filter(between(issue_year, first_issue_year, last_issue_year)) |>
   mutate(description = str_squish(str_to_upper(coalesce(work_description, ""))),
     # Notes describe later permits ("{ALSO SEE PERMIT #... TO: DECONVERSION ...}", "[SEE PERMIT #... TO CONVERT ...]",
-    # "SEE REVISION #... TO ADD TWO FLOORS"), not this building. Common misspellings are corrected.
-    main_text = description |> str_remove_all("\\{[^}]*(?:\\}|$)|\\[[^\\]]*(?:\\]|$)") |>
+    # "SEE REVISION #... TO ADD TWO FLOORS") or the review program ("***SELF CERT PROJECT***"), not this building.
+    # Common misspellings and abbreviations are corrected.
+    main_text = description |> str_remove_all("\\{[^}]*(?:\\}|$)|\\[[^\\]]*(?:\\]|$)|\\*{2,}[^*]*\\*{2,}") |>
       str_remove("\\bSEE (?:REVISION|PERMIT|#).*$") |>
       str_replace_all("\\bDWELING", "DWELLING") |> str_replace_all("\\bAPARMENT", "APARTMENT") |>
       str_replace_all("\\bUNIT(S?)(BUILDING|BLDG)\\b", "UNIT\\1 \\2") |> str_replace_all("([0-9]) ?\\(DU\\)", "\\1 DU") |>
-      str_squish(),
+      str_replace_all("\\b(?:EXIST\\.|EXST'?G|EXSITING)", "EXISTING") |> str_replace_all("\\bSRF\\b", "SFR") |>
+      str_replace_all("\\bSTRY\\b", "STORY") |> str_squish(),
     address = normalize_address(paste(str_remove(street_number, "^0+"), street_direction, street_name)),
     permit_pin10s = map_chr(str_extract_all(coalesce(pin_list, ""), "[0-9]{10}"),
       \(x) paste(unique(x), collapse = "/")),
@@ -66,21 +68,27 @@ permits <- permits |>
       str_detect(main_text, single_home_words) & !str_detect(main_text, "MULTI|\\bUNITS\\b") ~ 1L,
       TRUE ~ NA_integer_))
 
-# Every new-construction permit keeps one scope reason; only new residential buildings continue.
+# Uses that make a building of unstated use non-residential, and work on an existing structure.
+non_residential_words <- paste0("HOTEL|MOTEL|OFFICE|DAY ?CARE|SCHOOL|CHURCH|RESTAURANT|RETAIL|COMMER|MERCANTILE|DORM|ACCESSORY|STORE\\b|",
+  "WAREHOUSE|STORAGE|INDUSTRIAL|FACTORY|PLANT\\b|BUILD-?OUT|TENANT|INTERIOR|CAR ?WASH|COMMUNITY|RECREATION|FIELD ?HOUSE|",
+  "STATION|HOSPITAL|CLINIC|MEDICAL|LIBRARY|THEATER|BANK\\b|TOILET|SHELTER|CANOPY|PAVILION|STADIUM|POOL|EQUIPMENT|",
+  "MECHANICAL|TRANSFORMER|GENERATOR|EXISTING")
+# An accessory structure is the object of the first clause: "ERECT A 33X24 FRAME GARAGE PER PLANS, TO AN EXISTING ...".
+first_clause <- str_split_i(permits$main_text, ",|;|\\. |\\b(?:WITH|W/|AND|FOR|TO|AT|ON|OF|IN|BEHIND|SERVING)\\b", 1)
+# Every new-construction permit keeps one scope reason. New residential buildings continue, and so do new buildings
+# whose use the permit does not state ("ERECT NEW 3 STORY MASONRY BUILDING AS PER PLANS"): the Assessor decides those.
 # Foundation and superstructure phases remain: they are grouped with the full permit or resolved by Assessor claims.
 permits <- permits |> mutate(scope = case_when(
-  str_detect(main_text, "\\bREVISION TO\\b|\\bREVISIONS? (?:OF|FOR|TO) (?:THE )?(?:DDS )?PERMIT\\b|\\bREINSTAT") ~ "revision",
+  str_detect(main_text, "\\bREVISION TO\\b|\\bREVISIONS? (?:OF|FOR|TO) (?:THE )?(?:DDS )?PERMIT\\b|\\bPERMIT REVISION\\b|\\bREINSTAT") ~ "revision",
   str_detect(main_text, "\\bERECTION STARTS\\b|\\bPERMIT EXPIRES ON\\b|\\bTENTS?\\b|\\bTEMPORARY (?:STRUCTURE|EXHIBIT|STAGE)") ~ "temporary_structure",
-  str_detect(main_text, "(?<!IN )\\bADDITIONS?\\b|CONVER(?:T|SION)|\\bINTERIOR (?:ALTERATION|RENOVATION|REMODEL)") ~ "addition_or_conversion",
+  str_detect(main_text, "(?<!IN )\\bADDITIONS?\\b|CONVER(?:T|SION)|\\bREHAB|\\bINTERIOR (?:ALTERATION|RENOVATION|REMODEL)") ~ "addition_or_conversion",
+  str_detect(first_clause, "\\b(?:GARAGES?|CARPORTS?|DECKS?|PORCH(?:ES)?|STAIRS?|STAIRWAYS?|FENCES?|PERGOLAS?|GAZEBOS?|SHEDS?|BREEZEWAY)\\b") &
+    !str_detect(first_clause, dwelling_words) & !str_detect(first_clause, "\\b(?:BUILDING|BLDG|UNITS?|D\\.?U)\\b") ~ "accessory_structure",
   str_detect(main_text, paste0("\\b(?:AT|FOR|TO|ON|SERVE|SERVES|SERVING|BEHIND) (?:AN |THE )?EXISTING (?:[0-9A-Z/.-]+ ){0,6}?",
-    "(?:S\\.?F\\.?R|SINGLE[- ]?FAMILY|RESIDENCE|HOUSE|HOME|BUILDING|BLDG|DWELLING|UNIT)|\\bEXISTING ?:|",
-    "^(?:ERECT |CONSTRUCT |BUILD |INSTALL )?(?:A |AN )?(?:NEW )?",
-    "(?:(?!TOWN|ROW|UNIT|RESIDEN|HOME|HOUSE|DWELLING|APARTMENT|CONDO|S\\.?F\\.?R)[A-Z0-9-]+ ){0,3}?",
-    "(?:DECKS?|PORCH(?:ES)?|STAIRS?|FENCES?)\\b")) ~
-    "work_at_existing_building",
-  str_detect(main_text, "\\bGARAGE\\b") & stated_counts == "" & !dwelling_text ~ "garage",
-  str_detect(main_text, "^(?:ERECT |CONSTRUCT |BUILD |NEW )?(?:A |AN )?(?:NEW )?(?:[0-9]+[- ]CAR )?(?:(?:DETACHED|ATTACHED|FRAME|MASONRY|1 STORY) )*GARAGE\\b") ~ "garage",
+    "(?:S\\.?F\\.?R|SINGLE[- ]?FAMILY|RESIDENCE|HOUSE|HOME|BUILDING|BLDG|DWELLING|UNIT)|\\bEXISTING ?:")) ~ "work_at_existing_building",
   stated_counts != "" | dwelling_text ~ "new_residential",
+  str_detect(main_text, "\\b(?:ERECT|NEW|CONSTRUCT)") & str_detect(main_text, "\\b(?:BUILDINGS?|BLDGS?|STRUCTURES?|STOR(?:Y|IES))\\b") &
+    !str_detect(main_text, non_residential_words) ~ "building_use_not_stated",
   TRUE ~ "not_residential"))
 
 # The same address, dwelling count and a short interval identify a repeated permit for one building.
@@ -91,7 +99,7 @@ residential <- permits |> filter(scope == "new_residential") |> arrange(address,
   group_by(address, permit_units, building_group) |>
   mutate(repeat_permit_numbers = if (n() > 1L) paste(permit_number[-1], collapse = "/") else "",
     any_permit_complete = any(permit_status == "COMPLETE")) |>
-  ungroup() |> filter(new_group | is.na(permit_units))
+  ungroup() |> filter(new_group)
 permits <- permits |> left_join(residential |> select(permit_id, repeat_permit_numbers, any_permit_complete),
     by = "permit_id", relationship = "one-to-one") |>
   mutate(scope = if_else(scope == "new_residential" & is.na(repeat_permit_numbers), "repeated_permit", scope)) |>

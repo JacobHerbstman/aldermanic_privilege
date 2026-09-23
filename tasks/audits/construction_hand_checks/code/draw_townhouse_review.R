@@ -1,14 +1,16 @@
 # setwd("tasks/audits/construction_hand_checks/code")
 # review_seed <- 20260922
 # townhouse_sample_size <- 25
+# first_record_year_built <- 2004
 source("../../../setup_environment/code/packages.R")
 source("../../../shared/code/save_data.R")
 
 args <- commandArgs(trailingOnly = TRUE)
-if (interactive()) args <- c(review_seed, townhouse_sample_size)
-stopifnot(length(args) == 2L)
+if (interactive()) args <- c(review_seed, townhouse_sample_size, first_record_year_built)
+stopifnot(length(args) == 3L)
 review_seed <- as.integer(args[1])
 townhouse_sample_size <- as.integer(args[2])
+first_record_year_built <- as.integer(args[3])
 
 buildings <- read_csv("../input/construction_buildings.csv", col_types = cols(building_id = "c", permit_number = "c",
   member_permit_numbers = "c", superseded_permit_numbers = "c", lot_rule_candidates = "c", townhouse_candidates = "c",
@@ -22,14 +24,14 @@ links <- buildings |> filter(str_detect(coalesce(match_basis, ""), "townhouse_lo
 homes <- links |> select(permit_number, record_ids) |> separate_longer_delim(record_ids, "/") |> rename(pin = record_ids)
 con <- DBI::dbConnect(duckdb::duckdb())
 duckdb::duckdb_register(con, "homes", homes)
-first_records <- DBI::dbGetQuery(con, "
+first_records <- DBI::dbGetQuery(con, sprintf("
   SELECT h.pin, min(h.tax_year) AS first_year, arg_min(h.year_built, h.tax_year) AS year_built,
     arg_min(h.building_sqft, h.tax_year) AS sqft, arg_min(h.class, h.tax_year) AS class,
-    min(h.tax_year) FILTER (WHERE h.year_built >= 2004) AS new_year,
-    arg_min(h.year_built, h.tax_year) FILTER (WHERE h.year_built >= 2004) AS new_year_built,
-    arg_min(h.building_sqft, h.tax_year) FILTER (WHERE h.year_built >= 2004) AS new_sqft
+    min(h.tax_year) FILTER (WHERE h.year_built >= %1$d) AS new_year,
+    arg_min(h.year_built, h.tax_year) FILTER (WHERE h.year_built >= %1$d) AS new_year_built,
+    arg_min(h.building_sqft, h.tax_year) FILTER (WHERE h.year_built >= %1$d) AS new_sqft
   FROM read_parquet('../input/residential_assessor_history.parquet') h WHERE h.pin IN (SELECT pin FROM homes)
-  GROUP BY 1")
+  GROUP BY 1", first_record_year_built))
 DBI::dbDisconnect(con, shutdown = TRUE)
 review <- homes |>
   left_join(addresses, by = "pin", relationship = "many-to-one") |>
