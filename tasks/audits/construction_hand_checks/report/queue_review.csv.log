@@ -1,23 +1,23 @@
 File: queue_review.csv
-Rows: 137
+Rows: 78
 Columns: 13
-SHA-256 (saved bytes): dbd238c5d58a8cdba8da4546375d8940f2e1487096f50a161075dbd161649b5f
+SHA-256 (saved bytes): 299d9225d8d7ede5e6bf4bac1cb7aeff6991c82fb7fef91d6abde7ad16bb9aba
 Key: permit_number
 Types: DuckDB inference from the complete saved CSV.
 Distinct counts: exact (exact up to 100,000 rows).
 Row counts, non-missing counts, and declared-key checks: exact.
 
                         column inferred_type  non_missing  distinct       min       max               mean                 sd
-                          case       VARCHAR          137         2         -         -                  -                  -
-                 permit_number        BIGINT          137       137 100056604 100992356 100423992.03649636  324460.8144809126
-         member_permit_numbers       VARCHAR          137       137         -         -                  -                  -
-                    issue_date          DATE          137       107         -         -                  -                  -
-                 permit_status       VARCHAR          137         3         -         -                  -                  -
-                       address       VARCHAR          137       134         -         -                  -                  -
-                  permit_units        BIGINT          137        22         1       800 28.423357664233578 119.18785978863842
-                        status       VARCHAR          137         3         -         -                  -                  -
-                dwelling_units        BIGINT           17         5         1        10                2.0 2.3717082451262845
-                   description       VARCHAR          137       124         -         -                  -                  -
-                    candidates       VARCHAR          137       132         -         -                  -                  -
-     permits_at_permit_address       VARCHAR          137       134         -         -                  -                  -
-permits_at_candidate_addresses       VARCHAR           39        33         -         -                  -                  -
+                          case       VARCHAR           78         2         -         -                  -                  -
+                 permit_number        BIGINT           78        78 100056604 100953264 100273850.07692307 209947.91082730147
+         member_permit_numbers        BIGINT           78        78 100056604 100953264 100273850.07692307 209947.91082730147
+                    issue_date          DATE           78        53         -         -                  -                  -
+                 permit_status       VARCHAR           78         2         -         -                  -                  -
+                       address       VARCHAR           78        78         -         -                  -                  -
+                  permit_units        BIGINT           78        10         1       480  9.705128205128204 53.998583188329924
+                        status       VARCHAR           78         3         -         -                  -                  -
+                dwelling_units        BIGINT           20         5         1         6               1.95  1.637552731171861
+                   description       VARCHAR           78        69         -         -                  -                  -
+                    candidates       VARCHAR           78        78         -         -                  -                  -
+     permits_at_permit_address       VARCHAR           78        78         -         -                  -                  -
+permits_at_candidate_addresses       VARCHAR           30        29         -         -                  -                  -

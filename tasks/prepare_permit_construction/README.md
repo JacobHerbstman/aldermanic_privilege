@@ -23,9 +23,17 @@ yet; `tasks/audits/permit_density_comparison` compares it with the paper's curre
   `2-FLAT`, `(7) 3-STORY ROWHOMES`); otherwise 2 for a duplex and 1 for a single house.
 - Repeated permits at the same address with the same count within `REPEAT_PERMIT_YEARS` are one building.
 
-`measure_buildings.R`
-- Parcels: the permit's PIN list; the 2025 parcels at the permit's house number and street are used only
-  when the listed PINs show no new building.
+`measure_buildings.R` (one row per building: each new Assessor record belongs to one permit)
+- Parcels: the permit's PIN list with the parcels that later succeeded them, and hand-named lots and homes; the 2025
+  parcels at the permit's address are used only when these show no new building. A parcel address without a
+  direction matches by house number and street name within `ADDRESS_MATCH_FT` of the permit's geocoded point.
+- Parcel succession: a condominium declaration or subdivision retires a parcel number and creates new ones. Each new
+  parcel descends from the nearest older parcel on its tax block last assessed in the year before, or the year of, its
+  first assessment (from `tasks/download_parcel_centroids`, every assessment year 1999–2025). A successor parcel listed
+  on another permit, or at another permit's house number and street issued within the construction lag, belongs to
+  that permit; when some successors face the permit's street, those on other streets are other buildings of the site.
+  A permit reaching records on current parcels measures those, not records on parcels later retired
+  (`match_basis = parcel_successor`).
 - A new building is an Assessor record with year built from the issue year minus `ASSESSOR_YEAR_LEAD` to the
   issue year plus `MAX_BUILD_LAG_YEARS` (99.5% of measured buildings), first appearing after the permit.
   A parcel already showing it before the permit year holds an earlier building. The Assessor codes many 2013 and 2016
@@ -37,8 +45,15 @@ yet; `tasks/audits/permit_density_comparison` compares it with the paper's curre
   condominium records first, then residential cards, then commercial apartment valuations (2021 onward; hotels,
   care facilities and parking valuations are not dwellings). Prorated buildings count once; land is summed once
   per parcel.
-- Several permits at one address reaching the same building: the latest permit issued before the building
-  appears keeps it. Permits at different addresses reaching the same building are one development.
+- One Assessor record reported built within the construction lag for several permits is one building: a later permit
+  on the parcel, or a revised year built, does not make it new again.
+- A record reached by permits at several addresses belongs to the permit on the record's street whose house number is
+  the nearest at or below the record's on the same side, or else the nearest on that street, or, for a record on none
+  of their streets, the permit geocoded nearest to it (street names one letter apart match). A hand-named record
+  belongs to its named permit. Several permits at one address reaching the same building: the latest permit issued
+  before the building appears keeps it (`superseded_permit_numbers`). A permit whose records all went to buildings at
+  other addresses (a foundation or phase permit) is listed in `member_permit_numbers` of the building holding most of
+  them.
 - A `building_use_not_stated` permit measures only a building that no residential permit reaches; one reaching no
   building leaves the data.
 - A permit reaching no building, followed by a measured permit on one of its parcels or at its address, was not built
@@ -47,12 +62,13 @@ yet; `tasks/audits/permit_density_comparison` compares it with the paper's curre
   `UNIT_TOLERANCE` for multifamily), floor area per unit below `MIN_SQFT_PER_UNIT` (a shop-only record),
   land per unit above `MAX_LAND_SQFT_PER_UNIT` (development-wide land), or an older building on the parcel.
 - `adjudication/manual_decisions.csv` is the only place for hand research: one row per permit number and
-  field, with a source and note. Measurement fields (`exclude`, `accept`, `dwelling_units`, `building_sqft`,
-  `land_sqft`) apply here; link fields apply in `build_construction_buildings.R` after the rules:
-  `assign_lot` (take a named Assessor-only building), `add_homes` / `replace_homes` (add named single-family
-  parcels, or replace a parent parcel with them), `same_building` (another phase of a named permit's building;
-  the building takes the earlier issue date) and `no_match` (no candidate is this permit's building).
-  The current rows come from `tasks/audits/construction_hand_checks/queue_first_pass.csv`.
+  field, with a source and note. Named lots and homes (`assign_lot`, `add_homes`, `replace_homes`) join their permit's
+  parcels here (`match_basis = hand_checked`), as do the measurement fields (`exclude`, `accept`, `dwelling_units`,
+  `building_sqft`, `land_sqft`); `same_building` (another phase of a named permit's building; the building takes the
+  earlier issue date) and `no_match` (no candidate is this permit's building) apply in `build_construction_buildings.R`.
+  The rows come from `tasks/audits/construction_hand_checks/queue_first_pass.csv`; two decisions that assigned a whole
+  divided site to one permit (Medill/Belden 100553156, Campbell/Homer 100645761) were retired when rows became
+  buildings.
 
 `build_construction_buildings.R`
 - Assessor-only buildings: a condominium building, residential card or commercial apartment valuation on a Chicago
@@ -67,12 +83,8 @@ yet; `tasks/audits/permit_density_comparison` compares it with the paper's curre
   (`tasks/download_parcel_centroids`), so parcels retired by later condominium declarations or subdivisions keep a
   location. Permit coordinates are geocoded at the street frontage, a median 56 ft from the parcel centroid; the
   permit point is used only when no parcel is found.
-- Parcel succession: a condominium declaration or subdivision retires a parcel number, and the building reappears on
-  the successor parcels. The new records on the same tax block within `LOT_DISTANCE_FT` of a record whose parcels are
-  all retired, first assessed within a year of the retirement, reported built within the lead and lag of its year built,
-  and from one source, are its successors when their dwelling units add up to its own and they succeed no other
-  record. A permit's building takes the measurement of Assessor-only successors (`match_basis = parcel_successor`); an
-  Assessor-only record with successors is the same building counted twice and is removed.
+- An Assessor-only record on a parcel whose successor parcels hold a new building reported built within its lead and
+  lag is that building counted twice (before and after a condominium declaration or subdivision), and is removed.
 - Lot rule: a permit that reaches no new building on its own parcels takes the unclaimed new building within
   `LOT_DISTANCE_FT` of its geocoded point (`LARGE_LOT_DISTANCE_FT` for `LARGE_BUILDING_UNITS` or more dwellings, whose
   lots reach farther from the street frontage) that first appears after it, within the construction lag, with a
@@ -89,8 +101,8 @@ yet; `tasks/audits/permit_density_comparison` compares it with the paper's curre
   (`match_basis` includes `townhouse_lots`). Parcels of other permits in the construction window and homes two
   permits would take are excluded; other qualifying homes are listed in `townhouse_candidates` for review.
   Buildings reported built after `LAST_YEAR_BUILT` are kept only as possible matches for late permits.
-- A row covers one building or development: several permits reaching the same Assessor building or completing
-  each other's homes stay one row (`member_permit_numbers`).
+- Every hand-named lot and home must be measured in the row holding its permit, and no Assessor record may measure
+  two rows first assessed in the same year; the build stops otherwise.
 
 `build_ledger.R`
 - Ward and nearest ward-pair boundary from the map in effect on the first permit's issue date, or on June 15 of

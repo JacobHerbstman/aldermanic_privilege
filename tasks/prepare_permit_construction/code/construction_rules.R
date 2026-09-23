@@ -18,3 +18,30 @@ read_commercial_valuations <- function() {
 units_agree <- function(units, permit_units, unit_tolerance) {
   if_else(permit_units <= 1L, units == permit_units, abs(units - permit_units) <= pmax(1, unit_tolerance * permit_units))
 }
+
+# Parcel succession: a condominium declaration or subdivision retires a parcel number and creates new ones. Each new
+# parcel descends from the nearest older parcel on its tax block last assessed in the year before, or the year of, its
+# first assessment. `parcels` has pin10, first_year, last_year, x_3435 and y_3435. Returns each ancestor with its
+# descendants ("a/b/c"), following chains of successive divisions.
+parcel_descendants <- function(parcels) {
+  retired <- parcels |> filter(last_year < max(last_year))
+  born <- parcels |> filter(first_year > min(first_year))
+  children <- map(sort(unique(born$first_year)), \(year) {
+    kids <- born |> filter(first_year == year)
+    parents <- retired |> filter(last_year %in% c(year - 1, year), first_year < year)
+    if (nrow(parents) == 0) return(NULL)
+    nearest <- st_nearest_feature(st_as_sf(kids, coords = c("x_3435", "y_3435"), crs = 3435),
+      st_as_sf(parents, coords = c("x_3435", "y_3435"), crs = 3435))
+    tibble(ancestor = parents$pin10[nearest], descendant = kids$pin10)
+  }) |> bind_rows() |> filter(substr(ancestor, 1, 7) == substr(descendant, 1, 7))
+  # Each parcel has one parent, so walking up from every pair reaches all of its ancestors.
+  pairs <- children
+  step <- children
+  repeat {
+    step <- step |> inner_join(children |> rename(next_ancestor = ancestor), by = c("ancestor" = "descendant"),
+      relationship = "many-to-one") |> transmute(ancestor = next_ancestor, descendant)
+    if (nrow(step) == 0) break
+    pairs <- bind_rows(pairs, step)
+  }
+  pairs |> distinct() |> group_by(ancestor) |> summarise(descendants = paste(sort(descendant), collapse = "/"), .groups = "drop")
+}

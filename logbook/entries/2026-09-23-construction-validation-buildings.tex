@@ -1,0 +1,35 @@
+\clearpage
+\section*{How accurate is the permit construction data, and what is one row?}
+\textit{September 23, 2026. Agent-drafted data review; the unit-of-observation choice is Jacob's.}
+
+A stratified random sample of 225 cases from the permit-based construction data (dataset at commit
+\texttt{9736e3c8}; \texttt{tasks/audits/construction\_hand\_checks}) was reviewed case by case against permit text
+and Assessor histories by agent reviewers, with the main claims checked against the data. Weighted by stratum
+population, 90.7 percent of density-eligible buildings were correct. Buildings measured on the permit's own parcels,
+three quarters of the sample, were right in 24 of 25 cases, as were lot links; the weakest group was the
+Assessor-only 2006--2007 buildings (17 of 25). Among withheld cases, 18 of 25 ``no permit found'' buildings were
+genuine new construction, 14 of them with a permit that should have linked; 21 of 25 unit disagreements were
+recoverable; and of permits that reached no building, 13 of 25 were never built, 5 were tax-exempt housing without
+Assessor characteristics, and only 2 were missed links.
+
+One mechanism explained the largest error in four strata: when a condominium declaration or subdivision retires a
+parcel number, the building reappears on new parcels. The permit kept its parent lot's record while the finished
+homes sat unlinked, or an Assessor-only parent card duplicated its children. On the Cleveland--Hobbie--Oak site,
+eight permits for rowhome rows and two condominium buildings all listed one parent lot; the Assessor recorded a
+39-unit card on it in 2014 and about 48 child parcels from 2016. The paper's data counts this site 40 times (the
+parent card and 39 homes); ours had counted it zero times in the density sample. Jacob chose one row per building.
+Each permit's parcels now include the successors of its listed parcels (each new parcel descends from the nearest
+retired parcel on its block), a record reached by several permits belongs to the permit at its address, and
+hand-named lots and homes join their permit's parcels. That site is now eight building rows; six match their
+permits' dwelling counts exactly, and two (449 W Hobbie, 1001 N Cleveland) reach only one of their homes and are
+withheld. Allowing several parents per new parcel recovered one more row but broke others (94 fewer eligible
+buildings) and was not adopted. Two hand decisions that had assigned a whole divided site to one permit were retired.
+
+The file now has 18,051 rows (18,875 before) and 14,053 density-eligible buildings (14,033): 11,776 permitted
+(11,564) and 2,277 Assessor-only (2,469; the difference is mostly parent cards removed as duplicates). Counted as
+the paper does, by completion year 2006--2022, there are 13,022 eligible buildings against the paper's roughly
+13,600, part of which is the paper's double counting of divided sites. ``No permit found'' buildings fell from
+1,776 to 1,077; flagged measured buildings rose from 842 to 959, mostly divided sites whose successors include a
+neighbor built without its own permit. The validation sample has not yet been re-reviewed on the rebuilt data, and
+first-year records that are partial (duplicate cards, a pre-declaration transitional record) remain the main
+measurement error. No regressions have been run on these data.

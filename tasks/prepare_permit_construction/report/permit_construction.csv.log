@@ -1,40 +1,40 @@
 File: permit_construction.csv
-Rows: 15255
+Rows: 15253
 Columns: 30
-SHA-256 (saved bytes): be1d879b5c21e5f6bc36ba53fced704a4da1a22e7d01aa9bfadaba1eeab9962d
+SHA-256 (saved bytes): b771c806e39a3544e7edc1e4cfa982e2b44748bf84090088535a3e0614690185
 Key: building_id
 Types: DuckDB inference from the complete saved CSV.
 Distinct counts: exact (exact up to 100,000 rows).
 Row counts, non-missing counts, and declared-key checks: exact.
 
                  column inferred_type  non_missing  distinct                 min                max               mean                 sd
-            building_id       VARCHAR        15255     15255                   -                  -                  -                  -
-                  route       VARCHAR        15255         2                   -                  -                  -                  -
-          permit_number        BIGINT        12406     12406           100011918          100996898 100499846.03248428 281793.42622512113
-  member_permit_numbers       VARCHAR        12406     12406                   -                  -                  -                  -
-                 source       VARCHAR        15255         3                   -                  -                  -                  -
-             record_ids       VARCHAR        15255     15244                   -                  -                  -                  -
-             issue_date          DATE        12406      3643                   -                  -                  -                  -
-    assessor_year_built        BIGINT        15255        82                1868               2026 2010.2598492297607  15.83645676590755
-            date_source       VARCHAR        15255         2                   -                  -                  -                  -
-      construction_date          DATE        15255      3643                   -                  -                  -                  -
-      construction_year        BIGINT        15255        17                2006               2022  2011.969518190757  5.497301541672105
-          boundary_year        BIGINT        15255         2                2003               2015  2007.294198623402  5.752600363883454
-                    era       VARCHAR        15255         2                   -                  -                  -                  -
-                   ward        BIGINT        15255        50                   1                 50 25.140216322517208 15.540515101802475
-          neighbor_ward        BIGINT        15255        50                   1                 50 23.939757456571616 15.749434459499131
-              ward_pair       VARCHAR        15255       140                   -                  -                  -                  -
-distance_to_boundary_ft        DOUBLE        15255     15229  11.886907005902836 27623.331640349745 1285.8012562790768 1616.5375415193498
-          within_1500ft       BOOLEAN        15255         2                   -                  -                  -                  -
-           within_500ft       BOOLEAN        15255         2                   -                  -                  -                  -
-        location_source       VARCHAR        15255         2                   -                  -                  -                  -
-                 x_3435        DOUBLE        15255     15225  1117465.6430804804 1203743.2364847388  1162381.850674349 12411.830188862226
-                 y_3435        DOUBLE        15255     15225   1816533.470025296 1951090.7647423265 1903219.1229091303 25096.796091705804
-         dwelling_units        BIGINT        15150       266                   0               1679  7.554653465346535 38.934385129738054
-          building_sqft        BIGINT        14556      5627                   0            1380640  8929.321104699093  42711.09921883648
-              land_sqft        BIGINT        15253      4777                   0            1540260   5745.63200681833  21175.93077709971
-              allow_far       BOOLEAN        15255         2                   -                  -                  -                  -
-            allow_dupac       BOOLEAN        15255         2                   -                  -                  -                  -
-                    far        DOUBLE        14033     12244 0.06141489033055298  31.27246891651865 1.2529355945262841  1.276805870917383
-                  dupac        DOUBLE        14637      5637  1.3456904541241892 1332.8511821974964  31.39249178678166  47.78849184650467
-            multifamily       BOOLEAN        15150         2                   -                  -                  -                  -
+            building_id       VARCHAR        15253     15253                   -                  -                  -                  -
+                  route       VARCHAR        15253         2                   -                  -                  -                  -
+          permit_number        BIGINT        12734     12734           100011918          100996898 100504191.73189886 281223.72418358224
+  member_permit_numbers       VARCHAR        12734     12734                   -                  -                  -                  -
+                 source       VARCHAR        15253         3                   -                  -                  -                  -
+             record_ids       VARCHAR        15253     15251                   -                  -                  -                  -
+             issue_date          DATE        12734      3664                   -                  -                  -                  -
+    assessor_year_built        BIGINT        15253        74                1871               2026  2011.238444896086 12.806058467964984
+            date_source       VARCHAR        15253         2                   -                  -                  -                  -
+      construction_date          DATE        15253      3664                   -                  -                  -                  -
+      construction_year        BIGINT        15253        17                2006               2022  2012.182783714679  5.498529945655846
+          boundary_year        BIGINT        15253         2                2003               2015 2007.4615485478266  5.799601046079957
+                    era       VARCHAR        15253         2                   -                  -                  -                  -
+                   ward        BIGINT        15253        50                   1                 50 25.159247361174852 15.545079637248048
+          neighbor_ward        BIGINT        15253        50                   1                 50 23.966301711138794 15.757947884280659
+              ward_pair       VARCHAR        15253       140                   -                  -                  -                  -
+distance_to_boundary_ft        DOUBLE        15253     15244  11.886907005902836 27623.331640349745 1288.7337383463644   1618.66201733641
+          within_1500ft       BOOLEAN        15253         2                   -                  -                  -                  -
+           within_500ft       BOOLEAN        15253         2                   -                  -                  -                  -
+        location_source       VARCHAR        15253         2                   -                  -                  -                  -
+                 x_3435        DOUBLE        15253     15243  1117465.6430804804 1203743.2364847388 1162321.6654898545 12350.150918112346
+                 y_3435        DOUBLE        15253     15243   1816533.470025296 1951090.7647423265 1903340.8332402334  25041.47244020318
+         dwelling_units        BIGINT        15167       261                   0               1679  7.467660051427441  39.28304949379975
+          building_sqft        BIGINT        14593      5576                   0            1380640  9090.915918591105  44376.60178346377
+              land_sqft        BIGINT        15250      4800                   0            1540260  5618.873442622951 21111.374777277546
+              allow_far       BOOLEAN        15253         2                   -                  -                  -                  -
+            allow_dupac       BOOLEAN        15253         2                   -                  -                  -                  -
+                    far        DOUBLE        14053     12253 0.06141489033055298            53022.0  5.026382041226939  447.2631717200483
+                  dupac        DOUBLE        14608      5641  1.3456904541241892          3179880.0 248.57655047398416  26309.45372620167
+            multifamily       BOOLEAN        15167         2                   -                  -                  -                  -
