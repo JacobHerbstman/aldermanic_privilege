@@ -24,8 +24,8 @@ yet; `tasks/audits/permit_density_comparison` compares it with the paper's curre
 - Repeated permits at the same address with the same count within `REPEAT_PERMIT_YEARS` are one building.
 
 `measure_buildings.R` (one row per building: each new Assessor record belongs to one permit)
-- Parcels: the permit's PIN list with the parcels that later succeeded them, and hand-named lots and homes; the 2025
-  parcels at the permit's address are used only when these show no new building. A parcel address without a
+- Parcels: the permit's PIN list with the parcels that later succeeded them; the 2025 parcels at the permit's address
+  are used only when these show no new building. Hand-named lots and homes are added to either. A parcel address without a
   direction matches by house number and street name within `ADDRESS_MATCH_FT` of the permit's geocoded point.
 - Parcel succession: a condominium declaration or subdivision retires a parcel number and creates new ones. Each new
   parcel descends from the nearest older parcel on its tax block last assessed in the year before, or the year of, its
@@ -41,7 +41,11 @@ yet; `tasks/audits/permit_density_comparison` compares it with the paper's curre
 - Some new buildings keep the old reported year built. A parcel without a new record whose floor area first rises by
   `REBUILT_AREA_GROWTH` within the construction lag, and keeps it, is measured in that year
   (`match_basis = floor_area_change`).
-- Units, floor area and land come from one source and one first-appearance year, never mixed:
+- A building is dated by its first assessment and measured on the record it holds most often in its first
+  `MEASUREMENT_YEARS` assessment years (the earliest when tied; years without a complete measurement do not count):
+  first-year records are often partial (a building still under construction, duplicate cards, a record before a
+  condominium declaration). A building on prorated parcels keeps its proration as first assessed.
+- Units, floor area and land come from one source and one measurement year, never mixed:
   condominium records first, then residential cards, then commercial apartment valuations (2021 onward; hotels,
   care facilities and parking valuations are not dwellings). Prorated buildings count once; land is summed once
   per parcel.

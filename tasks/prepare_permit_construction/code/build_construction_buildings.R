@@ -11,6 +11,7 @@
 # townhouse_distance_ft <- 300
 # large_building_units <- 20
 # large_lot_distance_ft <- 300
+# measurement_years <- 3
 source("../../setup_environment/code/packages.R")
 source("../../shared/code/save_data.R")
 source("../../shared/code/assessor_classification.R")
@@ -21,8 +22,8 @@ source("construction_rules.R")
 args <- commandArgs(trailingOnly = TRUE)
 if (interactive()) args <- c(first_year_built, last_year_built, last_unpermitted_year_built, assessor_year_lead,
   max_build_lag_years, unit_tolerance, min_sqft_per_unit, max_land_sqft_per_unit, lot_distance_ft, townhouse_distance_ft,
-  large_building_units, large_lot_distance_ft)
-stopifnot(length(args) == 12L)
+  large_building_units, large_lot_distance_ft, measurement_years)
+stopifnot(length(args) == 13L)
 first_year_built <- as.integer(args[1])
 last_year_built <- as.integer(args[2])
 last_unpermitted_year_built <- as.integer(args[3])
@@ -35,6 +36,7 @@ lot_distance_ft <- as.numeric(args[9])
 townhouse_distance_ft <- as.numeric(args[10])
 large_building_units <- as.integer(args[11])
 large_lot_distance_ft <- as.numeric(args[12])
+measurement_years <- as.integer(args[13])
 
 permit_buildings <- read_csv("../output/permit_buildings.csv", col_types = cols(building_id = "c", permit_number = "c",
   member_permit_numbers = "c", superseded_permit_numbers = "c", parcel_pin10s = "c", record_ids = "c", issue_date = "D",
@@ -67,7 +69,8 @@ centroids <- parcels |> select(pin10, x = x_3435, y = y_3435)
 con <- DBI::dbConnect(duckdb::duckdb())
 
 # Residential parcels whose records first show a card built in the window, persisting the next year, after either
-# no record or a record without it. The building is measured in that first year, as in the permit arm.
+# no record or a record without it. As in the permit arm, the building is measured on the new cards the parcel holds
+# most often in its first MEASUREMENT_YEARS years with new cards.
 cards <- DBI::dbGetQuery(con, sprintf("
   WITH h AS (SELECT * FROM read_parquet('../input/residential_assessor_history.parquet')),
   first_new AS (
@@ -80,26 +83,36 @@ cards <- DBI::dbGetQuery(con, sprintf("
   prior AS (
     SELECT c.pin, sum(h.building_sqft) AS prior_sqft FROM checked c JOIN h ON h.pin = c.pin AND h.tax_year = c.first_year - 1
     GROUP BY c.pin)
-  SELECT h.pin, substr(h.pin, 1, 10) AS pin10, h.tax_year, h.card_num, h.class, h.year_built, h.building_sqft, h.land_sqft,
-    h.num_apartments, h.pin_proration_rate, h.proration_key_pin, coalesce(h.year_built >= %d, false) AS new_card, prior.prior_sqft
-  FROM checked c JOIN h ON h.pin = c.pin AND h.tax_year = c.first_year LEFT JOIN prior ON prior.pin = c.pin
+  SELECT h.pin, substr(h.pin, 1, 10) AS pin10, c.first_year, h.tax_year, h.card_num, h.class, h.year_built, h.building_sqft,
+    h.land_sqft, h.num_apartments, h.pin_proration_rate, h.proration_key_pin, coalesce(h.year_built >= %d, false) AS new_card,
+    prior.prior_sqft
+  FROM checked c JOIN h ON h.pin = c.pin AND h.tax_year BETWEEN c.first_year AND c.first_year + %d
+  LEFT JOIN prior ON prior.pin = c.pin
   WHERE c.persists", first_year_built - assessor_year_lead, first_year_built - assessor_year_lead,
-  first_year_built - assessor_year_lead)) |>
-  group_by(pin) |> mutate(old_card_on_parcel = any(!new_card)) |> filter(new_card) |>
+  first_year_built - assessor_year_lead, measurement_years - 1)) |>
   # A reported year built that changes while the parcel keeps last year's floor area is a revised record, not a building.
-  mutate(same_floor_area = coalesce(abs(first(prior_sqft) - sum(building_sqft)) <= 1, FALSE)) |> ungroup() |>
-  mutate(record_id = if_else(coalesce(pin_proration_rate, 1) < 1 & !is.na(proration_key_pin), proration_key_pin, pin),
-    card_key = paste(record_id, card_num),
+  # A building on prorated parcels is keyed by its proration as first assessed.
+  group_by(pin) |>
+  mutate(record_id = first(if_else(coalesce(pin_proration_rate, 1) < 1 & !is.na(proration_key_pin), proration_key_pin,
+    pin)[tax_year == first_year]),
+    same_floor_area = coalesce(abs(first(prior_sqft) - sum(building_sqft[new_card & tax_year == first_year])) <= 1, FALSE)) |>
+  group_by(pin, tax_year) |> filter(any(new_card)) |>
+  mutate(signature = if_else(anyNA(building_sqft[new_card]), NA_character_,
+    paste(sum(building_sqft[new_card]), sum(new_card), sum(num_apartments[new_card], na.rm = TRUE)))) |>
+  group_by(pin) |> filter(tax_year == stable_year(tax_year, signature, measurement_years)) |>
+  mutate(old_card_on_parcel = any(!new_card)) |> filter(new_card) |> ungroup() |>
+  mutate(card_key = paste(record_id, card_num),
     card_units = case_when(class %in% single_family_assessor_classes ~ 1, num_apartments > 0 ~ num_apartments))
 residential <- cards |> group_by(record_id) |> summarise(
-    pin10s = paste(sort(unique(pin10)), collapse = "/"), first_year = min(tax_year), year_built = min(year_built),
+    pin10s = paste(sort(unique(pin10)), collapse = "/"), first_year = min(first_year), year_built = min(year_built),
     classes = paste(sort(unique(class)), collapse = "/"),
     units = sum(card_units[!duplicated(card_key)]), building_sqft = sum(building_sqft[!duplicated(card_key)]),
     land_sqft = sum(land_sqft[!duplicated(pin)]), older_building = any(old_card_on_parcel),
     same_floor_area = any(same_floor_area), single_family = all(class %in% single_family_assessor_classes), .groups = "drop") |>
   mutate(source = "residential")
 
-# Condominium buildings first appearing with a reported year built in the window.
+# Condominium buildings first appearing with a reported year built in the window, measured in the year of their first
+# MEASUREMENT_YEARS they hold most often.
 condominiums <- DBI::dbGetQuery(con, sprintf("
   WITH c AS (
     SELECT pin10, try_cast(try_cast(year AS DOUBLE) AS INTEGER) AS tax_year, is_parking_space, is_common_area,
@@ -107,22 +120,25 @@ condominiums <- DBI::dbGetQuery(con, sprintf("
       try_cast(try_cast(char_yrblt AS DOUBLE) AS INTEGER) AS year_built
     FROM read_csv('../input/condominium_characteristics.csv', all_varchar = true)),
   first_year AS (SELECT pin10, min(tax_year) AS first_year FROM c WHERE year_built >= %d GROUP BY pin10)
-  SELECT c.pin10 AS record_id, c.pin10 AS pin10s, c.tax_year AS first_year, min(c.year_built) AS year_built,
+  SELECT c.pin10 AS record_id, c.pin10 AS pin10s, f.first_year, c.tax_year, min(c.year_built) AS year_built,
     count(*) FILTER (WHERE c.is_parking_space <> 'true' AND c.is_common_area <> 'true') AS units,
     max(c.building_sqft) AS building_sqft, max(c.land_sqft) AS land_sqft
-  FROM c JOIN first_year f ON c.pin10 = f.pin10 AND c.tax_year = f.first_year
-  GROUP BY 1, 2, 3", first_year_built - assessor_year_lead)) |>
+  FROM c JOIN first_year f ON c.pin10 = f.pin10 AND c.tax_year BETWEEN f.first_year AND f.first_year + %d
+  GROUP BY 1, 2, 3, 4", first_year_built - assessor_year_lead, measurement_years - 1)) |>
+  group_by(record_id) |> filter(tax_year == stable_year(tax_year, if_else(is.na(units) | is.na(building_sqft), NA_character_, paste(units, building_sqft, land_sqft)), measurement_years)) |>
+  ungroup() |> select(-tax_year) |>
   mutate(classes = "299", older_building = FALSE, single_family = FALSE, source = "condominium")
 DBI::dbDisconnect(con, shutdown = TRUE)
 
 # Commercial apartment valuations (2021 onward) of buildings reported built in the window.
 commercial <- read_commercial_valuations() |> filter(year_built >= first_year_built - assessor_year_lead) |>
-  group_by(record_id) |> filter(year == min(year)) |> ungroup() |>
-  distinct(record_id, pin10s, first_year = year, year_built, classes, units, building_sqft, land_sqft) |>
+  group_by(record_id) |> mutate(first_year = min(year)) |> ungroup() |>
+  distinct(record_id, pin10s, first_year, year, year_built, classes, units, building_sqft, land_sqft) |>
   # A valuation reporting different measurements in the same year has no usable measurement.
-  group_by(record_id) |> mutate(across(c(units, building_sqft, land_sqft), \(x) if (n() > 1) NA_real_ else x)) |>
-  slice(1) |> ungroup() |>
-  mutate(older_building = FALSE, single_family = FALSE, source = "commercial")
+  group_by(record_id, year) |> mutate(across(c(units, building_sqft, land_sqft), \(x) if (n() > 1) NA_real_ else x)) |>
+  slice(1) |> group_by(record_id) |>
+  filter(year == stable_year(year, if_else(is.na(units) | is.na(building_sqft), NA_character_, paste(units, building_sqft, land_sqft)), measurement_years)) |> ungroup() |>
+  select(-year) |> mutate(older_building = FALSE, single_family = FALSE, source = "commercial")
 stopifnot(!anyDuplicated(commercial$record_id), !anyDuplicated(residential$record_id), !anyDuplicated(condominiums$record_id))
 
 # Assessor-only buildings: on Chicago parcels, in the window, not measured by a permit, and on no parcel of a new

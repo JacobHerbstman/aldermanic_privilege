@@ -6,6 +6,7 @@
 # max_land_sqft_per_unit <- 43560
 # rebuilt_area_growth <- 0.25
 # address_match_ft <- 1000
+# measurement_years <- 3
 source("../../setup_environment/code/packages.R")
 source("../../shared/code/save_data.R")
 source("../../shared/code/normalize_chicago_address.R")
@@ -15,8 +16,8 @@ source("construction_rules.R")
 
 args <- commandArgs(trailingOnly = TRUE)
 if (interactive()) args <- c(assessor_year_lead, max_build_lag_years, unit_tolerance, min_sqft_per_unit, max_land_sqft_per_unit,
-  rebuilt_area_growth, address_match_ft)
-stopifnot(length(args) == 7L)
+  rebuilt_area_growth, address_match_ft, measurement_years)
+stopifnot(length(args) == 8L)
 assessor_year_lead <- as.integer(args[1])
 max_build_lag_years <- as.integer(args[2])
 unit_tolerance <- as.numeric(args[3])
@@ -24,6 +25,7 @@ min_sqft_per_unit <- as.numeric(args[4])
 max_land_sqft_per_unit <- as.numeric(args[5])
 rebuilt_area_growth <- as.numeric(args[6])
 address_match_ft <- as.numeric(args[7])
+measurement_years <- as.integer(args[8])
 
 permits <- read_csv("../output/construction_permits.csv",
   col_types = cols(permit_id = "c", permit_number = "c", permit_pin10s = "c", permit_units = "i", .default = col_guess())) |>
@@ -147,17 +149,24 @@ rebuilt_parcels <- cards |> group_by(permit_id, pin) |> filter(!any(new_card), a
   summarise(tax_year = min(tax_year), .groups = "drop") |> mutate(rebuilt = TRUE)
 cards <- cards |> left_join(rebuilt_parcels, by = c("permit_id", "pin", "tax_year"), relationship = "many-to-one") |>
   mutate(rebuilt = coalesce(rebuilt, FALSE), new_card = new_card | rebuilt)
+# Each parcel is measured on the new cards it holds most often in its first MEASUREMENT_YEARS years with new cards.
 cards <- cards |> filter(!predates_permit, !before_permit) |>
-  group_by(permit_id, pin) |> filter(any(new_card)) |> filter(tax_year == min(tax_year[new_card])) |>
+  group_by(permit_id, pin) |> filter(any(new_card)) |> mutate(first_year = min(tax_year[new_card])) |>
+  # A building on prorated parcels is keyed by its proration as first assessed.
+  mutate(record_id = first(if_else(coalesce(pin_proration_rate, 1) < 1 & !is.na(proration_key_pin), proration_key_pin,
+    pin)[tax_year == first_year])) |>
+  group_by(permit_id, pin, tax_year) |> filter(tax_year >= first_year, any(new_card)) |>
+  mutate(signature = if_else(anyNA(building_sqft[new_card]), NA_character_,
+    paste(sum(building_sqft[new_card]), sum(new_card), sum(num_apartments[new_card], na.rm = TRUE)))) |>
+  group_by(permit_id, pin) |> filter(tax_year == stable_year(tax_year, signature, measurement_years)) |>
   mutate(old_card_on_parcel = any(!new_card)) |> filter(new_card) |> ungroup()
 
 # A building on prorated parcels repeats its characteristics on each parcel; land is reported per parcel.
 residential <- cards |>
-  mutate(record_id = if_else(coalesce(pin_proration_rate, 1) < 1 & !is.na(proration_key_pin), proration_key_pin, pin),
-    card_key = paste(record_id, card_num),
+  mutate(card_key = paste(record_id, card_num),
     card_units = case_when(class %in% single_family_assessor_classes ~ 1, num_apartments > 0 ~ num_apartments)) |>
   group_by(permit_id, record_id) |> summarise(
-    permit_pin = any(permit_pin), first_year = min(tax_year), year_built = min(year_built),
+    permit_pin = any(permit_pin), first_year = min(first_year), year_built = min(year_built),
     classes = paste(sort(unique(class)), collapse = "/"),
     units = sum(card_units[!duplicated(card_key)]), building_sqft = sum(building_sqft[!duplicated(card_key)]),
     land_sqft = sum(land_sqft[!duplicated(pin)]), older_building = any(old_card_on_parcel),
@@ -166,7 +175,7 @@ residential <- cards |>
 
 # Condominium buildings: the first year after the permit in which a new building's unit parcels appear.
 condominiums <- DBI::dbGetQuery(con, sprintf("
-  SELECT p.permit_id, p.permit_pin, p.issue_year, c.pin10 AS record_id, try_cast(try_cast(c.year AS DOUBLE) AS INTEGER) AS first_year,
+  SELECT p.permit_id, p.permit_pin, p.issue_year, c.pin10 AS record_id, try_cast(try_cast(c.year AS DOUBLE) AS INTEGER) AS tax_year,
     count(*) FILTER (WHERE c.is_parking_space <> 'true' AND c.is_common_area <> 'true') AS units,
     max(try_cast(c.char_building_sf AS DOUBLE)) AS building_sqft, max(try_cast(c.char_land_sf AS DOUBLE)) AS land_sqft,
     min(try_cast(try_cast(c.char_yrblt AS DOUBLE) AS INTEGER)) AS year_built
@@ -174,10 +183,11 @@ condominiums <- DBI::dbGetQuery(con, sprintf("
   GROUP BY 1, 2, 3, 4, 5
   HAVING min(try_cast(try_cast(c.char_yrblt AS DOUBLE) AS INTEGER)) BETWEEN p.issue_year - %d AND p.issue_year + %d",
   assessor_year_lead, max_build_lag_years)) |>
-  group_by(permit_id, record_id) |> mutate(predates_permit = any(first_year < issue_year)) |> ungroup()
+  group_by(permit_id, record_id) |> mutate(predates_permit = any(tax_year < issue_year)) |> ungroup()
 predates <- bind_rows(predates, condominiums |> filter(predates_permit) |> distinct(permit_id))
 condominiums <- condominiums |> filter(!predates_permit) |>
-  group_by(permit_id, record_id) |> filter(first_year == min(first_year)) |> ungroup() |>
+  group_by(permit_id, record_id) |> mutate(first_year = min(tax_year)) |>
+  filter(tax_year == stable_year(tax_year, if_else(is.na(units) | is.na(building_sqft), NA_character_, paste(units, building_sqft, land_sqft)), measurement_years)) |> ungroup() |>
   transmute(permit_id, record_id, permit_pin, first_year, year_built, classes = "299", units, building_sqft, land_sqft,
     older_building = FALSE, single_family = FALSE, rebuilt = FALSE, source = "condominium")
 
@@ -188,12 +198,13 @@ commercial <- read_commercial_valuations() |> separate_longer_delim(pin10s, "/")
   separate_longer_delim(permit_id, "/") |>
   left_join(parcels |> select(permit_id, pin10, permit_pin, issue_year), by = c("permit_id", "pin10"), relationship = "many-to-one") |>
   filter(year_built >= issue_year - assessor_year_lead, year_built <= issue_year + max_build_lag_years) |>
-  group_by(permit_id, record_id) |> mutate(permit_pin = any(permit_pin)) |> filter(year == min(year)) |> ungroup() |>
-  distinct(permit_id, record_id, permit_pin, first_year = year, year_built, classes, units, building_sqft, land_sqft) |>
+  group_by(permit_id, record_id) |> mutate(permit_pin = any(permit_pin), first_year = min(year)) |> ungroup() |>
+  distinct(permit_id, record_id, permit_pin, first_year, year, year_built, classes, units, building_sqft, land_sqft) |>
   # A valuation reporting different measurements in the same year has no usable measurement.
-  group_by(permit_id, record_id) |> mutate(across(c(units, building_sqft, land_sqft), \(x) if (n() > 1) NA_real_ else x)) |>
-  slice(1) |> ungroup() |>
-  mutate(older_building = FALSE, single_family = FALSE, rebuilt = FALSE, source = "commercial")
+  group_by(permit_id, record_id, year) |> mutate(across(c(units, building_sqft, land_sqft), \(x) if (n() > 1) NA_real_ else x)) |>
+  slice(1) |> group_by(permit_id, record_id) |>
+  filter(year == stable_year(year, if_else(is.na(units) | is.na(building_sqft), NA_character_, paste(units, building_sqft, land_sqft)), measurement_years)) |> ungroup() |>
+  select(-year) |> mutate(older_building = FALSE, single_family = FALSE, rebuilt = FALSE, source = "commercial")
 stopifnot(!anyDuplicated(commercial[c("permit_id", "record_id")]))
 DBI::dbDisconnect(con, shutdown = TRUE)
 
@@ -233,9 +244,10 @@ reached <- records |> distinct(permit_id, source, record_id, first_year)
 records <- records |> left_join(owners, by = c("source", "record_id", "first_year"), relationship = "many-to-one") |>
   filter(is.na(owner_address) | address == owner_address) |> select(-owner_address)
 
-# Evidence for a permit comes from its listed parcels when they show a new building, otherwise from its address.
-# One source per building, never mixed: condominium records describe the residential building above any shop.
-records <- records |> group_by(permit_id) |> filter(permit_pin | !any(permit_pin)) |>
+# Evidence for a permit comes from its listed parcels when they show a new building, otherwise from its address;
+# hand-named lots and homes are added to either. One source per building, never mixed: condominium records describe
+# the residential building above any shop.
+records <- records |> group_by(permit_id) |> filter(hand | permit_pin | !any(permit_pin & !hand)) |>
   filter(match(source, c("condominium", "residential", "commercial")) ==
     min(match(source, c("condominium", "residential", "commercial")))) |> ungroup()
 # A permit that does not state a residential use measures only buildings that no residential permit reaches.

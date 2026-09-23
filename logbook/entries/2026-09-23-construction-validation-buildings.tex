@@ -30,6 +30,17 @@ The file now has 18,051 rows (18,875 before) and 14,053 density-eligible buildin
 the paper does, by completion year 2006--2022, there are 13,022 eligible buildings against the paper's roughly
 13,600, part of which is the paper's double counting of divided sites. ``No permit found'' buildings fell from
 1,776 to 1,077; flagged measured buildings rose from 842 to 959, mostly divided sites whose successors include a
-neighbor built without its own permit. The validation sample has not yet been re-reviewed on the rebuilt data, and
-first-year records that are partial (duplicate cards, a pre-declaration transitional record) remain the main
-measurement error. No regressions have been run on these data.
+neighbor built without its own permit.
+
+\textit{Update, same day.} A second review round on the rebuilt data (commit \texttt{667f19d4}, a new stratified
+sample of 225) found 97.5 percent of eligible buildings correct, weighted by stratum population (90.7 before).
+Buildings on the permit's own parcels, parcel successors and added homes were 25 of 25 each; Assessor-only
+2006--2007 buildings rose to 22 of 25, the round-one duplicates gone. The weakest groups are small: floor-area
+rebuilds (19 of 25: a wrong listed parcel, two repairs of existing buildings classified as new construction, two
+transient measurement years) and lot or hand links (21 of 25). Among withheld cases, 14 of 25 ``no permit found''
+buildings still have a permit that should link (new buildings filed as renovations, successors not traced, permits
+listing an address range without parcels); 10 of 25 unit disagreements combine twin buildings on one Assessor record,
+which cannot be split. Buildings are now measured on the record they hold most often in their first three assessment
+years rather than the first year alone, keeping the first year's proration: 261 floor areas and 52 unit counts
+changed, 69 buildings became eligible and 4 were withheld. The file has 14,129 eligible buildings (13,093 by
+completion year 2006--2022) and 914 flagged measured buildings (959). No regressions have been run on these data.

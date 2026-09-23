@@ -1,7 +1,7 @@
 File: permit_buildings.csv
 Rows: 14457
 Columns: 32
-SHA-256 (saved bytes): bcf9c0240a8d751b7777bc5d230c8e72948dfcd05abbcb140f5c97f255bec48d
+SHA-256 (saved bytes): f6ceb928e3d48c68f30eb26b7f91e8c49bd356a6f7d1c5386eb26f071d783f16
 Key: building_id
 Types: DuckDB inference from the complete saved CSV.
 Distinct counts: exact (exact up to 100,000 rows).
@@ -26,17 +26,17 @@ parcel_changed_after_permit       BOOLEAN        14457         2                
                      status       VARCHAR        14457         5                   -                  -                  -                   -
                      source       VARCHAR        12549         3                   -                  -                  -                   -
                  record_ids       VARCHAR        12549     12547                   -                  -                  -                   -
-                    classes       VARCHAR        12549       119                   -                  -                  -                   -
-      first_assessment_year        BIGINT        12549        21                2006               2026  2015.575982149972   5.587687414229457
-        assessor_year_built        BIGINT        12549        74                1871               2026  2012.240816001275  13.896689077942094
-             dwelling_units        BIGINT        12479       232                   0               1679  7.308037503005049   39.81650078648882
-              building_sqft        BIGINT        12078      4965                   0            1380640  9340.547938400397  45891.381586165386
-                  land_sqft        BIGINT        12548      3859                   0            1540260  5632.312878546382   22508.95369205596
+                    classes       VARCHAR        12549       120                   -                  -                  -                   -
+      first_assessment_year        BIGINT        12549        21                2006               2026 2015.5759024623476   5.587702759751671
+        assessor_year_built        BIGINT        12549        74                1871               2026 2012.2386644354133  13.896803617461277
+             dwelling_units        BIGINT        12520       232                   0               1679  7.297523961661342   39.75171035535003
+              building_sqft        BIGINT        12122      4987                   0            1380640  9333.016911400759  45809.060340348595
+                  land_sqft        BIGINT        12548      3852                   0            1540260  5629.499362448199  22501.129134862294
                 match_basis       VARCHAR        12549         4                   -                  -                  -                   -
-                      flags       VARCHAR          456         7                   -                  -                  -                   -
+                      flags       VARCHAR          459         7                   -                  -                  -                   -
                   allow_far       BOOLEAN        14457         2                   -                  -                  -                   -
                 allow_dupac       BOOLEAN        14457         2                   -                  -                  -                   -
-                        far        DOUBLE        11587     10107 0.15010161618116713            53022.0  5.778809961310036   492.5636458458401
-                      dupac        DOUBLE        11972      4501  1.8282548476454292          3179880.0  294.3145179277385  29061.900706007415
-                multifamily       BOOLEAN        12479         2                   -                  -                  -                   -
+                        far        DOUBLE        11632     10136 0.15010161618116713            53022.0  5.761742588706864   491.6099430620563
+                      dupac        DOUBLE        12010      4515  1.8282548476454292          3179880.0  293.5147411210121  29015.887554501754
+                multifamily       BOOLEAN        12520         2                   -                  -                  -                   -
                 description       VARCHAR        14457     12506                   -                  -                  -                   -
