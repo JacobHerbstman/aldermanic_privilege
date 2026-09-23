@@ -1,31 +1,31 @@
 File: lot_review.csv
-Rows: 194
+Rows: 200
 Columns: 21
-SHA-256 (saved bytes): 479f4d68267d64d0b13cf1caa4b7457e18cfee3a3ac255d8cdd161182d74a493
+SHA-256 (saved bytes): 3dbc8d4f2582119f7c586c287931a0e0681040098f2ef4cf31f17dccfe497765
 Key: case, permit_number
 Types: DuckDB inference from the complete saved CSV.
 Distinct counts: exact (exact up to 100,000 rows).
 Row counts, non-missing counts, and declared-key checks: exact.
 
                    column inferred_type  non_missing  distinct        min        max               mean                 sd
-                     case       VARCHAR          194         2          -          -                  -                  -
-            permit_number        BIGINT          194       194  100071123  100935847 100465487.33505155  316540.2033422664
-               issue_date          DATE          194       140          -          -                  -                  -
-            permit_status       VARCHAR          194         3          -          -                  -                  -
-                  address       VARCHAR          194       192          -          -                  -                  -
-             permit_units        BIGINT          194        19          1        608 15.206185567010309  75.08978227398869
-              description       VARCHAR          194       164          -          -                  -                  -
+                     case       VARCHAR          200         2          -          -                  -                  -
+            permit_number        BIGINT          200       200  100071123  100992356      100484183.005  323565.7398648532
+               issue_date          DATE          200       146          -          -                  -                  -
+            permit_status       VARCHAR          200         4          -          -                  -                  -
+                  address       VARCHAR          200       198          -          -                  -                  -
+             permit_units        BIGINT          200        18          1        608              14.73  73.99604158908954
+              description       VARCHAR          200       170          -          -                  -                  -
               lot_address       VARCHAR           36        36          -          -                  -                  -
-                lot_pin10        BIGINT           40        40 1224210022 2016101010     1575882550.725 230972326.07887775
+                lot_pin10        BIGINT           40        40 1224210022 2528101044     1601054449.275 276314100.70945793
                    source       VARCHAR           40         3          -          -                  -                  -
-           dwelling_units        BIGINT           40        12          1        199             14.275 39.415594662063675
-            building_sqft        BIGINT           37        36       1200     264800  17098.54054054054 44501.546886094366
-                land_sqft        BIGINT           40        40          0      34215            6413.15  7353.261221547055
-      assessor_year_built        BIGINT           40         9       2006       2022            2014.25   6.48370739148986
-    first_assessment_year        BIGINT           40        12       2007       2024           2016.625 6.2457677978464154
-      lot_rule_candidates       VARCHAR          154       115          -          -                  -                  -
-              lot_history       VARCHAR           13        13          -          -                  -                  -
-permits_at_permit_address       VARCHAR          194       192          -          -                  -                  -
+           dwelling_units        BIGINT           40        11          1        199             14.025  39.47897038378917
+            building_sqft        BIGINT           38        37       1200     264800 16508.605263157893 44016.897834833086
+                land_sqft        BIGINT           40        40          0      34215            6245.75  7358.416279405892
+      assessor_year_built        BIGINT           40         9       2006       2022             2014.6  6.515464837698266
+    first_assessment_year        BIGINT           40        11       2007       2024           2016.925  6.207470685206152
+      lot_rule_candidates       VARCHAR          160       120          -          -                  -                  -
+              lot_history       VARCHAR           15        15          -          -                  -                  -
+permits_at_permit_address       VARCHAR          200       198          -          -                  -                  -
    permits_at_lot_address       VARCHAR            6         6          -          -                  -                  -
              assessor_url       VARCHAR           40        40          -          -                  -                  -
-                  map_url       VARCHAR          194       191          -          -                  -                  -
+                  map_url       VARCHAR          200       197          -          -                  -                  -

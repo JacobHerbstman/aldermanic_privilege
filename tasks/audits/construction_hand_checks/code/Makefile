@@ -2,13 +2,18 @@ include ../../../shared/code/shell_functions.make
 
 REVIEW_SEED := 20260922
 SAMPLE_SIZE := 40
+TOWNHOUSE_SAMPLE_SIZE := 25
 
-all: ../output/lot_review.csv
+all: ../output/lot_review.csv ../output/townhouse_review.csv
 
 ../output/lot_review.csv: draw_lot_review.R ../lot_link_reviews.csv ../input/construction_buildings.csv ../input/building_permits_full.csv \
 	../input/parcel_addresses_2025_chicago.csv ../input/residential_assessor_history.parquet \
 	../../../shared/code/normalize_chicago_address.R ../../../shared/code/save_data.R | ../output ../report
 	$(R) $< $(REVIEW_SEED) $(SAMPLE_SIZE)
+
+../output/townhouse_review.csv: draw_townhouse_review.R ../input/construction_buildings.csv \
+	../input/parcel_addresses_2025_chicago.csv ../input/residential_assessor_history.parquet ../../../shared/code/save_data.R | ../output ../report
+	$(R) $< $(REVIEW_SEED) $(TOWNHOUSE_SAMPLE_SIZE)
 
 ../input/construction_buildings.csv: ../../../prepare_permit_construction/output/construction_buildings.csv | ../input
 	ln -sf $< $@

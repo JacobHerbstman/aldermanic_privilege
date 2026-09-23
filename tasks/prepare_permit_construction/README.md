@@ -21,8 +21,8 @@ so buildings completed in 2006–2007 are often on earlier permits. This task do
 - Parcels: the permit's PIN list; the 2025 parcels at the permit's house number and street are used only
   when the listed PINs show no new building.
 - A new building is an Assessor record with year built from the issue year minus `ASSESSOR_YEAR_LEAD` to the
-  issue year plus `MAX_BUILD_LAG_YEARS` (99.5% of measured buildings), first appearing after the permit. A parcel already showing it before the permit
-  year holds an earlier building. The Assessor codes many 2013 and 2016 permits' buildings two years
+  issue year plus `MAX_BUILD_LAG_YEARS` (99.5% of measured buildings), first appearing after the permit.
+  A parcel already showing it before the permit year holds an earlier building. The Assessor codes many 2013 and 2016 permits' buildings two years
   before issue, which sets the lead at 2.
 - Units, floor area and land come from one source and one first-appearance year, never mixed:
   condominium records first, then residential cards, then commercial apartment valuations (2021 onward).
@@ -53,6 +53,15 @@ so buildings completed in 2006–2007 are often on earlier permits. This task do
   new-construction permit, and permits whose own parcel still holds a building of changed floor area
   (`parcel_changed_after_permit`, possibly the new building under an old year built). Other qualifying pairs are
   listed in `lot_rule_candidates` for review. Hand checks are in `tasks/audits/construction_hand_checks`.
+- Townhouse rule: a permit for several townhouses or houses, or a group of single-house permits, reaching fewer
+  homes than it authorizes takes the unclaimed new single-family parcels that complete one run of consecutive
+  parcel numbers on a block, first assessed within a year of its measured homes, exactly matching its count; a
+  permit without a measured home takes the one such run within `TOWNHOUSE_DISTANCE_FT`
+  (`match_basis` includes `townhouse_lots`). Parcels of other permits in the construction window and homes two
+  permits would take are excluded; other qualifying homes are listed in `townhouse_candidates` for review.
+  Buildings reported built after 2022 are kept only as possible matches for late permits.
+- A row covers one building or development: several permits reaching the same Assessor building or completing
+  each other's homes stay one row (`member_permit_numbers`).
 - Location: centroid of the measured parcels in the 2025 parcel universe (permit coordinates are geocoded
   at the street frontage, a median 56 ft from the parcel centroid); the permit point only when no parcel remains.
 
