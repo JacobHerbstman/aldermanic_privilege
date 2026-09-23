@@ -69,10 +69,10 @@ yet; `tasks/audits/permit_density_comparison` compares it with the paper's curre
   permit point is used only when no parcel is found.
 - Parcel succession: a condominium declaration or subdivision retires a parcel number, and the building reappears on
   the successor parcels. The new records on the same tax block within `LOT_DISTANCE_FT` of a record whose parcels are
-  all retired, first assessed within a year of the retirement and from one source, are its successors when their
-  dwelling units add up to its own and they succeed no other record. A permit's building takes the measurement of
-  Assessor-only successors (`match_basis = parcel_successor`); an Assessor-only record with successors is the same
-  building counted twice and is removed.
+  all retired, first assessed within a year of the retirement, reported built within the lead and lag of its year built,
+  and from one source, are its successors when their dwelling units add up to its own and they succeed no other
+  record. A permit's building takes the measurement of Assessor-only successors (`match_basis = parcel_successor`); an
+  Assessor-only record with successors is the same building counted twice and is removed.
 - Lot rule: a permit that reaches no new building on its own parcels takes the unclaimed new building within
   `LOT_DISTANCE_FT` of its geocoded point (`LARGE_LOT_DISTANCE_FT` for `LARGE_BUILDING_UNITS` or more dwellings, whose
   lots reach farther from the street frontage) that first appears after it, within the construction lag, with a

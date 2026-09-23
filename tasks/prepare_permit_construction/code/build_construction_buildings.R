@@ -194,9 +194,10 @@ take_buildings <- function(buildings, links, basis) {
 
 # Parcel succession: a condominium declaration or subdivision retires a parcel number, and the building reappears on
 # the successor parcels. The new records on the same tax block within LOT_DISTANCE_FT of a record whose parcels are all
-# retired, first assessed within a year of the retirement and from one source, are its successors when their dwelling
-# units add up to its own and they succeed no other record. A permit's building takes the measurement of Assessor-only
-# successors (the final parcels). An Assessor-only record with successors is a building counted twice and is removed.
+# retired, first assessed within a year of the retirement, reported built within the lead and lag of its year built, and
+# from one source, are its successors when their dwelling units add up to its own and they succeed no other record.
+# A permit's building takes the measurement of Assessor-only successors (the final parcels). An Assessor-only record
+# with successors is a building counted twice and is removed.
 last_assessed <- buildings |> filter(!is.na(record_ids)) |> select(building_id, record_ids) |>
   separate_longer_delim(record_ids, "/") |> mutate(pin10 = substr(record_ids, 1, 10)) |>
   left_join(parcels |> select(pin10, last_year), by = "pin10", relationship = "many-to-one") |>
@@ -212,10 +213,12 @@ near <- st_is_within_distance(st_as_sf(retired, coords = c("x_3435", "y_3435"), 
 succession <- tibble(record_id = retired$building_id[rep(seq_along(near), lengths(near))],
     successor_id = successors$building_id[unlist(near)]) |>
   left_join(retired |> select(record_id = building_id, record_route = route, record_block = block,
-    record_units = dwelling_units, retirement_year), by = "record_id", relationship = "many-to-one") |>
+    record_units = dwelling_units, record_year_built = assessor_year_built, retirement_year), by = "record_id",
+    relationship = "many-to-one") |>
   left_join(successors |> select(successor_id = building_id, successor_route = route, block, first_assessment_year,
-    dwelling_units, source), by = "successor_id", relationship = "many-to-one") |>
-  filter(block == record_block, abs(first_assessment_year - retirement_year) <= 1) |>
+    assessor_year_built, dwelling_units, source), by = "successor_id", relationship = "many-to-one") |>
+  filter(block == record_block, abs(first_assessment_year - retirement_year) <= 1,
+    assessor_year_built >= record_year_built - assessor_year_lead, assessor_year_built <= record_year_built + max_build_lag_years) |>
   add_count(successor_id, name = "records_for_successor") |>
   group_by(record_id) |>
   filter(all(records_for_successor == 1), n_distinct(source) == 1,
