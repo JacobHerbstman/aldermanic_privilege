@@ -1,7 +1,7 @@
 File: footprint_floor_area_buildings.csv
 Rows: 12492
-Columns: 16
-SHA-256 (saved bytes): 7b02e0864fa9761a15ef936afef90cc431ef9dc36aeab239d3d2ca71773b04b3
+Columns: 17
+SHA-256 (saved bytes): e8473e66545e83ca43d26c60efbab98dccd81d662f2a2ed38d99cb2bcecd7f8a
 Key: building_id
 Types: DuckDB inference from the complete saved CSV.
 Distinct counts: exact (exact up to 100,000 rows).
@@ -11,7 +11,8 @@ Row counts, non-missing counts, and declared-key checks: exact.
         building_id       VARCHAR        12492     12492                    -                  -                   -                   -
               route       VARCHAR        12492         2                    -                  -                   -                   -
                kind       VARCHAR        12492         3                    -                  -                   -                   -
-               size       VARCHAR        12492         2                    -                  -                   -                   -
+               size       VARCHAR        12492         4                    -                  -                   -                   -
+              large       BOOLEAN        12492         2                    -                  -                   -                   -
      dwelling_units        BIGINT        12492       227                    1                848   7.148414985590778  35.836541303926566
       building_sqft        BIGINT        12108      5058                  400            1252885    8962.77989758837   41792.81793376301
           land_sqft        BIGINT        12492      3922                  600            1540260   5421.793307716939  20722.887799785432

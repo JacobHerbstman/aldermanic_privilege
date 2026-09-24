@@ -1,22 +1,22 @@
 File: footprint_floor_area_summary.csv
-Rows: 9
+Rows: 17
 Columns: 12
-SHA-256 (saved bytes): 0c693e840846618d4737c9b174322ccfd0457374951f82bcefd234755ba1a37d
+SHA-256 (saved bytes): 766df5265ea6480d9c7848a6244322c976ea6c3d07d23e20f78a0ba6baad8143
 Key: calibration, kind, size
 Types: DuckDB inference from the complete saved CSV.
 Distinct counts: exact (exact up to 100,000 rows).
 Row counts, non-missing counts, and declared-key checks: exact.
 
-                  column inferred_type  non_missing  distinct                  min                 max                mean                   sd
-             calibration       VARCHAR            9         2                    -                   -                   -                    -
-                    kind       VARCHAR            9         3                    -                   -                   -                    -
-                    size       VARCHAR            9         2                    -                   -                   -                    -
-               buildings        BIGINT            9         6                    4                7511  1440.4444444444443   2484.0224491291897
-with_assessor_floor_area        BIGINT            9         6                    0                7506  1374.2222222222222    2499.837083580537
-            median_error        DOUBLE            7         7 -0.04705532914255833  0.8385837234969407  0.2747477648026077   0.3725492730278226
-        median_abs_error        DOUBLE            7         7  0.12540116175801852  0.8385837234969407  0.3792603439442956   0.2870045730247939
-            within_10pct        DOUBLE            7         7                  0.0                 0.5  0.2592948660447134  0.17224482798221338
-            within_20pct        DOUBLE            7         6  0.24633626432187583  0.6934357541899442  0.4925243470235344  0.14413382881912354
-     log_far_correlation        DOUBLE            7         5 -0.26345296360290305  0.8069713724418439  0.4619844447520006  0.49947372488794567
-    median_footprint_far        DOUBLE            9         6   1.0053064194750199    5.23673112450097  3.2484823292656726   1.7568357891512452
-     floor_area_per_cuft        DOUBLE            9         2 0.059075404220976804 0.06279280751856844 0.06155367308603789 0.001858701648795821
+                  column inferred_type  non_missing  distinct                  min                 max                mean                    sd
+             calibration       VARCHAR           17         2                    -                   -                   -                     -
+                    kind       VARCHAR           17         3                    -                   -                   -                     -
+                    size       VARCHAR           17         4                    -                   -                   -                     -
+               buildings        BIGINT           17        10                    4                7511   762.5882352941177    1903.9100575796488
+with_assessor_floor_area        BIGINT           17         8                    0                7506   727.5294117647059    1902.4450753453784
+            median_error        DOUBLE           11        11 -0.06755793263386373  0.8385837234969407  0.1888427784017094    0.3170724595301372
+        median_abs_error        DOUBLE           11        11  0.12540116175801852  0.8385837234969407 0.32245863397787033    0.2420100890054518
+            within_10pct        DOUBLE           11        11                  0.0                 0.5 0.25976254792032916   0.14037255073915986
+            within_20pct        DOUBLE           11         9  0.24633626432187583  0.6934357541899442  0.4926138624994417    0.1441047112158319
+     log_far_correlation        DOUBLE           11         7 -0.26345296360290305  0.8864565018718941  0.5950870502144325   0.43054204622580644
+    median_footprint_far        DOUBLE           17        10   1.0053064194750199  10.657640261903975   4.697753595014802      2.87684523398043
+     floor_area_per_cuft        DOUBLE           17         2 0.059075404220976804 0.06279280751856844 0.06126211204308952 0.0018858374148097178
