@@ -62,7 +62,8 @@ sales <- sales %>%
     ward, neighbor_ward, ward_pair_id, any_of("segment_id"),
     dist_m, signed_dist_m, sign,
     alderman_own, alderman_neighbor,
-    strictness_own, strictness_neighbor
+    strictness_own, strictness_neighbor,
+    same_party_names, resale_within_365, days_since_previous_sale
   )
 
 SaveData(sales, c("row_id"), "../output/sales_with_ward_distances_through2022.csv")

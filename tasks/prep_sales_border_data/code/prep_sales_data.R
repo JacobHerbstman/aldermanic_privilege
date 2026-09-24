@@ -80,11 +80,20 @@ sales_h[, `:=`(
 
 sales_out <- sales_h[sale_year >= 2006 & baseline_sale_eligible]
 
-# Missing apartment counts remain eligible; no upper-tail price screen is applied.
+# Missing apartment counts remain eligible.
 if (drop_inconsistent_rooms) {
   sales_out <- sales_out[is.na(num_rooms) | is.na(num_bedrooms) | num_bedrooms <= num_rooms]
   stopifnot(!any(sales_out$num_bedrooms > sales_out$num_rooms, na.rm = TRUE))
 }
+
+# As in school_closures_house_prices (tasks/clean_home_sales): more than $5,000 per building square foot is a
+# recording error (an 893 sq ft house sold for $134.9 million), and sales outside the within-year citywide 1st-99th
+# percentiles of nominal price are flagged, not trimmed.
+sales_out[, price_per_building_sqft := sale_price_nominal / building_sqft]
+cat(sprintf("Excluding %d sales above $5,000 per building square foot.\n", sales_out[price_per_building_sqft > 5000, .N]))
+sales_out <- sales_out[price_per_building_sqft <= 5000]
+sales_out[, price_outside_p01_p99 := sale_price_nominal < quantile(sale_price_nominal, 0.01, type = 7) |
+  sale_price_nominal > quantile(sale_price_nominal, 0.99, type = 7), by = sale_year]
 
 if (anyDuplicated(sales_out$row_id) > 0) {
   stop("Final residential sales data must be unique by source row_id.", call. = FALSE)

@@ -1,29 +1,29 @@
 File: residential_improvements_panel.parquet
 Rows: 7387056
 Columns: 19
-SHA-256 (saved bytes): c9acdda06900f5c939a67f466717c60a602b63be65ccd2193f441bc3be4244d5
+SHA-256 (saved bytes): 2905563367abe423b56dbd1b9119dc797971cad2a52dafee7b6e1466493ecaaf
 Key: pin, tax_year
 Types: Stored Parquet schema.
 Distinct counts: approximate (exact up to 100,000 rows).
 Row counts, non-missing counts, and declared-key checks: exact.
 
-                column inferred_type non_missing distinct  min      max                 mean                  sd
-                   pin       VARCHAR     7387056   441774    -        -                    -                   -
-              tax_year       INTEGER     7387056       19 2006     2022   2013.9887220294527   4.898922968405043
-     improvement_class       INTEGER     7386522       26    2      297   211.43847090687606  19.935531614720443
-         num_buildings        BIGINT     7387056       29    1       43    1.013881714176798  0.1434912341847043
-      is_multibuilding       BOOLEAN     7387056        2    -        -                    -                   -
-          is_multiland       BOOLEAN     7387056        2    -        -                    -                   -
-         num_landlines       INTEGER     7387056        5    1        5   1.0100138675001245 0.10691890518636493
-tieback_proration_rate        DOUBLE     7387056      173  0.0      1.0   0.9876703811881685 0.08375805133107823
-   card_proration_rate        DOUBLE     7385112      189  0.0   3770.3 0.014198356122222937   2.757371434819653
-            year_built       INTEGER     7386988      201 1801     2022   1930.9421806289654  30.497497119883434
-         building_sqft        DOUBLE     7384661    10034  0.0 330535.0   1859.8083588400334  1248.9274486618706
-             land_sqft        DOUBLE     7385879    11732  1.0 584880.0   3976.8761582744587  1745.6396568627983
-             num_rooms        DOUBLE     7384380       56  1.0     64.0    7.482730303695097   4.152425241726145
-          num_bedrooms        DOUBLE     7384453       35  0.0     90.0    3.740158004932796  1.8883662878740735
-        num_full_baths        DOUBLE     7384453       26  0.0     99.0   1.7368922247863179  1.0133288932279587
-        num_half_baths        DOUBLE     7383914       13  0.0     17.0  0.29000513819635493  0.5418760513835237
-        num_fireplaces        DOUBLE     7382942       11  0.0      9.0  0.14740356892956766 0.47809334923551067
-        num_apartments       INTEGER     7163646        6    0        6   0.7743378162460848  1.3358276560053113
-           garage_size        DOUBLE     7384352        9  0.0      4.0    1.325531272073704  0.8861500417601096
+                column inferred_type  non_missing  distinct  min      max                 mean                  sd
+                   pin       VARCHAR      7387056    441774    -        -                    -                   -
+              tax_year       INTEGER      7387056        19 2006     2022   2013.9887220294527   4.898922968405043
+     improvement_class       INTEGER      7386522        26    2      297   211.43847090687606  19.935531614720443
+         num_buildings        BIGINT      7387056        29    1       43    1.013881714176798  0.1434912341847043
+      is_multibuilding       BOOLEAN      7387056         2    -        -                    -                   -
+          is_multiland       BOOLEAN      7387056         2    -        -                    -                   -
+         num_landlines       INTEGER      7387056         5    1        5   1.0100138675001245 0.10691890518636493
+tieback_proration_rate        DOUBLE      7387056       173  0.0      1.0   0.9876703811881685 0.08375805133107823
+   card_proration_rate        DOUBLE      7385112       189  0.0   3770.3 0.014198356122222937   2.757371434819653
+            year_built       INTEGER      7386988       201 1801     2022   1930.9421806289654  30.497497119883434
+         building_sqft        DOUBLE      7384661     10034  0.0 330535.0   1859.8083588400334  1248.9274486618706
+             land_sqft        DOUBLE      7385879     11732  1.0 584880.0   3976.8761582744587  1745.6396568627983
+             num_rooms        DOUBLE      7384380        56  1.0     64.0    7.482730303695097   4.152425241726145
+          num_bedrooms        DOUBLE      7384453        35  0.0     90.0    3.740158004932796  1.8883662878740735
+        num_full_baths        DOUBLE      7384453        26  0.0     99.0   1.7368922247863179  1.0133288932279587
+        num_half_baths        DOUBLE      7383914        13  0.0     17.0  0.29000513819635493  0.5418760513835237
+        num_fireplaces        DOUBLE      7382942        11  0.0      9.0  0.14740356892956766 0.47809334923551067
+        num_apartments       INTEGER      7163646         6    0        6   0.7743378162460848  1.3358276560053113
+           garage_size        DOUBLE      7384352         9  0.0      4.0    1.325531272073704  0.8861500417601096
