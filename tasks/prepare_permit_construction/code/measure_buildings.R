@@ -36,14 +36,17 @@ permits <- read_csv("../output/construction_permits.csv",
 
 permits <- bind_cols(permits, address_parts(permits$address) |> rename(house = number, street_name = street))
 
-# Hand research (adjudication/manual_decisions.csv): one row per permit number and field. Named lots and homes
-# (assign_lot, add_homes, replace_homes) join their permit's parcels and belong to it; measurement fields apply below;
-# same_building and no_match apply in build_construction_buildings.R.
+# Hand research (adjudication/manual_decisions.csv): one row per subject and field. Permit fields name a permit number:
+# named lots and homes (assign_lot, add_homes, replace_homes) join their permit's parcels and belong to it,
+# measurement fields apply below, and same_building and no_match apply in build_construction_buildings.R, as do the
+# Assessor record fields (measure_record, drop_record, keep_record).
 manual <- read_csv("../adjudication/manual_decisions.csv", col_types = cols(.default = col_character()))
-stopifnot(!anyDuplicated(manual[c("permit_number", "field")]),
+record_fields <- c("measure_record", "drop_record", "keep_record")
+stopifnot(!anyDuplicated(manual[c("subject", "field")]), !anyNA(manual$source),
   all(manual$field %in% c("exclude", "accept", "dwelling_units", "building_sqft", "land_sqft",
-    "assign_lot", "add_homes", "replace_homes", "same_building", "no_match")),
-  !anyNA(manual$source), all(manual$permit_number %in% permits$permit_number))
+    "assign_lot", "add_homes", "replace_homes", "same_building", "no_match", record_fields)),
+  all(manual$subject[!manual$field %in% record_fields] %in% permits$permit_number))
+manual <- manual |> filter(!field %in% record_fields) |> rename(permit_number = subject)
 hand_parcels <- manual |> filter(field %in% c("assign_lot", "add_homes", "replace_homes")) |>
   separate_longer_delim(value, "/") |>
   transmute(permit_number, pin10 = substr(sub("^assessor_[a-z]+_", "", value), 1, 10)) |>

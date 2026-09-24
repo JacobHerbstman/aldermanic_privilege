@@ -1,7 +1,7 @@
 File: validation_sample.csv
 Rows: 225
 Columns: 25
-SHA-256 (saved bytes): 170d6554aa96a68bd1efe10d598902edd76fbf7d124f3d6d93ee3720e0438938
+SHA-256 (saved bytes): 2a0bea3f173c0d63f8e4ff3d767d04ff980793e962c8fabc761c3776ff4b823a
 Key: building_id
 Types: DuckDB inference from the complete saved CSV.
 Distinct counts: exact (exact up to 100,000 rows).
@@ -9,27 +9,27 @@ Row counts, non-missing counts, and declared-key checks: exact.
 
                column inferred_type  non_missing  distinct                 min                max               mean                 sd
               stratum       VARCHAR          225         9                   -                  -                  -                  -
-   stratum_population        BIGINT          225         9                  31               9078 1804.5555555555557 2684.7320509719157
+   stratum_population        BIGINT          225         9                  31               9078             1803.0 2685.2729975606903
           building_id       VARCHAR          225       225                   -                  -                  -                  -
                 route       VARCHAR          225         2                   -                  -                  -                  -
                status       VARCHAR          225         5                   -                  -                  -                  -
           match_basis       VARCHAR          150         9                   -                  -                  -                  -
-                flags       VARCHAR           32         4                   -                  -                  -                  -
-        permit_number        BIGINT          175       175           100060281          100995573 100471986.74285714  285612.3757626354
+                flags       VARCHAR           31         6                   -                  -                  -                  -
+        permit_number        BIGINT          175       175           100060281          100995573       100471025.12  285099.9045343892
 member_permit_numbers       VARCHAR          175       175                   -                  -                  -                  -
-           issue_date          DATE          175       166                   -                  -                  -                  -
-              address       VARCHAR          222       222                   -                  -                  -                  -
-         permit_units        BIGINT          169        20                   1                812 12.662721893491124  67.03969040923626
+           issue_date          DATE          175       168                   -                  -                  -                  -
+              address       VARCHAR          224       224                   -                  -                  -                  -
+         permit_units        BIGINT          170        19                   1                227  8.011764705882353 25.991575384155272
           description       VARCHAR          175       175                   -                  -                  -                  -
                source       VARCHAR          200         3                   -                  -                  -                  -
            record_ids       VARCHAR          200       200                   -                  -                  -                  -
-        parcel_pin10s       VARCHAR          205       204                   -                  -                  -                  -
-first_assessment_year        BIGINT          200        19                2007               2026            2014.61 5.6655442774548135
-  assessor_year_built        BIGINT          200        30                1873               2023            1998.54  38.91103627145636
-       dwelling_units        BIGINT          199        21                   1                398  8.120603015075377 33.236306174413926
-        building_sqft        BIGINT          194       189                 754             329896  9815.943298969072  26189.99584763921
-            land_sqft        BIGINT          200       175                 922             203680             8144.3 21446.375246321466
-                dupac        DOUBLE          150       138   6.969600000000001 115.85106382978724 29.114783071739463 17.071856636802952
-                  far        DOUBLE          150       150 0.37094395280235987  4.269602577873255 1.3323699100644912 0.6983162180124085
-     assessor_history       VARCHAR          200       200                   -                  -                  -                  -
-    permits_on_record       VARCHAR          210       210                   -                  -                  -                  -
+        parcel_pin10s       VARCHAR          206       205                   -                  -                  -                  -
+first_assessment_year        BIGINT          200        20                2007               2026            2014.73  5.784844173402877
+  assessor_year_built        BIGINT          200        32                1873               2025           1998.135  39.12737574465369
+       dwelling_units        BIGINT          199        20                   1                398  7.633165829145729 32.066394277297675
+        building_sqft        BIGINT          196       191                 315             329896  9643.551020408164  26011.54991847826
+            land_sqft        BIGINT          200       179                 922             203680           8429.345 21811.217881709224
+                dupac        DOUBLE          150       138   6.969600000000001 115.85106382978724 28.960874112458537  16.91627037334866
+                  far        DOUBLE          150       150 0.37094395280235987  4.269602577873255 1.3234758011190866 0.6917974046564382
+     assessor_history       VARCHAR          203       203                   -                  -                  -                  -
+    permits_on_record       VARCHAR          213       213                   -                  -                  -                  -

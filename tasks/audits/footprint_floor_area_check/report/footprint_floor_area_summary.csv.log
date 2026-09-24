@@ -1,7 +1,7 @@
 File: footprint_floor_area_summary.csv
 Rows: 38
 Columns: 13
-SHA-256 (saved bytes): 6ec550b0b6c1647e61fab1afe2dc86cbb9733affd975489bc03bda43cdeb6d6e
+SHA-256 (saved bytes): a40a88e1ec4b2239ffe3c6e22d7bdce179b1b24520fc38810c23789cacc33ea2
 Key: calibration, kind, size, fill_rule
 Types: DuckDB inference from the complete saved CSV.
 Distinct counts: exact (exact up to 100,000 rows).
@@ -12,12 +12,12 @@ Row counts, non-missing counts, and declared-key checks: exact.
                     kind       VARCHAR           38         3                    -                   -                    -                    -
                     size       VARCHAR           38         4                    -                   -                    -                    -
                fill_rule       BOOLEAN           38         2                    -                   -                    -                    -
-               buildings        BIGINT           38        17                    4                7390    657.4736842105264   1691.1315376596644
-with_assessor_floor_area        BIGINT           38        14                    0                7386    637.2631578947369   1691.3204130758475
-            median_error        DOUBLE           26        26   -0.226890418828733  0.4822682559792022 0.029222510614500805  0.17058144240824186
-        median_abs_error        DOUBLE           26        26 0.057426222906678204  0.4822682559792022   0.2166585935972035  0.10287835764744295
-            within_10pct        DOUBLE           26        24  0.09166666666666666  0.5333333333333333  0.26138061412943836    0.130665547526417
-            within_20pct        DOUBLE           26        26                0.175                 1.0   0.5140531828506035  0.20861573463874503
-     log_far_correlation        DOUBLE           26        13 -0.48638361987643325  0.9029326628050108   0.6350406077597153   0.3592645975867125
-    median_footprint_far        DOUBLE           38        19    0.994626211923177  11.364285037795298    4.456607822862426   2.8112775453118726
+               buildings        BIGINT           38        17                    4                7390    657.6315789473684   1691.0478187982458
+with_assessor_floor_area        BIGINT           38        14                    0                7386    637.3157894736842    1691.334769638228
+            median_error        DOUBLE           26        26   -0.226890418828733  0.4822682559792022 0.029246251390592875  0.17057708031300112
+        median_abs_error        DOUBLE           26        26 0.057426222906678204  0.4822682559792022  0.21665005245240243  0.10288450122512814
+            within_10pct        DOUBLE           26        24  0.09166666666666666  0.5333333333333333   0.2614271401052034  0.13069524361326973
+            within_20pct        DOUBLE           26        26                0.175                 1.0   0.5140795084727451  0.20863062179850803
+     log_far_correlation        DOUBLE           26        13 -0.48638361987643325  0.9029326628050108   0.6350461045294448  0.35926312779384706
+    median_footprint_far        DOUBLE           38        19    0.994626211923177  10.885832307647124    4.369777269223015    2.701956981108364
      floor_area_per_cuft        DOUBLE           38         2 0.054798859248024676 0.06282907593906986 0.058813967593547255 0.004069004828857522

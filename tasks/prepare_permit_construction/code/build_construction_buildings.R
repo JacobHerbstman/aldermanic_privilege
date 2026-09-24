@@ -63,6 +63,8 @@ footprint_max_lot_coverage <- as.numeric(args[23])
 permit_buildings <- read_csv("../output/permit_buildings.csv", col_types = cols(building_id = "c", permit_number = "c",
   member_permit_numbers = "c", superseded_permit_numbers = "c", parcel_pin10s = "c", record_ids = "c", issue_date = "D",
   .default = col_guess()))
+# Hand research: one row per subject (a permit number, or an Assessor-only building_id) and field.
+manual <- read_csv("../adjudication/manual_decisions.csv", col_types = cols(.default = col_character()))
 
 # Whether a permit in "id:year/id:year", other than `except`, was issued within the construction lag before, or the lead
 # after, a building's reported year built.
@@ -228,7 +230,8 @@ counted_twice <- buildings |> filter(route == "assessor_only") |> select(buildin
   inner_join(successor_years, by = c("descendants" = "pin10"), relationship = "many-to-one") |>
   filter(latest_built >= assessor_year_built - assessor_year_lead, earliest_built <= assessor_year_built + max_build_lag_years) |>
   distinct(building_id)
-buildings <- buildings |> filter(!building_id %in% counted_twice$building_id)
+# A hand-checked record (keep_record) is a separate building.
+buildings <- buildings |> filter(!building_id %in% setdiff(counted_twice$building_id, manual$subject[manual$field == "keep_record"]))
 
 # New-parcel rule: a permit reaching no building takes the Assessor-only building on a parcel it lists that was created
 # after the permit was issued, first assessed within the construction lag, with a matching dwelling count, when each
@@ -464,16 +467,15 @@ permit_rows <- buildings |> filter(route == "permit") |>
   transmute(building_id, permit_number = paste(member_permit_numbers, coalesce(superseded_permit_numbers, ""), sep = "/")) |>
   separate_longer_delim(permit_number, "/") |> filter(permit_number != "") |> distinct()
 stopifnot(!anyDuplicated(permit_rows$permit_number))
-manual <- read_csv("../adjudication/manual_decisions.csv", col_types = cols(.default = col_character())) |>
-  filter(field %in% c("assign_lot", "add_homes", "replace_homes", "same_building", "no_match")) |>
-  left_join(permit_rows, by = "permit_number", relationship = "many-to-one")
-stopifnot(!anyNA(manual$building_id))
-named_records <- manual |> filter(field %in% c("assign_lot", "add_homes", "replace_homes")) |>
+links <- manual |> filter(field %in% c("assign_lot", "add_homes", "replace_homes", "same_building", "no_match")) |>
+  rename(permit_number = subject) |> left_join(permit_rows, by = "permit_number", relationship = "many-to-one")
+stopifnot(!anyNA(links$building_id))
+named_records <- links |> filter(field %in% c("assign_lot", "add_homes", "replace_homes")) |>
   separate_longer_delim(value, "/") |> transmute(building_id, record_id = sub("^assessor_[a-z]+_", "", value))
 row_records <- buildings |> filter(!is.na(record_ids)) |> select(building_id, record_id = record_ids) |>
   separate_longer_delim(record_id, "/")
 stopifnot(nrow(anti_join(named_records, row_records, by = c("building_id", "record_id"))) == 0)
-same_building <- manual |> filter(field == "same_building") |>
+same_building <- links |> filter(field == "same_building") |>
   left_join(permit_rows |> rename(target_id = building_id, value = permit_number), by = "value", relationship = "many-to-one") |>
   filter(target_id != building_id) |>
   left_join(buildings |> select(building_id, a_members = member_permit_numbers, a_date = issue_date), by = "building_id",
@@ -486,9 +488,49 @@ buildings <- buildings |> filter(!building_id %in% same_building$building_id) |>
   mutate(member_permit_numbers = if_else(is.na(add_members), member_permit_numbers, paste(member_permit_numbers, add_members, sep = "/")),
     issue_date = if_else(is.na(add_date), issue_date, pmin(issue_date, add_date)),
     issue_year = as.integer(format(issue_date, "%Y")),
-    reviewed = building_id %in% manual$building_id,
+    reviewed = building_id %in% links$building_id,
     lot_rule_candidates = if_else(reviewed, NA_character_, lot_rule_candidates),
     townhouse_candidates = if_else(reviewed, NA_character_, townhouse_candidates))
+
+# Hand-checked condominium buildings re-declared under several Assessor records as units sold. A row measured on a
+# partial declaration is measured on the record describing the whole building (measure_record), keeping its date, and
+# a row that duplicates another building or is a placeholder record is dropped (drop_record).
+subjects <- bind_rows(buildings |> filter(route == "assessor_only") |> transmute(subject = building_id, building_id),
+  permit_rows |> transmute(subject = permit_number, building_id))
+record_decisions <- manual |> filter(field %in% c("measure_record", "drop_record", "keep_record")) |>
+  left_join(subjects, by = "subject", relationship = "many-to-one")
+stopifnot(!anyNA(record_decisions$building_id))
+con <- DBI::dbConnect(duckdb::duckdb())
+duckdb::duckdb_register(con, "named", record_decisions |> filter(field == "measure_record") |> distinct(pin10 = value))
+named_condominiums <- DBI::dbGetQuery(con, sprintf("
+  WITH c AS (
+    SELECT pin10, try_cast(try_cast(year AS DOUBLE) AS INTEGER) AS tax_year, is_parking_space, is_common_area,
+      try_cast(char_building_sf AS DOUBLE) AS building_sqft, try_cast(char_land_sf AS DOUBLE) AS land_sqft,
+      try_cast(try_cast(char_yrblt AS DOUBLE) AS INTEGER) AS year_built
+    FROM read_csv('../input/condominium_characteristics.csv', all_varchar = true) WHERE pin10 IN (SELECT pin10 FROM named)),
+  first_year AS (SELECT pin10, min(tax_year) AS first_year FROM c GROUP BY pin10)
+  SELECT c.pin10 AS record_id, f.first_year, c.tax_year, min(c.year_built) AS year_built,
+    count(*) FILTER (WHERE c.is_parking_space <> 'true' AND c.is_common_area <> 'true') AS units,
+    max(c.building_sqft) AS building_sqft, max(c.land_sqft) AS land_sqft
+  FROM c JOIN first_year f ON c.pin10 = f.pin10 AND c.tax_year BETWEEN f.first_year AND f.first_year + %d
+  GROUP BY 1, 2, 3", measurement_years - 1)) |>
+  group_by(record_id) |> filter(tax_year == stable_year(tax_year, if_else(is.na(units), NA_character_, paste(units, building_sqft, land_sqft)), measurement_years)) |>
+  ungroup()
+DBI::dbDisconnect(con, shutdown = TRUE)
+remeasured <- record_decisions |> filter(field == "measure_record") |>
+  inner_join(named_condominiums |> rename(value = record_id), by = "value", relationship = "one-to-one") |>
+  left_join(buildings |> select(building_id, route, old_status = status, old_first = first_assessment_year, old_built = assessor_year_built),
+    by = "building_id", relationship = "one-to-one") |>
+  left_join(centroids, by = c("value" = "pin10"), relationship = "many-to-one") |>
+  transmute(building_id, source = "condominium", record_ids = value, parcel_pin10s = value, classes = "299",
+    dwelling_units = units, building_sqft, land_sqft, multifamily = units >= 2,
+    first_assessment_year = coalesce(old_first, first_year), assessor_year_built = coalesce(old_built, year_built),
+    status = if_else(route == "permit", "measured", old_status), flags = "",
+    match_basis = if_else(route == "permit", "hand_checked", NA_character_),
+    location_source = "parcel_centroid", x_3435 = x, y_3435 = y)
+stopifnot(nrow(remeasured) == sum(record_decisions$field == "measure_record"))
+buildings <- buildings |> rows_update(remeasured, by = "building_id") |>
+  filter(!building_id %in% record_decisions$building_id[record_decisions$field == "drop_record"])
 
 # No Assessor record measures two rows of the same building era.
 record_rows <- buildings |> filter(!is.na(record_ids), status != "built_after_window") |>

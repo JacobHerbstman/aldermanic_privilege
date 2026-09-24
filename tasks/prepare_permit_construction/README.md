@@ -78,8 +78,8 @@ yet; `tasks/audits/permit_density_comparison` compares it with the paper's curre
   error such as 1 sq ft), or an older building on the parcel. A permit's building left without a measurement when a
   neighboring permit takes its record by address and then keeps other evidence is a known case (one 6-unit condominium,
   1419100038).
-- `adjudication/manual_decisions.csv` is the only place for hand research: one row per permit number and
-  field, with a source and note. Named lots and homes (`assign_lot`, `add_homes`, `replace_homes`) join their permit's
+- `adjudication/manual_decisions.csv` is the only place for hand research: one row per `subject` (a permit number,
+  or an Assessor-only `building_id`) and field, with a source and note. Named lots and homes (`assign_lot`, `add_homes`, `replace_homes`) join their permit's
   parcels here (`match_basis = hand_checked`), as do the measurement fields (`exclude`, `accept`, `dwelling_units`,
   `building_sqft`, `land_sqft`); `same_building` (another phase of a named permit's building; the building takes the
   earlier issue date) and `no_match` (no candidate is this permit's building) apply in `build_construction_buildings.R`.
@@ -142,6 +142,10 @@ yet; `tasks/audits/permit_density_comparison` compares it with the paper's curre
   footprints cover `FOOTPRINT_MIN_LOT_COVERAGE` to `FOOTPRINT_MAX_LOT_COVERAGE` of their land are filled; the error
   checks are in `tasks/audits/footprint_floor_area_check`. `floor_area_source` is `assessor` or `footprint`; drop
   `footprint` rows for an Assessor-only FAR sample.
+- Condominium buildings the Assessor re-declared under several records as units sold, researched one by one
+  (`tasks/audits/construction_hand_checks/condominium_site_reviews.csv`): `measure_record` measures a row on the record
+  describing the whole building, keeping its date; `drop_record` removes a row duplicating another building or a
+  placeholder record; `keep_record` keeps a separate building the duplicate rule would remove.
 - Every hand-named lot and home must be measured in the row holding its permit, and no Assessor record may measure
   two rows first assessed in the same year; the build stops otherwise.
 

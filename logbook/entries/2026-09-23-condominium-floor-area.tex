@@ -4,7 +4,7 @@
 estimates are Jacob's decisions.}
 
 The Assessor's condominium file covers every assessment year from 1999, but it records building and unit floor area
-only for condominium buildings of fewer than 20 units. In the permit construction data (\texttt{construction-data-v1}),
+only for condominium buildings of fewer than 20 units. In the permit construction data,
 171 of 205 condominium buildings of 20 or more units have a DUPAC and none has a FAR, while large rentals do (269 of
 411, from commercial valuations). Condominiums are about two thirds of new buildings of 2 to 19 units, so dropping
 them would leave a small multifamily sample of rentals; Jacob chose to keep them.
@@ -38,3 +38,19 @@ the volume of the 84 buildings on several footprints was fixed first.
 The construction data now fill floor area for 60 condominium buildings of 20 to 99 units
 (\texttt{floor\_area\_source = footprint}), with FAR 1.5 to 5.8 (median 3.6, against 3.1 for Assessor-measured
 buildings of that size). No other building changed; 13,499 buildings are eligible for both measures.
+
+\textit{Large condominium buildings, researched one by one.} Of 297 condominium buildings of 20 or more units the
+Assessor reports built 2006--2022, 78 had no row. Individual research (building records, permits and web sources,
+\texttt{tasks/audits/construction\_hand\_checks/condominium\_site\_reviews.csv}) found 67 handled correctly: 46
+represented by a later record of the same building (Trump Tower, Aqua, 1400 Museum Park), 13 completed before 2006
+and 8 conversions of older buildings (Tribune Tower). The errors came from condominium buildings the Assessor
+re-declares under new building numbers as units sell: early declarations counted as separate buildings (Zen Condos,
+225 S Sangamon, twice) or measuring a building on a partial declaration (The Legacy at Millennium Park at 177 of 355
+units; 600 N Fairbanks at 87 of 212), one row summing two towers (Lincoln Park 2550 and 2520), one separate building
+dropped as a duplicate (15 N Aberdeen) and one placeholder record for a townhouse association. A general rule would
+misfire where several towers share one land record, so the 21 sites were decided by hand in
+\texttt{adjudication/manual\_decisions.csv}: ten rows measured on the record of the whole building, seventeen
+duplicate or placeholder rows dropped, one building kept and one foundation permit joined to its building. A
+suggested merge of 1411 S Michigan and 51 E 14th Street was rejected: they are separate valuations of different floor
+area and land. Lux24 (24 S Morgan), a condominium building converted to rentals, stays unmeasured. Seven buildings
+changed units, the file has seventeen fewer rows, and no other building changed.
