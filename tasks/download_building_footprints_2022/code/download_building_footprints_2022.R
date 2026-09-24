@@ -1,12 +1,8 @@
 # setwd("tasks/download_building_footprints_2022/code")
-# tile_ft <- 5280
 source("../../setup_environment/code/packages.R")
 source("../../shared/code/save_data.R")
 
-args <- commandArgs(trailingOnly = TRUE)
-if (interactive()) args <- c(tile_ft)
-stopifnot(length(args) == 1L)
-tile_ft <- as.numeric(args[1])
+tile_ft <- 5280  # side of the square query tiles (one mile)
 
 # Cook County GIS Building Footprints 2022 (buildingFootprint_2022/MapServer/0): one polygon per building from 2022
 # imagery, with footprint area and height (highest roof point above ground, ft). The service returns at most 2,000

@@ -1,19 +1,13 @@
 # setwd("tasks/prepare_permit_construction/code")
-# first_issue_year <- 2006
-# last_issue_year <- 2022
-# repeat_permit_years <- 3
 source("../../setup_environment/code/packages.R")
 source("../../shared/code/save_data.R")
 source("../../shared/code/normalize_chicago_address.R")
 source("../../shared/code/street_key.R")
 source("../../shared/code/permit_unit_patterns.R")
 
-args <- commandArgs(trailingOnly = TRUE)
-if (interactive()) args <- c(first_issue_year, last_issue_year, repeat_permit_years)
-stopifnot(length(args) == 3L)
-first_issue_year <- as.integer(args[1])
-last_issue_year <- as.integer(args[2])
-repeat_permit_years <- as.integer(args[3])
+first_issue_year <- 2006L
+last_issue_year <- 2022L
+repeat_permit_years <- 3L  # permits at one address with one dwelling count within these years are one building
 
 permits <- read_csv("../input/building_permits_full.csv", col_types = cols(.default = col_character()),
   col_select = c(permit_id = id, permit_number = permit_, permit_type, permit_status, permit_milestone,

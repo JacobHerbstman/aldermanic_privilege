@@ -1,32 +1,22 @@
 include ../../../shared/code/shell_functions.make
 
-REVIEW_SEED := 20260922
-SAMPLE_SIZE := 40
-TOWNHOUSE_SAMPLE_SIZE := 25
-FIRST_RECORD_YEAR_BUILT := 2004
-VALIDATION_SEED := 20260925
-VALIDATION_STRATUM_SIZE := 25
-
 all: ../output/lot_review.csv ../output/townhouse_review.csv ../output/queue_review.csv ../output/validation_sample.csv
 
 ../output/lot_review.csv: draw_lot_review.R ../lot_link_reviews.csv ../input/construction_buildings.csv ../input/building_permits_full.csv \
-	../input/parcel_addresses_2025_chicago.csv ../input/residential_assessor_history.parquet \
-	../../../shared/code/normalize_chicago_address.R ../../../shared/code/street_key.R ../../../shared/code/save_data.R | ../output ../report
-	$(R) $< $(REVIEW_SEED) $(SAMPLE_SIZE)
+	../input/parcel_addresses_2025_chicago.csv ../input/residential_assessor_history.parquet | ../output ../report
+	$(R) $<
 
 ../output/townhouse_review.csv: draw_townhouse_review.R ../input/construction_buildings.csv \
-	../input/parcel_addresses_2025_chicago.csv ../input/residential_assessor_history.parquet ../../../shared/code/save_data.R | ../output ../report
-	$(R) $< $(REVIEW_SEED) $(TOWNHOUSE_SAMPLE_SIZE) $(FIRST_RECORD_YEAR_BUILT)
+	../input/parcel_addresses_2025_chicago.csv ../input/residential_assessor_history.parquet | ../output ../report
+	$(R) $<
 
 ../output/queue_review.csv: draw_queue_review.R ../input/construction_buildings.csv ../input/building_permits_full.csv \
-	../input/parcel_addresses_2025_chicago.csv ../input/residential_assessor_history.parquet \
-	../../../shared/code/normalize_chicago_address.R ../../../shared/code/street_key.R ../../../shared/code/save_data.R | ../output ../report
-	$(R) $< $(FIRST_RECORD_YEAR_BUILT)
+	../input/parcel_addresses_2025_chicago.csv ../input/residential_assessor_history.parquet | ../output ../report
+	$(R) $<
 
-../output/validation_sample.csv: draw_validation_sample.R Makefile ../input/construction_buildings.csv ../input/building_permits_full.csv \
-	../input/residential_assessor_history.parquet ../input/condominium_characteristics.csv \
-	../../../shared/code/normalize_chicago_address.R ../../../shared/code/street_key.R ../../../shared/code/save_data.R | ../output ../report
-	$(R) $< $(VALIDATION_SEED) $(VALIDATION_STRATUM_SIZE)
+../output/validation_sample.csv: draw_validation_sample.R ../input/construction_buildings.csv ../input/building_permits_full.csv \
+	../input/residential_assessor_history.parquet ../input/condominium_characteristics.csv | ../output ../report
+	$(R) $<
 
 ../input/construction_buildings.csv: ../../../prepare_permit_construction/output/construction_buildings.csv | ../input
 	ln -sf $< $@

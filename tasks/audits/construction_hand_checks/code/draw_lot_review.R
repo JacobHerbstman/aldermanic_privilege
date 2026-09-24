@@ -1,16 +1,11 @@
 # setwd("tasks/audits/construction_hand_checks/code")
-# review_seed <- 20260922
-# sample_size <- 40
 source("../../../setup_environment/code/packages.R")
 source("../../../shared/code/save_data.R")
 source("../../../shared/code/normalize_chicago_address.R")
 source("../../../shared/code/street_key.R")
 
-args <- commandArgs(trailingOnly = TRUE)
-if (interactive()) args <- c(review_seed, sample_size)
-stopifnot(length(args) == 2L)
-review_seed <- as.integer(args[1])
-sample_size <- as.integer(args[2])
+review_seed <- 20260922L
+sample_size <- 40L
 
 buildings <- read_csv("../input/construction_buildings.csv", col_types = cols(building_id = "c", permit_number = "c",
   member_permit_numbers = "c", superseded_permit_numbers = "c", lot_rule_candidates = "c", record_ids = "c",

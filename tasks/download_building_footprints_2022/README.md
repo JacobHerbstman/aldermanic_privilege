@@ -9,7 +9,7 @@ Source: Cook County GIS, `https://gis.cookcountyil.gov/traditional/rest/services
 2026). Per the item description, footprints were built in 2025 from building-classified points of the spring 2022
 Cook County lidar and 2022 orthoimagery, reviewed against the imagery and parcels (large polygons split at parcel
 lines); each polygon's elevation is its highest interior lidar point. The layer is a fixed 2022 product. The
-query covers every `TILE_FT` square tile holding a Chicago parcel centroid (`tasks/download_parcel_centroids`),
+query covers every `tile_ft` square tile holding a Chicago parcel centroid (`tasks/download_parcel_centroids`),
 2,000 features per request ordered by `OBJECTID`; footprints crossing tile edges are kept once. Re-running the task
 queries the service again, which is a source refresh: compare the new report with the committed one.
 

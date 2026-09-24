@@ -1,16 +1,10 @@
 # setwd("tasks/audits/construction_hand_checks/code")
-# review_seed <- 20260922
-# townhouse_sample_size <- 25
-# first_record_year_built <- 2004
 source("../../../setup_environment/code/packages.R")
 source("../../../shared/code/save_data.R")
 
-args <- commandArgs(trailingOnly = TRUE)
-if (interactive()) args <- c(review_seed, townhouse_sample_size, first_record_year_built)
-stopifnot(length(args) == 3L)
-review_seed <- as.integer(args[1])
-townhouse_sample_size <- as.integer(args[2])
-first_record_year_built <- as.integer(args[3])
+review_seed <- 20260922L
+townhouse_sample_size <- 25L
+first_record_year_built <- 2004L  # reported year built from which Assessor records are reviewed
 
 buildings <- read_csv("../input/construction_buildings.csv", col_types = cols(building_id = "c", permit_number = "c",
   member_permit_numbers = "c", superseded_permit_numbers = "c", lot_rule_candidates = "c", townhouse_candidates = "c",

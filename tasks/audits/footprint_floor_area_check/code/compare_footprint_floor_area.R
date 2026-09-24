@@ -1,25 +1,14 @@
 # setwd("tasks/audits/footprint_floor_area_check/code")
-# min_height_ft <- 15
-# last_construction_year <- 2021
-# size_breaks <- "20 50 100"
-# min_building_height_ft <- 50
-# max_building_height_ft <- 100
-# min_lot_coverage <- 0.5
-# max_lot_coverage <- 1.2
 source("../../../setup_environment/code/packages.R")
 source("../../../shared/code/save_data.R")
 
-args <- commandArgs(trailingOnly = TRUE)
-if (interactive()) args <- c(min_height_ft, last_construction_year, size_breaks, min_building_height_ft,
-  max_building_height_ft, min_lot_coverage, max_lot_coverage)
-stopifnot(length(args) == 7L)
-min_height_ft <- as.numeric(args[1])
-last_construction_year <- as.integer(args[2])
-size_breaks <- as.integer(str_split_1(args[3], " "))
-min_building_height_ft <- as.numeric(args[4])
-max_building_height_ft <- as.numeric(args[5])
-min_lot_coverage <- as.numeric(args[6])
-max_lot_coverage <- as.numeric(args[7])
+min_height_ft <- 15               # lower structures (garages, sheds) are not buildings
+last_construction_year <- 2021L   # buildings finished before the 2022 imagery
+size_breaks <- c(20L, 50L, 100L)  # unit counts splitting the size groups
+min_building_height_ft <- 50      # the fill rule: mid-rise buildings
+max_building_height_ft <- 100
+min_lot_coverage <- 0.5           # whose footprints fit their lots
+max_lot_coverage <- 1.2
 
 # Can footprint area times height stand in for floor area where the Assessor records none (condominium buildings of
 # the first of SIZE_BREAKS units or more)? Buildings built before the 2022 imagery are compared with the Assessor's

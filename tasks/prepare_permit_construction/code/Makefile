@@ -1,64 +1,24 @@
 include ../../shared/code/shell_functions.make
 
-FIRST_ISSUE_YEAR := 2006
-LAST_ISSUE_YEAR := 2022
-FIRST_YEAR_BUILT := 2006
-LAST_YEAR_BUILT := 2022
-LAST_UNPERMITTED_YEAR_BUILT := 2007
-REPEAT_PERMIT_YEARS := 3
-ASSESSOR_YEAR_LEAD := 2
-MAX_BUILD_LAG_YEARS := 4
-UNIT_TOLERANCE := 0.2
-MIN_SQFT_PER_UNIT := 300
-MAX_LAND_SQFT_PER_UNIT := 43560
-REBUILT_AREA_GROWTH := 0.25
-ADDRESS_MATCH_FT := 1000
-MEASUREMENT_YEARS := 3
-MIN_LAND_SQFT := 100
-MAX_ASSESSMENT_LAG_YEARS := 4
-FOOTPRINT_MIN_UNITS := 20
-FOOTPRINT_MAX_UNITS := 99
-FOOTPRINT_MIN_HEIGHT_FT := 15
-FOOTPRINT_LAST_YEAR_BUILT := 2021
-FOOTPRINT_MIN_BUILDING_HEIGHT_FT := 50
-FOOTPRINT_MAX_BUILDING_HEIGHT_FT := 100
-FOOTPRINT_MIN_LOT_COVERAGE := 0.5
-FOOTPRINT_MAX_LOT_COVERAGE := 1.2
-LOT_DISTANCE_FT := 150
-TOWNHOUSE_DISTANCE_FT := 300
-LARGE_BUILDING_UNITS := 20
-LARGE_LOT_DISTANCE_FT := 300
-BOUNDARY_WINDOW_FT := 1500
-MAIN_BOUNDARY_WINDOW_FT := 500
-
 all: ../output/construction_buildings.csv ../output/permit_construction.csv
 
-../output/permit_construction.csv: build_ledger.R ../output/construction_buildings.csv ../input/ward_panel.gpkg ../input/ward_pair_boundaries.gpkg \
-	../../shared/code/canonical_geometry_helpers.R ../../shared/code/save_data.R | ../output ../report
-	$(R) $< $(BOUNDARY_WINDOW_FT) $(MAIN_BOUNDARY_WINDOW_FT)
+../output/permit_construction.csv: build_ledger.R ../output/construction_buildings.csv ../input/ward_panel.gpkg \
+	../input/ward_pair_boundaries.gpkg | ../output ../report
+	$(R) $<
 
 ../output/construction_buildings.csv: build_construction_buildings.R construction_rules.R ../output/permit_buildings.csv \
 	../output/construction_permits.csv ../adjudication/manual_decisions.csv ../input/building_permits_full.csv \
 	../input/residential_assessor_history.parquet ../input/condominium_characteristics.csv ../input/commercial_valuation_data.csv \
-	../input/parcel_addresses_2025_chicago.csv ../input/parcel_centroids.csv ../input/building_footprints_2022_chicago.gpkg \
-	../../shared/code/assessor_classification.R ../../shared/code/normalize_chicago_address.R ../../shared/code/street_key.R \
-	../../shared/code/save_data.R | ../output ../report
-	$(R) $< $(FIRST_YEAR_BUILT) $(LAST_YEAR_BUILT) $(LAST_UNPERMITTED_YEAR_BUILT) $(ASSESSOR_YEAR_LEAD) $(MAX_BUILD_LAG_YEARS) $(UNIT_TOLERANCE) \
-		$(MIN_SQFT_PER_UNIT) $(MAX_LAND_SQFT_PER_UNIT) $(LOT_DISTANCE_FT) $(TOWNHOUSE_DISTANCE_FT) \
-		$(LARGE_BUILDING_UNITS) $(LARGE_LOT_DISTANCE_FT) $(MEASUREMENT_YEARS) $(MIN_LAND_SQFT) $(MAX_ASSESSMENT_LAG_YEARS) \
-		$(FOOTPRINT_MIN_UNITS) $(FOOTPRINT_MAX_UNITS) $(FOOTPRINT_MIN_HEIGHT_FT) $(FOOTPRINT_LAST_YEAR_BUILT) \
-		$(FOOTPRINT_MIN_BUILDING_HEIGHT_FT) $(FOOTPRINT_MAX_BUILDING_HEIGHT_FT) $(FOOTPRINT_MIN_LOT_COVERAGE) $(FOOTPRINT_MAX_LOT_COVERAGE)
+	../input/parcel_addresses_2025_chicago.csv ../input/parcel_centroids.csv ../input/building_footprints_2022_chicago.gpkg | ../output ../report
+	$(R) $<
 
 ../output/permit_buildings.csv: measure_buildings.R construction_rules.R ../output/construction_permits.csv \
 	../adjudication/manual_decisions.csv ../input/residential_assessor_history.parquet ../input/condominium_characteristics.csv \
-	../input/commercial_valuation_data.csv ../input/parcel_addresses_2025_chicago.csv ../input/parcel_centroids.csv \
-	../../shared/code/normalize_chicago_address.R ../../shared/code/street_key.R ../../shared/code/assessor_classification.R ../../shared/code/save_data.R | ../output ../report
-	$(R) $< $(ASSESSOR_YEAR_LEAD) $(MAX_BUILD_LAG_YEARS) $(UNIT_TOLERANCE) $(MIN_SQFT_PER_UNIT) $(MAX_LAND_SQFT_PER_UNIT) \
-		$(REBUILT_AREA_GROWTH) $(ADDRESS_MATCH_FT) $(MEASUREMENT_YEARS) $(MIN_LAND_SQFT)
+	../input/commercial_valuation_data.csv ../input/parcel_addresses_2025_chicago.csv ../input/parcel_centroids.csv | ../output ../report
+	$(R) $<
 
-../output/construction_permits.csv: select_permits.R ../input/building_permits_full.csv ../../shared/code/normalize_chicago_address.R \
-	../../shared/code/street_key.R ../../shared/code/permit_unit_patterns.R ../../shared/code/save_data.R | ../output ../report
-	$(R) $< $(FIRST_ISSUE_YEAR) $(LAST_ISSUE_YEAR) $(REPEAT_PERMIT_YEARS)
+../output/construction_permits.csv: select_permits.R ../input/building_permits_full.csv | ../output ../report
+	$(R) $<
 
 ../input/building_permits_full.csv: ../../../data_raw/construction_review/building_permits_full.csv | ../input
 	ln -sf $< $@
@@ -80,7 +40,7 @@ all: ../output/construction_buildings.csv ../output/permit_construction.csv
 	ln -sf $< $@
 
 link-inputs: ../input/building_permits_full.csv ../input/residential_assessor_history.parquet ../input/condominium_characteristics.csv \
-	../input/commercial_valuation_data.csv ../input/parcel_addresses_2025_chicago.csv ../input/parcel_centroids.csv ../input/building_footprints_2022_chicago.gpkg \
-	../input/ward_panel.gpkg ../input/ward_pair_boundaries.gpkg
+	../input/commercial_valuation_data.csv ../input/parcel_addresses_2025_chicago.csv ../input/parcel_centroids.csv \
+	../input/building_footprints_2022_chicago.gpkg ../input/ward_panel.gpkg ../input/ward_pair_boundaries.gpkg
 
 include ../../shared/code/generic.make

@@ -1,13 +1,4 @@
 # setwd("tasks/prepare_permit_construction/code")
-# assessor_year_lead <- 2
-# max_build_lag_years <- 4
-# unit_tolerance <- 0.2
-# min_sqft_per_unit <- 300
-# max_land_sqft_per_unit <- 43560
-# rebuilt_area_growth <- 0.25
-# address_match_ft <- 1000
-# measurement_years <- 3
-# min_land_sqft <- 100
 source("../../setup_environment/code/packages.R")
 source("../../shared/code/save_data.R")
 source("../../shared/code/normalize_chicago_address.R")
@@ -15,19 +6,8 @@ source("../../shared/code/street_key.R")
 source("../../shared/code/assessor_classification.R")
 source("construction_rules.R")
 
-args <- commandArgs(trailingOnly = TRUE)
-if (interactive()) args <- c(assessor_year_lead, max_build_lag_years, unit_tolerance, min_sqft_per_unit, max_land_sqft_per_unit,
-  rebuilt_area_growth, address_match_ft, measurement_years, min_land_sqft)
-stopifnot(length(args) == 9L)
-assessor_year_lead <- as.integer(args[1])
-max_build_lag_years <- as.integer(args[2])
-unit_tolerance <- as.numeric(args[3])
-min_sqft_per_unit <- as.numeric(args[4])
-max_land_sqft_per_unit <- as.numeric(args[5])
-rebuilt_area_growth <- as.numeric(args[6])
-address_match_ft <- as.numeric(args[7])
-measurement_years <- as.integer(args[8])
-min_land_sqft <- as.numeric(args[9])
+rebuilt_area_growth <- 0.25  # a parcel's floor area rising this share, and staying, is a rebuilt building
+address_match_ft <- 1000     # a parcel address without a direction matches within this distance of the permit
 
 permits <- read_csv("../output/construction_permits.csv",
   col_types = cols(permit_id = "c", permit_number = "c", permit_pin10s = "c", house_numbers = "c", permit_units = "i",

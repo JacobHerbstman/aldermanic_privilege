@@ -1,14 +1,9 @@
 # setwd("tasks/download_parcel_centroids/code")
-# first_year <- 1999
-# last_year <- 2025
 source("../../setup_environment/code/packages.R")
 source("../../shared/code/save_data.R")
 
-args <- commandArgs(trailingOnly = TRUE)
-if (interactive()) args <- c(first_year, last_year)
-stopifnot(length(args) == 2L)
-first_year <- as.integer(args[1])
-last_year <- as.integer(args[2])
+first_year <- 1999L  # first and last assessment years queried
+last_year <- 2025L
 
 # Cook County Assessor parcel universe (dataset nj4t-kc8j), Chicago triad: one row per 10-digit parcel number ever
 # assessed in the years, with its mean centroid, so parcels retired by later condominium declarations or

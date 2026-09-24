@@ -1,16 +1,11 @@
 # setwd("tasks/audits/construction_hand_checks/code")
-# review_seed <- 20260925
-# stratum_size <- 25
 source("../../../setup_environment/code/packages.R")
 source("../../../shared/code/save_data.R")
 source("../../../shared/code/normalize_chicago_address.R")
 source("../../../shared/code/street_key.R")
 
-args <- commandArgs(trailingOnly = TRUE)
-if (interactive()) args <- c(review_seed, stratum_size)
-stopifnot(length(args) == 2L)
-review_seed <- as.integer(args[1])
-stratum_size <- as.integer(args[2])
+review_seed <- 20260925L
+stratum_size <- 25L
 
 # Strata: eligible buildings by how they were linked, and the three groups held out of the density sample.
 buildings <- read_csv("../input/construction_buildings.csv", col_types = cols(.default = col_character())) |>

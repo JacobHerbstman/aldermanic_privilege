@@ -1,14 +1,10 @@
 # setwd("tasks/audits/construction_hand_checks/code")
-# first_record_year_built <- 2004
 source("../../../setup_environment/code/packages.R")
 source("../../../shared/code/save_data.R")
 source("../../../shared/code/normalize_chicago_address.R")
 source("../../../shared/code/street_key.R")
 
-args <- commandArgs(trailingOnly = TRUE)
-if (interactive()) args <- c(first_record_year_built)
-stopifnot(length(args) == 1L)
-first_record_year_built <- as.integer(args[1])
+first_record_year_built <- 2004L  # reported year built from which Assessor records are reviewed
 
 buildings <- read_csv("../input/construction_buildings.csv", col_types = cols(building_id = "c", permit_number = "c",
   member_permit_numbers = "c", superseded_permit_numbers = "c", lot_rule_candidates = "c", townhouse_candidates = "c",

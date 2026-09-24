@@ -1,5 +1,14 @@
 # Rules shared by measure_buildings.R and build_construction_buildings.R.
 
+# Settings shared by both scripts.
+assessor_year_lead <- 2L         # years the Assessor's year built may precede the permit (many 2013 and 2016 permits)
+max_build_lag_years <- 4L        # years from permit to reported year built (99.5 percent of measured buildings)
+unit_tolerance <- 0.2            # share by which a multifamily building's units may differ from its permit
+min_sqft_per_unit <- 300         # less floor area per unit is a shop-only record
+max_land_sqft_per_unit <- 43560  # more land per unit (an acre) is development-wide land
+min_land_sqft <- 100             # less land is a recording error
+measurement_years <- 3L          # a building is measured on the record it holds most often in its first years
+
 # Commercial apartment valuations (2021 onward): every valuation reporting dwelling units, with its parcels.
 # Hotel rooms, care beds and parking spaces are not dwelling units.
 read_commercial_valuations <- function() {

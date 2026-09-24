@@ -1,15 +1,10 @@
 # setwd("tasks/prepare_permit_construction/code")
-# boundary_window_ft <- 1500
-# main_boundary_window_ft <- 500
 source("../../setup_environment/code/packages.R")
 source("../../shared/code/save_data.R")
 source("../../shared/code/canonical_geometry_helpers.R")
 
-args <- commandArgs(trailingOnly = TRUE)
-if (interactive()) args <- c(boundary_window_ft, main_boundary_window_ft)
-stopifnot(length(args) == 2L)
-boundary_window_ft <- as.numeric(args[1])
-main_boundary_window_ft <- as.numeric(args[2])
+boundary_window_ft <- 1500
+main_boundary_window_ft <- 500
 
 # Buildings are dated by their first permit's issue date; Assessor-only buildings, which have no permit, by June 15
 # of the reported year built. Buildings dated after the last recorded ward map are outside the panel.

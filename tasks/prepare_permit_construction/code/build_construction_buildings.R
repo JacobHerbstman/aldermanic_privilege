@@ -1,27 +1,4 @@
 # setwd("tasks/prepare_permit_construction/code")
-# first_year_built <- 2006
-# last_year_built <- 2022
-# last_unpermitted_year_built <- 2007
-# assessor_year_lead <- 2
-# max_build_lag_years <- 4
-# unit_tolerance <- 0.2
-# min_sqft_per_unit <- 300
-# max_land_sqft_per_unit <- 43560
-# lot_distance_ft <- 150
-# townhouse_distance_ft <- 300
-# large_building_units <- 20
-# large_lot_distance_ft <- 300
-# measurement_years <- 3
-# min_land_sqft <- 100
-# max_assessment_lag_years <- 4
-# footprint_min_units <- 20
-# footprint_max_units <- 99
-# footprint_min_height_ft <- 15
-# footprint_last_year_built <- 2021
-# footprint_min_building_height_ft <- 50
-# footprint_max_building_height_ft <- 100
-# footprint_min_lot_coverage <- 0.5
-# footprint_max_lot_coverage <- 1.2
 source("../../setup_environment/code/packages.R")
 source("../../shared/code/save_data.R")
 source("../../shared/code/assessor_classification.R")
@@ -29,36 +6,22 @@ source("../../shared/code/normalize_chicago_address.R")
 source("../../shared/code/street_key.R")
 source("construction_rules.R")
 
-args <- commandArgs(trailingOnly = TRUE)
-if (interactive()) args <- c(first_year_built, last_year_built, last_unpermitted_year_built, assessor_year_lead,
-  max_build_lag_years, unit_tolerance, min_sqft_per_unit, max_land_sqft_per_unit, lot_distance_ft, townhouse_distance_ft,
-  large_building_units, large_lot_distance_ft, measurement_years, min_land_sqft, max_assessment_lag_years,
-  footprint_min_units, footprint_max_units, footprint_min_height_ft, footprint_last_year_built,
-  footprint_min_building_height_ft, footprint_max_building_height_ft, footprint_min_lot_coverage, footprint_max_lot_coverage)
-stopifnot(length(args) == 23L)
-first_year_built <- as.integer(args[1])
-last_year_built <- as.integer(args[2])
-last_unpermitted_year_built <- as.integer(args[3])
-assessor_year_lead <- as.integer(args[4])
-max_build_lag_years <- as.integer(args[5])
-unit_tolerance <- as.numeric(args[6])
-min_sqft_per_unit <- as.numeric(args[7])
-max_land_sqft_per_unit <- as.numeric(args[8])
-lot_distance_ft <- as.numeric(args[9])
-townhouse_distance_ft <- as.numeric(args[10])
-large_building_units <- as.integer(args[11])
-large_lot_distance_ft <- as.numeric(args[12])
-measurement_years <- as.integer(args[13])
-min_land_sqft <- as.numeric(args[14])
-max_assessment_lag_years <- as.integer(args[15])
-footprint_min_units <- as.integer(args[16])
-footprint_max_units <- as.integer(args[17])
-footprint_min_height_ft <- as.numeric(args[18])
-footprint_last_year_built <- as.integer(args[19])
-footprint_min_building_height_ft <- as.numeric(args[20])
-footprint_max_building_height_ft <- as.numeric(args[21])
-footprint_min_lot_coverage <- as.numeric(args[22])
-footprint_max_lot_coverage <- as.numeric(args[23])
+first_year_built <- 2006L
+last_year_built <- 2022L
+last_unpermitted_year_built <- 2007L    # Assessor-only buildings built through this year are accepted without a permit
+max_assessment_lag_years <- 4L          # Assessor-only records first assessed longer after year built are withheld
+lot_distance_ft <- 150                  # lot rule: a permit takes the unclaimed new building within this distance
+large_building_units <- 20L             # ... or, for buildings of this many units,
+large_lot_distance_ft <- 300            # ... within this distance
+townhouse_distance_ft <- 300            # townhouse rule: a permit with no measured home takes a run this close
+footprint_min_units <- 20L              # condominium buildings of this many units have no Assessor floor area;
+footprint_max_units <- 99L              # up to this many units, floor area comes from 2022 footprints
+footprint_last_year_built <- 2021L      # buildings finished before the 2022 imagery
+footprint_min_height_ft <- 15           # lower structures (garages, sheds) are not buildings
+footprint_min_building_height_ft <- 50  # only mid-rise buildings are filled:
+footprint_max_building_height_ft <- 100
+footprint_min_lot_coverage <- 0.5       # whose footprints fit their lots
+footprint_max_lot_coverage <- 1.2
 
 permit_buildings <- read_csv("../output/permit_buildings.csv", col_types = cols(building_id = "c", permit_number = "c",
   member_permit_numbers = "c", superseded_permit_numbers = "c", parcel_pin10s = "c", record_ids = "c", issue_date = "D",

@@ -1,12 +1,8 @@
 # setwd("tasks/download_condominium_characteristics/code")
-# first_year_built <- 2000
 source("../../setup_environment/code/packages.R")
 source("../../shared/code/save_data.R")
 
-args <- commandArgs(trailingOnly = TRUE)
-if (interactive()) args <- c(first_year_built)
-stopifnot(length(args) == 1L)
-first_year_built <- as.integer(args[1])
+first_year_built <- 2000L  # condominium buildings reported built from this year on
 
 # Cook County Assessor condominium characteristics (dataset 3r7i-mrz4), Chicago townships 70-77.
 query <- function(...) {
