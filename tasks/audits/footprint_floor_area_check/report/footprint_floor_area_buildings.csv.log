@@ -1,0 +1,26 @@
+File: footprint_floor_area_buildings.csv
+Rows: 12492
+Columns: 16
+SHA-256 (saved bytes): 7b02e0864fa9761a15ef936afef90cc431ef9dc36aeab239d3d2ca71773b04b3
+Key: building_id
+Types: DuckDB inference from the complete saved CSV.
+Distinct counts: exact (exact up to 100,000 rows).
+Row counts, non-missing counts, and declared-key checks: exact.
+
+             column inferred_type  non_missing  distinct                  min                max                mean                  sd
+        building_id       VARCHAR        12492     12492                    -                  -                   -                   -
+              route       VARCHAR        12492         2                    -                  -                   -                   -
+               kind       VARCHAR        12492         3                    -                  -                   -                   -
+               size       VARCHAR        12492         2                    -                  -                   -                   -
+     dwelling_units        BIGINT        12492       227                    1                848   7.148414985590778  35.836541303926566
+      building_sqft        BIGINT        12108      5058                  400            1252885    8962.77989758837   41792.81793376301
+          land_sqft        BIGINT        12492      3922                  600            1540260   5421.793307716939  20722.887799785432
+         footprints        BIGINT        12492         6                    1                  6   1.010967018892091 0.16192182966408922
+     footprint_sqft        DOUBLE        12492     12492        358.816420496  282465.4726076566  3126.0293526296014   6433.767063634872
+        volume_cuft        DOUBLE        12492     12492    8929.505440463456 104141041.16110824   241630.3940760352  1613514.7344975108
+      estimate_sqft        DOUBLE        12492     12492    560.7087163590315  6539308.352412784  15172.650825852372  101317.12015167606
+large_estimate_sqft        DOUBLE        12492     12492    527.5141433887902  6152174.102585853  14278.908633172956   95361.56662065272
+              error        DOUBLE        12108     12108  -0.9693929967539927 20.179126241458913  0.3265057280088731  0.8131114165551422
+        large_error        DOUBLE        12108     12108  -0.9713045473082976 18.925298664043662 0.24800568186250588   0.765059653870605
+       assessor_far        DOUBLE        12108     10703  0.06013805046284361 32.509535794909056   1.261967537207204  1.3393461173705106
+      footprint_far        DOUBLE        12492     12492 0.025584439094300596 128.93714086031838  1.7659911299452427   3.046384469428387

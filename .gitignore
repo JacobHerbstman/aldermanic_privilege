@@ -69,6 +69,11 @@ tasks/audits/density_window_comparison/input/
 tasks/audits/density_window_comparison/output/
 tasks/audits/density_window_comparison/temp/
 !tasks/audits/density_window_comparison/report/*.csv.log
+!tasks/audits/footprint_floor_area_check/
+tasks/audits/footprint_floor_area_check/input/
+tasks/audits/footprint_floor_area_check/output/
+tasks/audits/footprint_floor_area_check/temp/
+!tasks/audits/footprint_floor_area_check/report/*.csv.log
 tasks/archive/
 tasks/_deprecated/
 
@@ -168,6 +173,7 @@ tasks/audits/developer_score_results/output/
 tasks/audits/developer_score_results/temp/
 !tasks/audits/developer_score_results/report/*.log
 !tasks/download_construction_historical_parcels/report/*.gpkg.log
+!tasks/download_building_footprints_2022/report/*.gpkg.log
 !tasks/audits/score_pair_reliability/
 tasks/audits/score_pair_reliability/input/
 tasks/audits/score_pair_reliability/output/

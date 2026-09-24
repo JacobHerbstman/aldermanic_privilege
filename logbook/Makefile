@@ -92,6 +92,7 @@ logbook.pdf: logbook.tex \
 	entries/2026-09-16-density-fixed-effects.tex \
 	entries/2026-09-23-permit-construction-coverage.tex \
 	entries/2026-09-23-construction-validation-buildings.tex \
+	entries/2026-09-23-condominium-floor-area.tex \
 	../tasks/audits/density_fixed_effects/output/density_fixed_effects.tex \
 	../tasks/audits/score_pair_reliability/output/split_agreement.pdf \
 	../tasks/audits/multifamily_score_uncertainty/output/multifamily_score_draws.pdf \
