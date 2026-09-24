@@ -86,3 +86,13 @@ first assessed within the construction lag, with a matching dwelling count, when
 permits qualify, twelve of them the whole Lake Park Crescent development (2012 permits, parcels from 2014, reported built
 2006), each matching its permit's dwelling count exactly. No other building changed. The file has 13,410 eligible
 buildings (11,868 permitted, 1,542 Assessor-only, 4,815 multifamily).
+
+\textit{Final review round.} A fifth round (dataset at commit \texttt{79e65b54}, a new stratified sample of 225) found
+97.4 percent of eligible buildings correct, weighted by stratum population (standard error 1.0): permit parcels and
+added homes 25 of 25, parcel successors 24, lot and new-parcel links 23, Assessor-only 22 (88 percent, against 68--88 in
+earlier rounds), floor-area rebuilds 18 (a parcel on the street behind the permit's address, additions and one garage
+permit). Among withheld cases, 8 of 25 ``no permit found'' buildings have a permit that should link, five of them new
+houses filed as renovation permits whose first sentence the renovation filter rejects; 12 of 25 permits without a
+building were never built; unit disagreements are split between a correct Assessor count (7), a partial record (5) and
+a neighbor included (5). One lot link takes the eighth home of a neighboring townhouse permit because a permit reading
+``ERECT TWELEVE TOWNHOUSE'' was read as a single house.
