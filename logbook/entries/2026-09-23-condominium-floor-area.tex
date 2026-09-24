@@ -22,3 +22,19 @@ height and floors. Of the 160 large condominium buildings matched to footprints,
 Footprint floor area is not accurate enough to fill in the large condominium buildings alongside Assessor floor
 area. The plan, not yet built into the analysis: FAR for buildings of fewer than 20 units, condominiums and rentals
 alike, and DUPAC for all buildings, both as main estimates.
+
+\textit{Update, same day.} Jacob chose to fill floor area for condominium buildings of 20 to 99 units rather than
+drop them, marked so they can be removed. Before adopting it, the footprint estimate was examined by building height
+and by footprint area relative to the lot. It fails in three identifiable situations: towers taller than 100 feet
+(roof height misstates floors), buildings under 50 feet with 20 or more units (complexes spread over footprints not
+matched, estimates 30 percent low), and footprints more than 1.2 times the lot (outlines that include neighbors,
+estimates about 50 percent high); the first fill had put 9 W Walton at a FAR of 48. For buildings 50 to 100 feet tall
+whose footprints cover half to 1.2 times their lots, calibrated on the other large rentals, the median absolute error
+is 12 percent for rentals of 20 to 49 units and 8 percent for 50 to 99 units, against 31 to 34 percent for those
+outside the rule; held-out condominiums under 20 units within the rule are off by 16 percent. The thresholds were
+chosen on these rentals, so the held-out condominiums are the cleaner test. A summation-order error that overstated
+the volume of the 84 buildings on several footprints was fixed first.
+
+The construction data now fill floor area for 60 condominium buildings of 20 to 99 units
+(\texttt{floor\_area\_source = footprint}), with FAR 1.5 to 5.8 (median 3.6, against 3.1 for Assessor-measured
+buildings of that size). No other building changed; 13,499 buildings are eligible for both measures.

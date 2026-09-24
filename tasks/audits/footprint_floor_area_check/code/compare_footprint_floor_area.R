@@ -2,15 +2,24 @@
 # min_height_ft <- 15
 # last_construction_year <- 2021
 # size_breaks <- "20 50 100"
+# min_building_height_ft <- 50
+# max_building_height_ft <- 100
+# min_lot_coverage <- 0.5
+# max_lot_coverage <- 1.2
 source("../../../setup_environment/code/packages.R")
 source("../../../shared/code/save_data.R")
 
 args <- commandArgs(trailingOnly = TRUE)
-if (interactive()) args <- c(min_height_ft, last_construction_year, size_breaks)
-stopifnot(length(args) == 3L)
+if (interactive()) args <- c(min_height_ft, last_construction_year, size_breaks, min_building_height_ft,
+  max_building_height_ft, min_lot_coverage, max_lot_coverage)
+stopifnot(length(args) == 7L)
 min_height_ft <- as.numeric(args[1])
 last_construction_year <- as.integer(args[2])
 size_breaks <- as.integer(str_split_1(args[3], " "))
+min_building_height_ft <- as.numeric(args[4])
+max_building_height_ft <- as.numeric(args[5])
+min_lot_coverage <- as.numeric(args[6])
+max_lot_coverage <- as.numeric(args[7])
 
 # Can footprint area times height stand in for floor area where the Assessor records none (condominium buildings of
 # the first of SIZE_BREAKS units or more)? Buildings built before the 2022 imagery are compared with the Assessor's
@@ -37,35 +46,41 @@ hits <- st_join(parcel_points, footprints |> select(object_id, footprint_sqft, h
   st_drop_geometry() |> distinct(building_id, object_id, footprint_sqft, height_ft)
 shared_footprints <- hits |> count(object_id) |> filter(n > 1)
 matched <- hits |> group_by(building_id) |> filter(!any(object_id %in% shared_footprints$object_id)) |>
-  summarise(footprints = n(), footprint_sqft = sum(footprint_sqft), volume_cuft = sum(footprint_sqft * height_ft),
+  summarise(footprints = n(), volume_cuft = sum(footprint_sqft * height_ft), footprint_sqft = sum(footprint_sqft),
     .groups = "drop")
 
-# Floor area per cubic foot is calibrated on rentals with Assessor floor area. Large rentals are also calibrated on
-# the other large rentals alone (leave one out), since large buildings are the ones to fill.
+# Only Assessor floor area is compared; the construction data fill some condominiums from these footprints.
+# Floor area per cubic foot is calibrated on rentals with Assessor floor area, and on large rentals passing the fill
+# rule (leave one out for those rentals themselves), since large buildings are the ones to fill.
 compared <- buildings |> inner_join(matched, by = "building_id", relationship = "one-to-one") |>
-  mutate(building_sqft = if_else(building_sqft > 0, building_sqft, NA_real_), ratio = building_sqft / volume_cuft)
+  mutate(building_sqft = if_else(floor_area_source %in% "assessor" & building_sqft > 0, building_sqft, NA_real_),
+    ratio = building_sqft / volume_cuft,
+    # The construction data fill floor area only for mid-rise buildings whose footprints fit their lots.
+    fill_rule = between(volume_cuft / footprint_sqft, min_building_height_ft, max_building_height_ft) &
+      between(footprint_sqft / land_sqft, min_lot_coverage, max_lot_coverage))
 rental_ratio <- median(compared$ratio[compared$kind == "rental"], na.rm = TRUE)
-large_rental_ratios <- compared$ratio[compared$kind == "rental" & compared$large & !is.na(compared$ratio)]
+large_rental_ratios <- compared$ratio[compared$kind == "rental" & compared$large & compared$fill_rule & !is.na(compared$ratio)]
 compared <- compared |>
   mutate(estimate_sqft = volume_cuft * rental_ratio,
-    large_estimate_sqft = if_else(kind == "rental" & large & !is.na(ratio),
+    large_estimate_sqft = if_else(kind == "rental" & large & fill_rule & !is.na(ratio),
       volume_cuft * map_dbl(ratio, \(r) median(large_rental_ratios[-match(r, large_rental_ratios)])),
       volume_cuft * median(large_rental_ratios)),
     error = estimate_sqft / building_sqft - 1, large_error = large_estimate_sqft / building_sqft - 1,
     assessor_far = building_sqft / land_sqft, footprint_far = estimate_sqft / land_sqft)
-SaveData(compared |> select(building_id, route, kind, size, large, dwelling_units, building_sqft, land_sqft, footprints,
+SaveData(compared |> select(building_id, route, kind, size, large, fill_rule, dwelling_units, building_sqft, land_sqft, footprints,
     footprint_sqft, volume_cuft, estimate_sqft, large_estimate_sqft, error, large_error, assessor_far, footprint_far),
   "building_id", "../output/footprint_floor_area_buildings.csv")
 
-# Errors by building type and size; the large-rental calibration applies to large buildings.
+# Errors by building type, size and fill rule; the large-rental calibration (large rentals passing the fill rule)
+# applies to buildings passing and failing it.
 summary <- bind_rows(
     compared |> mutate(calibration = "all_rentals", e = error),
-    compared |> filter(large) |> mutate(calibration = "large_rentals", e = large_error)) |>
-  group_by(calibration, kind, size) |>
+    compared |> mutate(calibration = "large_rentals", e = large_error)) |>
+  group_by(calibration, kind, size, fill_rule) |>
   summarise(buildings = n(), with_assessor_floor_area = sum(!is.na(e)), median_error = median(e, na.rm = TRUE),
     median_abs_error = median(abs(e), na.rm = TRUE), within_10pct = mean(abs(e) <= 0.1, na.rm = TRUE),
     within_20pct = mean(abs(e) <= 0.2, na.rm = TRUE),
     log_far_correlation = if (sum(!is.na(e)) > 2) cor(log(assessor_far), log(footprint_far), use = "complete.obs") else NA_real_,
     median_footprint_far = median(footprint_far), .groups = "drop") |>
   mutate(floor_area_per_cuft = if_else(calibration == "all_rentals", rental_ratio, median(large_rental_ratios)))
-SaveData(summary, c("calibration", "kind", "size"), "../output/footprint_floor_area_summary.csv")
+SaveData(summary, c("calibration", "kind", "size", "fill_rule"), "../output/footprint_floor_area_summary.csv")

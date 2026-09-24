@@ -1,7 +1,7 @@
 File: permit_construction.csv
 Rows: 14742
-Columns: 30
-SHA-256 (saved bytes): 47724398c743c3d5da34c4519b3ce4e674e5d513129cfb5967be5a8584d55a68
+Columns: 31
+SHA-256 (saved bytes): 6b7f7f610aa5dcb4bd05b67b9fbe16e732672276f1020b41ccef71c22c8fcb62
 Key: building_id
 Types: DuckDB inference from the complete saved CSV.
 Distinct counts: exact (exact up to 100,000 rows).
@@ -31,10 +31,11 @@ distance_to_boundary_ft        DOUBLE        14742     14733  11.886907005902836
                  x_3435        DOUBLE        14742     14732  1117465.6430804804 1203743.2364847388 1162201.5345168435 12278.394607013332
                  y_3435        DOUBLE        14742     14732   1816533.470025296 1951090.7647423265 1903725.3737530562 25032.134221748027
          dwelling_units        BIGINT        14710       261                   0               1679  7.715295717199184  39.82068350953402
-          building_sqft        BIGINT        14140      5650                   0            1380640   9387.56386138614  44612.68166854167
+          building_sqft        BIGINT        14200      5710                   0            1380640  9662.370985915493  44819.88677386857
+      floor_area_source       VARCHAR        14191         2                   -                  -                  -                  -
               land_sqft        BIGINT        14739      4556                   0            1540260  5835.816812538164 21458.356172185824
               allow_far       BOOLEAN        14742         2                   -                  -                  -                  -
             allow_dupac       BOOLEAN        14742         2                   -                  -                  -                  -
-                    far        DOUBLE        13439     11801 0.06141489033055298 32.509535794909056 1.2331702677187082 1.3159439145132465
+                    far        DOUBLE        13499     11861 0.06141489033055298 32.509535794909056  1.243322031322422  1.323282373940453
                   dupac        DOUBLE        13971      5459  1.3456904541241892  904.2268870494823  30.27892643259459  46.78051342316263
             multifamily       BOOLEAN        14710         2                   -                  -                  -                  -

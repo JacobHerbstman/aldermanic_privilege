@@ -14,6 +14,14 @@
 # measurement_years <- 3
 # min_land_sqft <- 100
 # max_assessment_lag_years <- 4
+# footprint_min_units <- 20
+# footprint_max_units <- 99
+# footprint_min_height_ft <- 15
+# footprint_last_year_built <- 2021
+# footprint_min_building_height_ft <- 50
+# footprint_max_building_height_ft <- 100
+# footprint_min_lot_coverage <- 0.5
+# footprint_max_lot_coverage <- 1.2
 source("../../setup_environment/code/packages.R")
 source("../../shared/code/save_data.R")
 source("../../shared/code/assessor_classification.R")
@@ -24,8 +32,10 @@ source("construction_rules.R")
 args <- commandArgs(trailingOnly = TRUE)
 if (interactive()) args <- c(first_year_built, last_year_built, last_unpermitted_year_built, assessor_year_lead,
   max_build_lag_years, unit_tolerance, min_sqft_per_unit, max_land_sqft_per_unit, lot_distance_ft, townhouse_distance_ft,
-  large_building_units, large_lot_distance_ft, measurement_years, min_land_sqft, max_assessment_lag_years)
-stopifnot(length(args) == 15L)
+  large_building_units, large_lot_distance_ft, measurement_years, min_land_sqft, max_assessment_lag_years,
+  footprint_min_units, footprint_max_units, footprint_min_height_ft, footprint_last_year_built,
+  footprint_min_building_height_ft, footprint_max_building_height_ft, footprint_min_lot_coverage, footprint_max_lot_coverage)
+stopifnot(length(args) == 23L)
 first_year_built <- as.integer(args[1])
 last_year_built <- as.integer(args[2])
 last_unpermitted_year_built <- as.integer(args[3])
@@ -41,6 +51,14 @@ large_lot_distance_ft <- as.numeric(args[12])
 measurement_years <- as.integer(args[13])
 min_land_sqft <- as.numeric(args[14])
 max_assessment_lag_years <- as.integer(args[15])
+footprint_min_units <- as.integer(args[16])
+footprint_max_units <- as.integer(args[17])
+footprint_min_height_ft <- as.numeric(args[18])
+footprint_last_year_built <- as.integer(args[19])
+footprint_min_building_height_ft <- as.numeric(args[20])
+footprint_max_building_height_ft <- as.numeric(args[21])
+footprint_min_lot_coverage <- as.numeric(args[22])
+footprint_max_lot_coverage <- as.numeric(args[23])
 
 permit_buildings <- read_csv("../output/permit_buildings.csv", col_types = cols(building_id = "c", permit_number = "c",
   member_permit_numbers = "c", superseded_permit_numbers = "c", parcel_pin10s = "c", record_ids = "c", issue_date = "D",
@@ -476,6 +494,42 @@ buildings <- buildings |> filter(!building_id %in% same_building$building_id) |>
 record_rows <- buildings |> filter(!is.na(record_ids), status != "built_after_window") |>
   select(building_id, record_ids, first_assessment_year) |> separate_longer_delim(record_ids, "/")
 stopifnot(!anyDuplicated(record_rows[c("record_ids", "first_assessment_year")]))
+
+# Floor area from 2022 footprints (tasks/download_building_footprints_2022): the Assessor records none for condominium
+# buildings of FOOTPRINT_MIN_UNITS or more units. For those of up to FOOTPRINT_MAX_UNITS units reported built by
+# FOOTPRINT_LAST_YEAR_BUILT, floor area is the volume of the footprints containing the building's parcels (structures
+# lower than FOOTPRINT_MIN_HEIGHT_FT ignored; a footprint reached by two buildings cannot be divided, so neither is
+# filled) times the median floor area per cubic foot of rentals of the same size with Assessor floor area. Only
+# mid-rise buildings whose footprints fit their lots are filled: towers' roof heights misstate their floors, low
+# complexes spread over footprints not matched, and footprints much larger than the lot include neighbors
+# (tasks/audits/footprint_floor_area_check: typically within 12-18 percent for buildings passing the rule, about 30
+# for those failing it). `floor_area_source` says which.
+footprints <- st_read("../input/building_footprints_2022_chicago.gpkg", quiet = TRUE) |>
+  filter(height_ft >= footprint_min_height_ft)
+footprint_hits <- buildings |> filter(!is.na(record_ids), status != "built_after_window") |> select(building_id, record_ids) |>
+  separate_longer_delim(record_ids, "/") |> distinct(building_id, pin10 = substr(record_ids, 1, 10)) |>
+  inner_join(centroids, by = "pin10", relationship = "many-to-one") |> st_as_sf(coords = c("x", "y"), crs = 3435) |>
+  st_join(footprints |> select(object_id, footprint_sqft, height_ft), join = st_within, left = FALSE) |>
+  st_drop_geometry() |> distinct(building_id, object_id, footprint_sqft, height_ft)
+shared_footprints <- footprint_hits |> count(object_id) |> filter(n > 1)
+footprint_volume <- footprint_hits |> group_by(building_id) |> filter(!any(object_id %in% shared_footprints$object_id)) |>
+  summarise(volume_cuft = sum(footprint_sqft * height_ft), footprint_sqft = sum(footprint_sqft), .groups = "drop")
+sized <- buildings |>
+  filter(status %in% c("measured", "measured_without_permit"), flags == "",
+    between(dwelling_units, footprint_min_units, footprint_max_units), assessor_year_built <= footprint_last_year_built) |>
+  inner_join(footprint_volume, by = "building_id", relationship = "one-to-one") |>
+  filter(between(volume_cuft / footprint_sqft, footprint_min_building_height_ft, footprint_max_building_height_ft),
+    between(footprint_sqft / land_sqft, footprint_min_lot_coverage, footprint_max_lot_coverage))
+calibration <- sized |> filter(source != "condominium", multifamily %in% TRUE, building_sqft > 0)
+stopifnot(nrow(calibration) >= 50L)
+sqft_per_cuft <- median(calibration$building_sqft / calibration$volume_cuft)
+filled <- sized |> filter(source == "condominium", !coalesce(building_sqft > 0, FALSE)) |>
+  transmute(building_id, building_sqft = round(volume_cuft * sqft_per_cuft), floor_area_source = "footprint",
+    flags = if_else(building_sqft / dwelling_units < min_sqft_per_unit, "area_per_unit_implausible;", ""))
+buildings <- buildings |>
+  mutate(floor_area_source = if_else(coalesce(building_sqft > 0, FALSE), "assessor", NA_character_)) |>
+  rows_update(filled, by = "building_id")
+
 buildings <- buildings |>
   filter(status != "built_after_window") |>
   mutate(allow_dupac = coalesce(status %in% c("measured", "measured_without_permit") & flags == "" &
@@ -486,7 +540,7 @@ buildings <- buildings |>
   select(building_id, route, status, match_basis, flags, lot_rule_candidates, townhouse_candidates, permit_number,
     member_permit_numbers, superseded_permit_numbers, issue_date, issue_year, address, permit_units, stated_counts,
     permit_status, any_permit_complete, parcel_pin10s, parcel_changed_after_permit, source, record_ids, classes,
-    first_assessment_year, assessor_year_built, dwelling_units, building_sqft, land_sqft, allow_far, allow_dupac, far, dupac,
-    multifamily, location_source, x_3435, y_3435, description) |>
+    first_assessment_year, assessor_year_built, dwelling_units, building_sqft, floor_area_source, land_sqft, allow_far,
+    allow_dupac, far, dupac, multifamily, location_source, x_3435, y_3435, description) |>
   arrange(route, coalesce(issue_date, make_date(assessor_year_built, 6L, 15L)), building_id)
 SaveData(buildings, "building_id", "../output/construction_buildings.csv", na = "")

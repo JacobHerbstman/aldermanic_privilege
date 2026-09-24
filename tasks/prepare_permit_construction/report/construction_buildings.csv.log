@@ -1,7 +1,7 @@
 File: construction_buildings.csv
 Rows: 17321
-Columns: 36
-SHA-256 (saved bytes): 60e17583ad237fa38fd9522a0e7d3d45a62249e5df66fb6815fdb92fa90ea92f
+Columns: 37
+SHA-256 (saved bytes): a980272143d03253b035f9dba3234ad01bd0fd7bfbe79ec062d00f9dccf389f5
 Key: building_id
 Types: DuckDB inference from the complete saved CSV.
 Distinct counts: exact (exact up to 100,000 rows).
@@ -33,11 +33,12 @@ parcel_changed_after_permit       BOOLEAN        14514         2                
       first_assessment_year        BIGINT        15613        21                2006               2026 2014.8048421187473  5.873377545585012
         assessor_year_built        BIGINT        15613        75                1871               2026 2011.5548581310447 12.741030675358404
              dwelling_units        BIGINT        15568       280                   0               1679  8.232849434737924 41.694977922598945
-              building_sqft        BIGINT        14954      5931                   0            1380640  9994.595492844725 48288.683618443174
+              building_sqft        BIGINT        15014      5991                   0            1380640 10252.077794058878  48452.54695861859
+          floor_area_source       VARCHAR        15004         2                   -                  -                  -                  -
                   land_sqft        BIGINT        15609      4805                   0            1540260   6233.51854699212 24436.464481390492
                   allow_far       BOOLEAN        17321         2                   -                  -                  -                  -
                 allow_dupac       BOOLEAN        17321         2                   -                  -                  -                  -
-                        far        DOUBLE        13439     11801 0.06141489033055298 32.509535794909056  1.233170267718707 1.3159439145132465
+                        far        DOUBLE        13499     11861 0.06141489033055298 32.509535794909056 1.2433220313224218  1.323282373940453
                       dupac        DOUBLE        13972      5464  1.3456904541241892  904.2268870494823 30.279874645309377  46.77897346601867
                 multifamily       BOOLEAN        15568         2                   -                  -                  -                  -
             location_source       VARCHAR        17309         2                   -                  -                  -                  -

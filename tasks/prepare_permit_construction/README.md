@@ -133,6 +133,15 @@ yet; `tasks/audits/permit_density_comparison` compares it with the paper's curre
   condominium conversions and rehabs given a new year built), and a residential or condominium record first assessed
   more than `MAX_ASSESSMENT_LAG_YEARS` after its reported year built (`assessed_long_after_year_built`: an older
   building, or one built years later). Permit-linked buildings are dated by their permits and are not checked.
+- Floor area from 2022 footprints: the Assessor records no floor area for condominium buildings of 20 or more units.
+  For those of `FOOTPRINT_MIN_UNITS` to `FOOTPRINT_MAX_UNITS` units reported built by `FOOTPRINT_LAST_YEAR_BUILT`,
+  floor area is the volume of the footprints containing the building's parcels
+  (`tasks/download_building_footprints_2022`; structures below `FOOTPRINT_MIN_HEIGHT_FT` ignored, footprints reached
+  by two buildings not used) times the median floor area per cubic foot of rentals of the same size with Assessor
+  floor area. Only buildings `FOOTPRINT_MIN_BUILDING_HEIGHT_FT` to `FOOTPRINT_MAX_BUILDING_HEIGHT_FT` tall whose
+  footprints cover `FOOTPRINT_MIN_LOT_COVERAGE` to `FOOTPRINT_MAX_LOT_COVERAGE` of their land are filled; the error
+  checks are in `tasks/audits/footprint_floor_area_check`. `floor_area_source` is `assessor` or `footprint`; drop
+  `footprint` rows for an Assessor-only FAR sample.
 - Every hand-named lot and home must be measured in the row holding its permit, and no Assessor record may measure
   two rows first assessed in the same year; the build stops otherwise.
 

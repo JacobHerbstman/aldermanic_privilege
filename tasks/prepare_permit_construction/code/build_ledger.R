@@ -36,7 +36,8 @@ ledger <- bind_cols(st_drop_geometry(points), assignment) |>
     within_1500ft = dist_ft <= boundary_window_ft, within_500ft = dist_ft <= main_boundary_window_ft) |>
   select(building_id, route, permit_number, member_permit_numbers, source, record_ids, issue_date, assessor_year_built,
     date_source, construction_date, construction_year, boundary_year, era, ward, neighbor_ward, ward_pair, distance_to_boundary_ft,
-    within_1500ft, within_500ft, location_source, x_3435, y_3435, dwelling_units, building_sqft, land_sqft, allow_far, allow_dupac,
+    within_1500ft, within_500ft, location_source, x_3435, y_3435, dwelling_units, building_sqft, floor_area_source, land_sqft,
+    allow_far, allow_dupac,
     far, dupac, multifamily) |>
   arrange(construction_date, building_id)
 SaveData(ledger, "building_id", "../output/permit_construction.csv", na = "")

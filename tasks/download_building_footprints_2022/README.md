@@ -13,4 +13,5 @@ query covers every `TILE_FT` square tile holding a Chicago parcel centroid (`tas
 2,000 features per request ordered by `OBJECTID`; footprints crossing tile edges are kept once. Re-running the task
 queries the service again, which is a source refresh: compare the new report with the committed one.
 
-The only consumer is `tasks/audits/footprint_floor_area_check`.
+Consumers: `tasks/prepare_permit_construction` (floor area of 20-99 unit condominium buildings) and
+`tasks/audits/footprint_floor_area_check`.
