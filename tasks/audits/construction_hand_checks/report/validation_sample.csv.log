@@ -1,35 +1,35 @@
 File: validation_sample.csv
 Rows: 225
 Columns: 25
-SHA-256 (saved bytes): c938426c1f97bfd98e629b8cf0fbc36d092e45842780c811af3f0b72b39bb956
+SHA-256 (saved bytes): 170d6554aa96a68bd1efe10d598902edd76fbf7d124f3d6d93ee3720e0438938
 Key: building_id
 Types: DuckDB inference from the complete saved CSV.
 Distinct counts: exact (exact up to 100,000 rows).
 Row counts, non-missing counts, and declared-key checks: exact.
 
-               column inferred_type  non_missing  distinct                 min               max               mean                 sd
-              stratum       VARCHAR          225         9                   -                 -                  -                  -
-   stratum_population        BIGINT          225         9                  31              9057  1797.888888888889  2678.674439156812
-          building_id       VARCHAR          225       225                   -                 -                  -                  -
-                route       VARCHAR          225         2                   -                 -                  -                  -
-               status       VARCHAR          225         5                   -                 -                  -                  -
-          match_basis       VARCHAR          150         9                   -                 -                  -                  -
-                flags       VARCHAR           32         4                   -                 -                  -                  -
-        permit_number        BIGINT          175       175           100060281         100976426 100471364.00571428  284991.6861019625
-member_permit_numbers       VARCHAR          175       175                   -                 -                  -                  -
-           issue_date          DATE          175       168                   -                 -                  -                  -
-              address       VARCHAR          222       222                   -                 -                  -                  -
-         permit_units        BIGINT          168        20                   1               812 12.880952380952381   67.2220210500815
-          description       VARCHAR          175       175                   -                 -                  -                  -
-               source       VARCHAR          200         3                   -                 -                  -                  -
-           record_ids       VARCHAR          200       200                   -                 -                  -                  -
-        parcel_pin10s       VARCHAR          204       203                   -                 -                  -                  -
-first_assessment_year        BIGINT          200        19                2007              2026            2014.67  5.907247911629395
-  assessor_year_built        BIGINT          200        31                1873              2023            1998.58 38.686130375330755
-       dwelling_units        BIGINT          199        21                   1               398  8.306532663316583  33.23730877316202
-        building_sqft        BIGINT          194       187                 754            329896  9993.072164948453 26144.841557113683
-            land_sqft        BIGINT          200       173                 922            203680           8274.465  21462.46679633293
-                dupac        DOUBLE          150       136  3.6110420293459335 84.30967741935483  29.96815123352586 16.402070381628345
-                  far        DOUBLE          150       150 0.37094395280235987 4.269602577873255 1.3643348496752148 0.7169195689102954
-     assessor_history       VARCHAR          198       198                   -                 -                  -                  -
-    permits_on_record       VARCHAR          209       209                   -                 -                  -                  -
+               column inferred_type  non_missing  distinct                 min                max               mean                 sd
+              stratum       VARCHAR          225         9                   -                  -                  -                  -
+   stratum_population        BIGINT          225         9                  31               9078 1804.5555555555557 2684.7320509719157
+          building_id       VARCHAR          225       225                   -                  -                  -                  -
+                route       VARCHAR          225         2                   -                  -                  -                  -
+               status       VARCHAR          225         5                   -                  -                  -                  -
+          match_basis       VARCHAR          150         9                   -                  -                  -                  -
+                flags       VARCHAR           32         4                   -                  -                  -                  -
+        permit_number        BIGINT          175       175           100060281          100995573 100471986.74285714  285612.3757626354
+member_permit_numbers       VARCHAR          175       175                   -                  -                  -                  -
+           issue_date          DATE          175       166                   -                  -                  -                  -
+              address       VARCHAR          222       222                   -                  -                  -                  -
+         permit_units        BIGINT          169        20                   1                812 12.662721893491124  67.03969040923626
+          description       VARCHAR          175       175                   -                  -                  -                  -
+               source       VARCHAR          200         3                   -                  -                  -                  -
+           record_ids       VARCHAR          200       200                   -                  -                  -                  -
+        parcel_pin10s       VARCHAR          205       204                   -                  -                  -                  -
+first_assessment_year        BIGINT          200        19                2007               2026            2014.61 5.6655442774548135
+  assessor_year_built        BIGINT          200        30                1873               2023            1998.54  38.91103627145636
+       dwelling_units        BIGINT          199        21                   1                398  8.120603015075377 33.236306174413926
+        building_sqft        BIGINT          194       189                 754             329896  9815.943298969072  26189.99584763921
+            land_sqft        BIGINT          200       175                 922             203680             8144.3 21446.375246321466
+                dupac        DOUBLE          150       138   6.969600000000001 115.85106382978724 29.114783071739463 17.071856636802952
+                  far        DOUBLE          150       150 0.37094395280235987  4.269602577873255 1.3323699100644912 0.6983162180124085
+     assessor_history       VARCHAR          200       200                   -                  -                  -                  -
+    permits_on_record       VARCHAR          210       210                   -                  -                  -                  -
