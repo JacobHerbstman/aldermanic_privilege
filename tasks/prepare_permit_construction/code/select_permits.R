@@ -29,6 +29,7 @@ permits <- read_csv("../input/building_permits_full.csv", col_types = cols(.defa
     main_text = description |> str_remove_all("\\{[^}]*(?:\\}|$)|\\[[^\\]]*(?:\\]|$)|\\*{2,}[^*]*\\*{2,}") |>
       str_remove("\\bSEE (?:REVISION|PERMIT|#).*$") |>
       str_replace_all("\\bDWELING", "DWELLING") |> str_replace_all("\\bAPARMENT", "APARTMENT") |>
+      str_replace_all("\\bTWELEVE\\b", "TWELVE") |>
       str_replace_all("\\bUNIT(S?)(BUILDING|BLDG)\\b", "UNIT\\1 \\2") |> str_replace_all("([0-9]) ?\\(DU\\)", "\\1 DU") |>
       str_replace_all("\\b(?:EXIST\\.|EXST'?G|EXSITING)", "EXISTING") |> str_replace_all("\\bSRF\\b", "SFR") |>
       str_replace_all("\\bSTRY\\b", "STORY") |> str_squish(),
@@ -37,19 +38,31 @@ permits <- read_csv("../input/building_permits_full.csv", col_types = cols(.defa
       \(x) paste(unique(x), collapse = "/")),
     latitude = as.numeric(latitude), longitude = as.numeric(longitude))
 stopifnot(!anyDuplicated(permits$permit_id), !anyNA(permits$issue_date))
-# Some new buildings are filed as renovation, easy or express permits. Those count when the first sentence erects or
-# constructs a new building of stated height ("ERECT NEW 2 STORY 6 DU 3B BUILDING", "NEW CONSTRUCTION OF A 4 STORY
-# ... RESIDENTIAL BUILDING") and describes no work on or next to an existing one (and, below, names dwellings).
+# Some new buildings are filed as renovation, easy or express permits. Those count when the first sentence, after an
+# optional label ("RESIDENTIAL PROJECT - ", "SELF-CERT: ") or wrecking clause ("REMOVE EXISTING BUILDING AND "),
+# erects a building named directly as its object ("ERECT NEW 2 1/2 STORY SINGLE FAMILY FRAME RESIDENCE WITH REAR OPEN
+# DECK AND DETACHED FRAME GARAGE"): the words before the dwelling state a height or a new building and name no
+# accessory structure, trade work or place ("ERECT NEW PARTITIONS IN BASEMENT OF SFR"), and the sentence describes no
+# work on an existing building or trade work for a new one ("NEW TWO STORY SINGLE FAMILY HOUSE WITH 200A SERVICE").
 first_sentence <- str_split_i(permits$main_text, "\\. ", 1)
+lead <- str_remove(first_sentence, paste0("^(?:(?!NEW CONSTRUCTION)[A-Z0-9 '.-]{0,30}?(?::| - ?) ?)?",
+  "(?:(?:REMOVE|DEMOLISH|WRECK|RAZE)(?: AND REMOVE)? (?:THE |AN? )?EXISTING [A-Z0-9 -]{0,40}?(?:,? AND|&|THEN) )?"))
+erect_verb <- "^(?:ERECT|CONSTRUCT|BUILD\\b(?!-? ?OUT)|NEW CONSTRUCTION(?: OF)?|NEW\\b)"
+lead_object <- str_extract(lead, paste0(erect_verb, ".*?(?:RESIDEN[A-Z]*|\\bHOMES?\\b|\\bHOUSES?\\b|DWELLING[A-Z]*|",
+  "\\bS\\.?F\\.?R\\b|\\bUNITS?\\b|TOWN ?HO[A-Z]*|ROW ?HO[A-Z]*|\\b(?:[0-9]|TWO|THREE|FOUR|SIX)[- ]?FLATS?\\b|BUILDING|BLDG)"))
 permits <- permits |>
-  filter(permit_type == "PERMIT - NEW CONSTRUCTION" |
-    (str_detect(first_sentence, "^(?:[A-Z0-9 '.-]{0,30}: ?)?(?:ERECT|CONSTRUCT|BUILD\\b(?!-? ?OUT)|NEW CONSTRUCTION)") &
-      str_detect(first_sentence, "\\b(?:[0-9]+|ONE|TWO|THREE|FOUR|FIVE|SIX)[- ]?(?:STORY|STORIES|STRY)\\b|NEW CONSTRUCTION") &
-      str_detect(first_sentence, "BUILDING|BLDG|RESIDEN|\\bHOMES?\\b|\\bHOUSES?\\b|DWELLING|\\bS\\.?F\\.?R\\b|\\bUNITS?\\b|TOWN ?HO") &
-      !str_detect(first_sentence, paste0("\\bADDI|\\bADDT|\\bADITI|EXISTING|CONVER|REHAB|ALTERATION|RENOVAT|INTERIOR|REPLAC|REPAIR|",
-        "DORMER|PORCH|DECK|GARAGE|STAIR|RAMP|CANOP|PATIO|PERGOLA|TRASH|ENCLOSURE|\\bBAY\\b|EXCAVAT|DRYWALL|FOUNDATION|",
-        "BUILD-? ?OUT|WIRING|CIRCUIT|ELECTRIC|",
-        "LOW VOLTAGE|\\bOVER\\b|\\bREAR OF\\b|\\bTO (?:A|AN|THE)\\b"))))
+  filter(permit_type == "PERMIT - NEW CONSTRUCTION" | (!is.na(lead_object) &
+    str_detect(lead_object, paste0("\\b(?:[0-9]+|ONE|TWO|THREE|FOUR|FIVE|SIX)(?: 1/2)?[- ]?(?:STORY|STORIES)\\b|",
+      "^(?:ERECT|CONSTRUCT|BUILD) (?:A |AN )?NEW\\b|^NEW CONSTRUCTION")) &
+    !str_detect(str_remove_all(str_remove(lead_object, erect_verb), "WITH (?:A |FULL )?BASE?MENT"),
+      "\\b(?:OF|IN|ON|AT|FOR|TO|WITH|WITHIN|INTO|FROM|PROTECTING|SERVING|BEHIND)\\b|@") &
+    !str_detect(lead_object, paste0("PORCH|DECK|GARAGE|STAIR|RAMP|CANOP|PATIO|PERGOLA|TRASH|ENCLOSURE|\\bBAY\\b|EXCAVAT|",
+      "DRYWALL|FOUNDATION|BUILD-? ?OUT|WIRING|CIRCUIT|ELECTRIC|LOW VOLTAGE|\\bOVER\\b|COACH|ACCESSORY|SHED|FENCE|SIGN\\b|",
+      "TENT|WALLS?\\b|PARTITION|ROOF|SERVICE|HVAC|FACADE|WINDOW|ELEVATOR|INSTALL")) &
+    !str_detect(str_remove(lead, "ALL NEW ELECTRICAL,? MECHANICAL,? (?:AND )?PLUMBING"), paste0("\\bADDI|\\bADDT|\\bADITI|",
+      "EXISTING|CONVER|REHAB|ALTERATION|RENOVAT|INTERIOR|REPLAC|REPAIR|DORMER|ELECTRIC|WIRING|LOW VOLTAGE|\\bSERVICE\\b|",
+      "\\b[0-9]+ ?AMP?\\b|METER|FIRE ALARM|\\bFA SYSTEM|(?:SFR|RESIDENCE|HOME|HOUSE) (?:DETACHED |ATTACHED |REAR )?",
+      "(?:CARPORT|GARAGE|DECK|PORCH)"))))
 
 # House numbers the description gives on the permit's street, besides its own: "329, 335, 337, 339 EAST 25TH PLACE",
 # "1626-46 SOUTH PRAIRIE", "1231/1233/1235 W GRENSHAW", with ranges on the permit's side of the street. Prototype

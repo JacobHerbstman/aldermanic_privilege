@@ -9,14 +9,17 @@ yet; `tasks/audits/permit_density_comparison` compares it with the paper's curre
 ## Rules
 
 `select_permits.R` (every `PERMIT - NEW CONSTRUCTION` issued 2006–2022, one `scope` per permit)
-- Renovation, easy and express permits are included when their first sentence erects or constructs a new building of
-  stated height with dwellings (`ERECT NEW 2 STORY 6 DU 3B BUILDING`) and describes no work on or next to an existing
-  building (additions, dormers, porches, build-outs, trade work).
+- Renovation, easy and express permits are included when their first sentence (after a label or a clause removing the
+  existing building) erects a dwelling named directly as its object, of stated height or described as new (`ERECT NEW
+  2 1/2 STORY SINGLE FAMILY FRAME RESIDENCE WITH REAR OPEN DECK AND DETACHED FRAME GARAGE`, `REMOVE EXISTING BUILDING
+  AND ERECT NEW SINGLE FAMILY RESIDENCE`), with no accessory structure, trade work or place named before the dwelling
+  (`ERECT NEW PARTITIONS IN BASEMENT OF SFR`), and describes no work on an existing building or trade work for a new
+  one (`NEW TWO STORY SINGLE FAMILY HOUSE WITH 200A SERVICE`).
 - House numbers the description lists on the permit's street (`329, 335, 337, 339 EAST 25TH PLACE`, `1626-46 SOUTH
   PRAIRIE`) are kept (`house_numbers`); prototype references name other buildings.
 - Notes about later permits (`{ALSO SEE PERMIT ...}`, `[SEE PERMIT #... TO CONVERT ...]`, `SEE REVISION #...`) and
   review-program notes (`***SELF CERT PROJECT***`) are ignored. Common misspellings and abbreviations (`DWELING`,
-  `APARMENT`, `6 UNITBUILDING`, `4(DU)`, `EXIST.`, `SRF`, `STRY`) are corrected.
+  `APARMENT`, `TWELEVE`, `6 UNITBUILDING`, `4(DU)`, `EXIST.`, `SRF`, `STRY`) are corrected.
 - Dropped: revisions and reinstatements, tent/event structures, additions, conversions and rehabs (unless the first
   clause erects dwellings: `ERECT EIGHT TOWNHOUSE, AN ADDITION TO A FOUR EXISTING ... TOWNHOUSES`), accessory
   structures (a garage, carport, deck, porch, stair, fence, pergola or shed named in the first clause, before any

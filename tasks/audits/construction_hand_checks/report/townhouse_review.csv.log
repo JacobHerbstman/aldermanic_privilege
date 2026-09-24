@@ -1,19 +1,19 @@
 File: townhouse_review.csv
 Rows: 25
 Columns: 9
-SHA-256 (saved bytes): 379617174cbca378cd9d2b0be6d7aedd7649f990acaeb7512f071862f6326a29
+SHA-256 (saved bytes): 373bda6ff70d3947fbc095ba5d8a2eaa75abe7b7eb07aea6ecd0d4fb6acbccf1
 Key: permit_number
 Types: DuckDB inference from the complete saved CSV.
 Distinct counts: exact (exact up to 100,000 rows).
 Row counts, non-missing counts, and declared-key checks: exact.
 
-               column inferred_type  non_missing  distinct       min       max         mean                sd
-        permit_number        BIGINT           25        25 100078466 100939357 100382947.72 274232.9603060342
-member_permit_numbers        BIGINT           25        25 100078466 100939357 100382947.72 274232.9603060342
-           issue_date          DATE           25        22         -         -            -                 -
-        permit_status       VARCHAR           25         3         -         -            -                 -
-              address       VARCHAR           25        25         -         -            -                 -
-         permit_units        BIGINT           25        11         2        23          6.6 4.252450274057692
-          match_basis       VARCHAR           25         3         -         -            -                 -
-          description       VARCHAR           25        25         -         -            -                 -
-                homes       VARCHAR           25        25         -         -            -                 -
+               column inferred_type  non_missing  distinct       min       max        mean                sd
+        permit_number        BIGINT           25        25 100067912 100939357 100414936.6 280382.8678307638
+member_permit_numbers        BIGINT           25        25 100067912 100939357 100414936.6 280382.8678307638
+           issue_date          DATE           25        22         -         -           -                 -
+        permit_status       VARCHAR           25         3         -         -           -                 -
+              address       VARCHAR           25        25         -         -           -                 -
+         permit_units        BIGINT           25        10         2        23        6.84 4.307744963048145
+          match_basis       VARCHAR           25         3         -         -           -                 -
+          description       VARCHAR           25        25         -         -           -                 -
+                homes       VARCHAR           25        25         -         -           -                 -

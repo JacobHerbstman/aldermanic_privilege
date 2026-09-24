@@ -1,7 +1,7 @@
 File: lot_review.csv
 Rows: 85
 Columns: 21
-SHA-256 (saved bytes): 19b583db7699906be777a4efee6e7ae1586f90f142871fee1c84483830b8d064
+SHA-256 (saved bytes): 8924cc3f8c59b0798fd6d6b0cc5f66c4ad47cb6c538b466174510102822e1971
 Key: case, permit_number
 Types: DuckDB inference from the complete saved CSV.
 Distinct counts: exact (exact up to 100,000 rows).
@@ -9,23 +9,23 @@ Row counts, non-missing counts, and declared-key checks: exact.
 
                    column inferred_type  non_missing  distinct       min       max               mean                 sd
                      case       VARCHAR           85         2         -         -                  -                  -
-            permit_number        BIGINT           85        85 100067856 100953264 100255643.10588235 212804.58832655154
-               issue_date          DATE           85        73         -         -                  -                  -
+            permit_number        BIGINT           85        85 100067856 100953264 100257014.30588235 214454.60576068552
+               issue_date          DATE           85        77         -         -                  -                  -
             permit_status       VARCHAR           85         3         -         -                  -                  -
                   address       VARCHAR           85        85         -         -                  -                  -
-             permit_units        BIGINT           85        19         1       480 21.858823529411765  75.42722019416124
+             permit_units        BIGINT           85        17         1       480 22.741176470588236  86.02022920181493
               description       VARCHAR           85        82         -         -                  -                  -
-              lot_address       VARCHAR           36        36         -         -                  -                  -
+              lot_address       VARCHAR           33        33         -         -                  -                  -
                 lot_pin10       VARCHAR           40        40         -         -                  -                  -
                    source       VARCHAR           41         3         -         -                  -                  -
-           dwelling_units        BIGINT           41        17         1       349 31.658536585365855  78.50242345179466
-            building_sqft        BIGINT           37        36      1244    458272  41951.27027027027 106307.42166227382
-                land_sqft        BIGINT           41        41      1325     59883  9521.731707317073 11871.918176993115
-      assessor_year_built        BIGINT           41        13      2006      2023 2010.0731707317073   4.80827538678053
-    first_assessment_year        BIGINT           41        11      2007      2024 2014.9268292682927  7.051206435435004
+           dwelling_units        BIGINT           41        16         1       479  33.58536585365854  98.58903985985361
+            building_sqft        BIGINT           36        36      1200    531320 47001.833333333336 126047.80955936635
+                land_sqft        BIGINT           41        39      2380     87246 10682.853658536585  16840.70931338846
+      assessor_year_built        BIGINT           41        12      2006      2023 2010.0243902439024  4.947159815884408
+    first_assessment_year        BIGINT           41        12      2007      2024  2013.560975609756 6.4266973652405674
       lot_rule_candidates       VARCHAR           45        33         -         -                  -                  -
-              lot_history       VARCHAR           20        20         -         -                  -                  -
+              lot_history       VARCHAR           18        18         -         -                  -                  -
 permits_at_permit_address       VARCHAR           85        85         -         -                  -                  -
-   permits_at_lot_address       VARCHAR           16        16         -         -                  -                  -
+   permits_at_lot_address       VARCHAR           14        14         -         -                  -                  -
              assessor_url       VARCHAR           40        40         -         -                  -                  -
                   map_url       VARCHAR           85        85         -         -                  -                  -
