@@ -23,10 +23,11 @@ Settings named below are set at the top of the script that applies them; those u
 - Notes about later permits (`{ALSO SEE PERMIT ...}`, `[SEE PERMIT #... TO CONVERT ...]`, `SEE REVISION #...`) and
   review-program notes (`***SELF CERT PROJECT***`) are ignored. Common misspellings and abbreviations (`DWELING`,
   `APARMENT`, `TWELEVE`, `6 UNITBUILDING`, `4(DU)`, `EXIST.`, `SRF`, `STRY`) are corrected.
-- Dropped: revisions and reinstatements, tent/event structures, additions, conversions and rehabs (unless the first
-  clause erects dwellings: `ERECT EIGHT TOWNHOUSE, AN ADDITION TO A FOUR EXISTING ... TOWNHOUSES`), accessory
-  structures (a garage, carport, deck, porch, stair, fence, pergola or shed named in the first clause, before any
-  dwelling or building: `ERECT A 33X24 FRAME GARAGE PER PLANS, TO AN EXISTING ...`), and work at, for or serving an
+- Dropped: revisions and reinstatements, tent/event structures, additions (also misspelled: `NEW FRAME ONE STORY
+  ADDTION`), conversions and rehabs (unless the first clause erects dwellings: `ERECT EIGHT TOWNHOUSE, AN ADDITION TO A
+  FOUR EXISTING ... TOWNHOUSES`), accessory structures (a garage, carport, deck, porch, stair, fence, pergola or shed
+  named in the first clause, before any dwelling or building other than a building code: `ERECT A 33X24 FRAME GARAGE
+  PER PLANS, TO AN EXISTING ...`, `NEW DETACHED GARAGE-PER 2019 CHICAGO BUILDING CODE`), and work at, for or serving an
   existing building. Foundation and superstructure phases stay; they are resolved by the Assessor claims below.
 - `new_residential`: a stated dwelling count or dwelling wording (including `S.F.R.`, mixed use and ground-floor
   commercial). `building_use_not_stated`: a new building, structure or story count with no dwelling wording and no
@@ -53,9 +54,13 @@ Settings named below are set at the top of the script that applies them; those u
   permits' buildings two years before issue, which sets the lead at 2.
 - Some new buildings keep the old reported year built. A parcel without a new record whose floor area first rises by
   `rebuilt_area_growth` within the construction lag, and keeps it, is measured in that year
-  (`match_basis = floor_area_change`).
+  (`match_basis = floor_area_change`). Floor area also rises with additions, corrected records and work on another
+  parcel, so this applies only to permits for new residential buildings, on parcels within `rebuilt_distance_ft` of
+  the permit's geocoded point (reviewers found all 4 farther matches wrong).
 - A building is dated by its first assessment and measured on the record it holds most often in its first
-  `measurement_years` assessment years (the earliest when tied; years without a complete measurement do not count):
+  `measurement_years` assessment years (each year votes once, however many residential cards it has; the earliest
+  when tied; years without a complete measurement do not count, and a condominium building's measurement is its unit
+  count, floor area and land, or its unit count and land when the Assessor records no floor area):
   first-year records are often partial (a building still under construction, duplicate cards, a record before a
   condominium declaration). A building on prorated parcels keeps its proration as first assessed.
 - Units, floor area and land come from one source and one measurement year, never mixed:
@@ -87,8 +92,10 @@ Settings named below are set at the top of the script that applies them; those u
   (`exclude`, `accept`, `dwelling_units`, `building_sqft`, `land_sqft`); `same_building` (another phase of a named
   permit's building; the building takes the earlier issue date) and `no_match` (no candidate is this permit's
   building) apply in `build_construction_buildings.R`. The rows come from
-  `tasks/audits/construction_hand_checks/queue_first_pass.csv`; two decisions that assigned a whole divided site to
-  one permit (Medill/Belden 100553156, Campbell/Homer 100645761) were retired when rows became buildings.
+  `tasks/audits/construction_hand_checks/queue_first_pass.csv`, the condominium site reviews, and high-confidence
+  verdicts of `validation_reviews.csv` that still applied to the data (not new construction, duplicates, wrong
+  buildings; verdicts on superseded rows or measurements were not carried over); two decisions that assigned a whole
+  divided site to one permit (Medill/Belden 100553156, Campbell/Homer 100645761) were retired when rows became buildings.
 
 `build_construction_buildings.R`
 - Assessor-only buildings: a condominium building, residential card or commercial apartment valuation on a Chicago
@@ -126,10 +133,12 @@ Settings named below are set at the top of the script that applies them; those u
   (`match_basis` includes `townhouse_lots`). Parcels of other permits in the construction window and homes two
   permits would take are excluded; other qualifying homes are listed in `townhouse_candidates` for review.
   Buildings reported built after `last_year_built` are kept only as possible matches for late permits.
-- Assessor-only townhouses: class 295 homes on consecutive parcel numbers of a block (or alternating with garage or
-  yard parcels), first assessed in the same year with the same year built, on the same side of the same street, are one
-  building, as a townhouse permit is one row.
-  The row keeps its first home's `building_id` and sums the homes' measurements; it is not multifamily.
+- One row per home: a permit row measured on several single-family Assessor records (a permit for several
+  townhouses or houses, a group of single-house permits, and homes the townhouse rule added) becomes one row per
+  record, measured on that record and located at its parcel centroid (the row's location when the parcel has none
+  yet), with `building_id` the permit row's id and the record id joined by `_`. Each home keeps the row's permits,
+  dates and matching flags; per-dwelling plausibility is checked on the home. Assessor-only townhouses are already
+  one row per home.
 - Two flags withhold density for buildings left Assessor-only (reviewers found 3 of 15 and 1 of 12 such buildings
   right): a permit of any type at the address or parcels, issued by the reported year built, for work on an existing
   building, with no new-construction or wrecking permit through the lead after it (`existing_building_permit`, mostly
@@ -149,6 +158,12 @@ Settings named below are set at the top of the script that applies them; those u
   (`tasks/audits/construction_hand_checks/condominium_site_reviews.csv`): `measure_record` measures a row on the record
   describing the whole building, keeping its date; `drop_record` removes a row duplicating another building or a
   placeholder record; `keep_record` keeps a separate building the duplicate rule would remove.
+- Shared land: the Assessor often records a development's whole site on each of its towers (Wolf Point West and East
+  both report 178,133 sq ft). For buildings of `large_building_units` or more, land is development-wide
+  (`land_shared_development`, density withheld) when another such building within `shared_land_distance_ft` reports
+  the same land, or when a building at least `shared_land_min_height_ft` tall covers less than
+  `shared_land_max_lot_coverage` of its land with its 2022 footprints (Lakeshore East). Buildings finished after the
+  2022 imagery (Cirrus, 211 N Harbor) cannot be checked by footprint.
 - Every hand-named lot and home must be measured in the row holding its permit, and no Assessor record may measure
   two rows first assessed in the same year; the build stops otherwise.
 

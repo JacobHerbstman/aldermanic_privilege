@@ -22,10 +22,13 @@ footprint_min_building_height_ft <- 50  # only mid-rise buildings are filled:
 footprint_max_building_height_ft <- 100
 footprint_min_lot_coverage <- 0.5       # whose footprints fit their lots
 footprint_max_lot_coverage <- 1.2
+shared_land_distance_ft <- 1000         # shared-land check: large buildings this close reporting the same land,
+shared_land_min_height_ft <- 80         # ... or a building this tall
+shared_land_max_lot_coverage <- 0.25    # ... whose footprints cover less of its land
 
 permit_buildings <- read_csv("../output/permit_buildings.csv", col_types = cols(building_id = "c", permit_number = "c",
   member_permit_numbers = "c", superseded_permit_numbers = "c", parcel_pin10s = "c", record_ids = "c", issue_date = "D",
-  .default = col_guess()))
+  record_dwelling_units = "c", record_building_sqft = "c", record_land_sqft = "c", .default = col_guess()))
 # Hand research: one row per subject (a permit number, or an Assessor-only building_id) and field.
 manual <- read_csv("../adjudication/manual_decisions.csv", col_types = cols(.default = col_character()))
 
@@ -99,7 +102,8 @@ residential <- cards |> group_by(record_id) |> summarise(
   mutate(source = "residential")
 
 # Condominium buildings first appearing with a reported year built in the window, measured in the year of their first
-# MEASUREMENT_YEARS they hold most often.
+# MEASUREMENT_YEARS they hold most often: the unit count, floor area and land, or the unit count and land for the many
+# condominium buildings the Assessor records without floor area.
 condominiums <- DBI::dbGetQuery(con, sprintf("
   WITH c AS (
     SELECT pin10, try_cast(try_cast(year AS DOUBLE) AS INTEGER) AS tax_year, is_parking_space, is_common_area,
@@ -112,7 +116,7 @@ condominiums <- DBI::dbGetQuery(con, sprintf("
     max(c.building_sqft) AS building_sqft, max(c.land_sqft) AS land_sqft
   FROM c JOIN first_year f ON c.pin10 = f.pin10 AND c.tax_year BETWEEN f.first_year AND f.first_year + %d
   GROUP BY 1, 2, 3, 4", first_year_built - assessor_year_lead, measurement_years - 1)) |>
-  group_by(record_id) |> filter(tax_year == stable_year(tax_year, if_else(is.na(units) | is.na(building_sqft), NA_character_, paste(units, building_sqft, land_sqft)), measurement_years)) |>
+  group_by(record_id) |> filter(tax_year == stable_year(tax_year, if_else(is.na(units), NA_character_, paste(units, building_sqft, land_sqft)), measurement_years)) |>
   ungroup() |> select(-tax_year) |>
   mutate(classes = "299", older_building = FALSE, single_family = FALSE, source = "condominium")
 DBI::dbDisconnect(con, shutdown = TRUE)
@@ -370,26 +374,6 @@ buildings <- buildings |>
     source = if_else(townhouse, "residential", source), status = if_else(townhouse, "measured", status),
     multifamily = if_else(townhouse, FALSE, multifamily))
 
-# Assessor-only townhouses: homes on consecutive parcel numbers of a block (or alternating with garage or yard parcels),
-# first assessed in the same year with the same year built, on the same side of the same street, are one building, as
-# a townhouse permit is one row. The row keeps its first home's identifier and sums the homes' measurements.
-townhouse_homes <- buildings |>
-  filter(route == "assessor_only", source == "residential", classes == "295", dwelling_units == 1, flags == "") |>
-  mutate(a = address_parts(address), block = substr(record_ids, 1, 7), parcel = as.integer(substr(record_ids, 8, 10))) |>
-  unpack(a, names_sep = "_") |>
-  arrange(block, parcel) |> group_by(block) |>
-  mutate(next_home = parcel - lag(parcel) <= 2L & first_assessment_year == lag(first_assessment_year) &
-      assessor_year_built == lag(assessor_year_built) &
-      coalesce(a_street == lag(a_street) & a_number %% 2L == lag(a_number) %% 2L, TRUE),
-    row_id = building_id[cummax(if_else(coalesce(next_home, FALSE), 0L, row_number()))]) |> ungroup()
-townhouse_rows <- townhouse_homes |> group_by(building_id = row_id) |> filter(n() > 1) |>
-  summarise(record_ids = paste(record_ids, collapse = "/"), parcel_pin10s = paste(parcel_pin10s, collapse = "/"),
-    dwelling_units = n(), building_sqft = sum(building_sqft), land_sqft = sum(land_sqft),
-    x_3435 = mean(x_3435), y_3435 = mean(y_3435), .groups = "drop")
-buildings <- buildings |>
-  filter(!building_id %in% townhouse_homes$building_id[townhouse_homes$building_id != townhouse_homes$row_id]) |>
-  rows_update(townhouse_rows, by = "building_id")
-
 # Two signs that an Assessor-only building (one no permit took) is not new, or not built when reported; reviewers found
 # 3 of 15 and 1 of 12 such buildings right. A permit at its address or parcels, issued by its reported year built, for
 # work on an existing building, with no new-construction or wrecking permit through the lead after it: a rehab or
@@ -495,6 +479,41 @@ stopifnot(nrow(remeasured) == sum(record_decisions$field == "measure_record"))
 buildings <- buildings |> rows_update(remeasured, by = "building_id") |>
   filter(!building_id %in% record_decisions$building_id[record_decisions$field == "drop_record"])
 
+# Townhouses and groups of houses are one row per home: a permit row measured on several single-family Assessor
+# records (a permit for several townhouses or houses, a group of single-house permits, and homes the townhouse rule
+# added) becomes one row per record, measured on that record and located at its parcel (at the row's location when the
+# parcel has no centroid yet). Each home keeps the row's permits, dates and matching flags; per-dwelling plausibility
+# is checked on the home.
+record_measurements <- bind_rows(
+  permit_buildings |> filter(status == "measured") |>
+    select(building_id, record_id = record_ids, units = record_dwelling_units, sqft = record_building_sqft,
+      land = record_land_sqft) |>
+    separate_longer_delim(c(record_id, units, sqft, land), "/") |> mutate(across(c(units, sqft, land), parse_double)),
+  townhouse_links |> left_join(homes, by = "home_id", relationship = "one-to-one") |>
+    transmute(building_id, record_id = home_id, units = 1, sqft = home_sqft, land = home_land))
+stopifnot(!anyDuplicated(record_measurements[c("building_id", "record_id")]))
+several_homes <- buildings |>
+  filter(route == "permit", source %in% "residential", multifamily %in% FALSE, str_detect(coalesce(record_ids, ""), "/"))
+home_rows <- several_homes |> separate_longer_delim(record_ids, "/") |>
+  left_join(record_measurements, by = c("building_id", "record_ids" = "record_id"), relationship = "one-to-one") |>
+  mutate(pin10 = substr(record_ids, 1, 10)) |> left_join(centroids, by = "pin10", relationship = "many-to-one")
+home_totals <- home_rows |> group_by(building_id) |>
+  summarise(units = sum(units), sqft = sum(sqft), land = sum(land), .groups = "drop") |>
+  left_join(several_homes |> select(building_id, dwelling_units, building_sqft, land_sqft), by = "building_id",
+    relationship = "one-to-one")
+stopifnot(!anyNA(home_rows$units),
+  with(home_totals, units == dwelling_units & coalesce(abs(sqft - building_sqft) < 1, is.na(sqft) & is.na(building_sqft)) &
+    coalesce(abs(land - land_sqft) < 1, is.na(land) & is.na(land_sqft))))
+home_rows <- home_rows |>
+  mutate(building_id = paste(building_id, record_ids, sep = "_"), dwelling_units = units, building_sqft = sqft,
+    land_sqft = land, location_source = if_else(is.na(x), location_source, "parcel_centroid"),
+    x_3435 = coalesce(x, x_3435), y_3435 = coalesce(y, y_3435),
+    flags = str_c(str_remove_all(flags, "area_per_unit_implausible;|land_implausible;"),
+      if_else(building_sqft / dwelling_units < min_sqft_per_unit, "area_per_unit_implausible;", "", ""),
+      if_else(land_sqft / dwelling_units > max_land_sqft_per_unit | land_sqft < min_land_sqft, "land_implausible;", "", ""))) |>
+  select(all_of(names(buildings)))
+buildings <- buildings |> filter(!building_id %in% several_homes$building_id) |> bind_rows(home_rows)
+
 # No Assessor record measures two rows of the same building era.
 record_rows <- buildings |> filter(!is.na(record_ids), status != "built_after_window") |>
   select(building_id, record_ids, first_assessment_year) |> separate_longer_delim(record_ids, "/")
@@ -534,6 +553,25 @@ filled <- sized |> filter(source == "condominium", !coalesce(building_sqft > 0, 
 buildings <- buildings |>
   mutate(floor_area_source = if_else(coalesce(building_sqft > 0, FALSE), "assessor", NA_character_)) |>
   rows_update(filled, by = "building_id")
+
+# Shared land: the Assessor often records a development's whole site on each of its towers (Wolf Point West and East
+# both report 178,133 sq ft; four East Illinois Street buildings report 100,946). For buildings of LARGE_BUILDING_UNITS
+# or more, land is development-wide when another such building within SHARED_LAND_DISTANCE_FT reports the same land,
+# or when a building at least SHARED_LAND_MIN_HEIGHT_FT tall covers less than SHARED_LAND_MAX_LOT_COVERAGE of it with
+# its 2022 footprints (Lakeshore East). Low garden-apartment complexes cover little of their land and are not flagged.
+large <- buildings |>
+  filter(status %in% c("measured", "measured_without_permit"), dwelling_units >= large_building_units, land_sqft > 0,
+    is.finite(x_3435))
+near <- st_is_within_distance(st_as_sf(large, coords = c("x_3435", "y_3435"), crs = 3435),
+  st_as_sf(large, coords = c("x_3435", "y_3435"), crs = 3435), dist = shared_land_distance_ft)
+same_land <- large$building_id[map_lgl(seq_along(near), \(i) any(large$land_sqft[near[[i]]] == large$land_sqft[i] &
+  large$building_id[near[[i]]] != large$building_id[i]))]
+towers <- footprint_hits |> group_by(building_id) |>
+  summarise(footprint_sqft = sum(footprint_sqft), height_ft = max(height_ft), .groups = "drop") |>
+  inner_join(large |> select(building_id, land_sqft), by = "building_id", relationship = "one-to-one") |>
+  filter(height_ft >= shared_land_min_height_ft, footprint_sqft / land_sqft < shared_land_max_lot_coverage)
+buildings <- buildings |>
+  mutate(flags = str_c(flags, if_else(building_id %in% c(same_land, towers$building_id), "land_shared_development;", "")))
 
 buildings <- buildings |>
   filter(status != "built_after_window") |>

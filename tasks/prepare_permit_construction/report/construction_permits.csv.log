@@ -1,7 +1,7 @@
 File: construction_permits.csv
 Rows: 26921
 Columns: 18
-SHA-256 (saved bytes): fe1ea3b6a0fe69448ff71bb9db511f2c5ce499e882654e27a6c76df22f72a467
+SHA-256 (saved bytes): cd744764df0e0899be88dccfa001373439a1d7eab0c7cda6cc99b3519abd8471
 Key: permit_id
 Types: DuckDB inference from the complete saved CSV.
 Distinct counts: exact (exact up to 100,000 rows).
@@ -21,7 +21,7 @@ Row counts, non-missing counts, and declared-key checks: exact.
         stated_counts       VARCHAR         6211       308                  -                  -                  -                  -
         permit_status       VARCHAR        26921         7                  -                  -                  -                  -
      permit_milestone       VARCHAR        26921         7                  -                  -                  -                  -
-  any_permit_complete       BOOLEAN        14842         2                  -                  -                  -                  -
+  any_permit_complete       BOOLEAN        14841         2                  -                  -                  -                  -
 repeat_permit_numbers       VARCHAR          315       315                  -                  -                  -                  -
              latitude        DOUBLE        26817     19828  41.64809709816912  42.02261774982914  41.88486070611395 0.0703092508982954
             longitude        DOUBLE        26817     19828 -87.94020267400954 -87.52571242675982 -87.67104226072904 0.0506424340142143

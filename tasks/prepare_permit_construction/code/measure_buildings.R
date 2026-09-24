@@ -6,7 +6,8 @@ source("../../shared/code/street_key.R")
 source("../../shared/code/assessor_classification.R")
 source("construction_rules.R")
 
-rebuilt_area_growth <- 0.25  # a parcel's floor area rising this share, and staying, is a rebuilt building
+rebuilt_area_growth <- 0.25  # a parcel's floor area rising this share, and staying, is a rebuilt building,
+rebuilt_distance_ft <- 250   # ... on a parcel this close to the permit's geocoded point
 address_match_ft <- 1000     # a parcel address without a direction matches within this distance of the permit
 
 permits <- read_csv("../output/construction_permits.csv",
@@ -135,8 +136,17 @@ parcel_changes <- cards |> group_by(permit_id, pin, tax_year, before_permit) |>
     max(tax_year) >= max(cards$tax_year) - 1, .groups = "drop") |>
   group_by(permit_id) |> summarise(parcel_changed_after_permit = any(changed), .groups = "drop")
 # Some new buildings keep the old reported year built: a parcel without a new card whose floor area first rises by
-# REBUILT_AREA_GROWTH within the construction lag and keeps it is measured in that year.
-rebuilt_parcels <- cards |> group_by(permit_id, pin) |> filter(!any(new_card), any(before_permit)) |>
+# REBUILT_AREA_GROWTH within the construction lag and keeps it is measured in that year. Floor area also rises with
+# additions, corrected records and work on another parcel, so this applies only to permits for new residential
+# buildings, on parcels within REBUILT_DISTANCE_FT of the permit's geocoded point (reviewers found 0 of 4 farther
+# matches right; tasks/audits/construction_hand_checks).
+rebuilt_candidates <- parcels |> distinct(permit_id, pin10) |>
+  inner_join(permits |> filter(scope == "new_residential") |> select(permit_id), by = "permit_id", relationship = "many-to-one") |>
+  inner_join(permit_points, by = "permit_id", relationship = "many-to-one") |>
+  inner_join(centroids |> select(pin10, x_3435, y_3435), by = "pin10", relationship = "many-to-one") |>
+  filter(sqrt((x_3435 - permit_x)^2 + (y_3435 - permit_y)^2) <= rebuilt_distance_ft) |> distinct(permit_id, pin10)
+rebuilt_parcels <- cards |> mutate(pin10 = substr(pin, 1, 10)) |> semi_join(rebuilt_candidates, by = c("permit_id", "pin10")) |>
+  group_by(permit_id, pin) |> filter(!any(new_card), any(before_permit)) |>
   group_by(permit_id, pin, issue_year, tax_year, before_permit) |>
   summarise(sqft = sum(building_sqft, na.rm = TRUE), .groups = "drop") |> arrange(permit_id, pin, tax_year) |>
   group_by(permit_id, pin) |>
@@ -183,7 +193,7 @@ condominiums <- DBI::dbGetQuery(con, sprintf("
 predates <- bind_rows(predates, condominiums |> filter(predates_permit) |> distinct(permit_id))
 condominiums <- condominiums |> filter(!predates_permit) |>
   group_by(permit_id, record_id) |> mutate(first_year = min(tax_year)) |>
-  filter(tax_year == stable_year(tax_year, if_else(is.na(units) | is.na(building_sqft), NA_character_, paste(units, building_sqft, land_sqft)), measurement_years)) |> ungroup() |>
+  filter(tax_year == stable_year(tax_year, if_else(is.na(units), NA_character_, paste(units, building_sqft, land_sqft)), measurement_years)) |> ungroup() |>
   transmute(permit_id, record_id, permit_pin, first_year, year_built, classes = "299", units, building_sqft, land_sqft,
     older_building = FALSE, single_family = FALSE, rebuilt = FALSE, source = "condominium")
 
@@ -283,6 +293,10 @@ buildings <- records |> left_join(groups |> select(permit_id, building_id), by =
   distinct(building_id, source, record_id, first_year, .keep_all = TRUE) |>
   group_by(building_id) |> summarise(source = first(source),
     record_ids = paste(sort(record_id), collapse = "/"), classes = paste(sort(unique(unlist(str_split(classes, "/")))), collapse = "/"),
+    # Each record's measurement, in record_ids order, so a row of several homes can be split into one row per home.
+    record_dwelling_units = paste(units[order(record_id)], collapse = "/"),
+    record_building_sqft = paste(building_sqft[order(record_id)], collapse = "/"),
+    record_land_sqft = paste(land_sqft[order(record_id)], collapse = "/"),
     first_assessment_year = min(first_year), assessor_year_built = min(year_built),
     dwelling_units = sum(units), building_sqft = sum(building_sqft), land_sqft = sum(land_sqft),
     older_building = any(older_building), single_family = all(single_family), rebuilt = any(rebuilt),
@@ -340,8 +354,9 @@ buildings <- permits |>
   select(building_id = permit_id, permit_number, member_permit_numbers, superseded_permit_numbers, issue_date, issue_year,
     address, latitude, longitude, permit_units, stated_counts, permit_status, any_permit_complete, parcel_pin10s,
     parcel_changed_after_permit, status,
-    source, record_ids, classes, first_assessment_year, assessor_year_built, dwelling_units, building_sqft, land_sqft,
-    match_basis, flags, allow_far, allow_dupac, far, dupac, multifamily, description) |>
+    source, record_ids, record_dwelling_units, record_building_sqft, record_land_sqft, classes, first_assessment_year,
+    assessor_year_built, dwelling_units, building_sqft, land_sqft, match_basis, flags, allow_far, allow_dupac, far, dupac,
+    multifamily, description) |>
   arrange(issue_date, building_id)
 
 # A permit that reached no building, followed by a measured permit on one of its parcels or at its address, was not

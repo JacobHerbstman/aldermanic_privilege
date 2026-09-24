@@ -1,41 +1,41 @@
 File: permit_construction.csv
-Rows: 14738
+Rows: 16354
 Columns: 31
-SHA-256 (saved bytes): d15cb4501210ff3b36375a4c98ebdd1fea585bdb828a46b30e4f37868c15cfee
+SHA-256 (saved bytes): 3220940cb0556f9ae0d6544e3c5872fa27befcdbb4c49d89bd75b55d09dfd3eb
 Key: building_id
 Types: DuckDB inference from the complete saved CSV.
 Distinct counts: exact (exact up to 100,000 rows).
 Row counts, non-missing counts, and declared-key checks: exact.
 
                  column inferred_type  non_missing  distinct                 min                max               mean                 sd
-            building_id       VARCHAR        14738     14738                   -                  -                  -                  -
-                  route       VARCHAR        14738         2                   -                  -                  -                  -
-          permit_number        BIGINT        12805     12805           100011918          100996898 100504177.60695042 280903.63161360857
-  member_permit_numbers       VARCHAR        12805     12805                   -                  -                  -                  -
-                 source       VARCHAR        14738         3                   -                  -                  -                  -
-             record_ids       VARCHAR        14738     14736                   -                  -                  -                  -
-             issue_date          DATE        12805      3669                   -                  -                  -                  -
-    assessor_year_built        BIGINT        14738        75                1871               2026  2011.418577826028 13.042678945349136
-            date_source       VARCHAR        14738         2                   -                  -                  -                  -
-      construction_date          DATE        14738      3669                   -                  -                  -                  -
-      construction_year        BIGINT        14738        17                2006               2022 2012.4147781245758  5.479625145638998
-          boundary_year        BIGINT        14738         2                2003               2015 2007.6369928077079  5.843331940073251
-                    era       VARCHAR        14738         2                   -                  -                  -                  -
-                   ward        BIGINT        14738        50                   1                 50 25.354661419459898 15.589724339166276
-          neighbor_ward        BIGINT        14738        50                   1                 50 24.195345365721266 15.688394144810314
-              ward_pair       VARCHAR        14738       140                   -                  -                  -                  -
-distance_to_boundary_ft        DOUBLE        14738     14731  11.886907005902836 27623.331640349745 1304.9743943512312 1641.3605303728589
-          within_1500ft       BOOLEAN        14738         2                   -                  -                  -                  -
-           within_500ft       BOOLEAN        14738         2                   -                  -                  -                  -
-        location_source       VARCHAR        14738         2                   -                  -                  -                  -
-                 x_3435        DOUBLE        14738     14730  1117465.6430804804 1203743.2364847388 1162199.6908029176 12278.932115260208
-                 y_3435        DOUBLE        14738     14730   1816533.470025296 1951090.7647423265 1903724.4999808427 25035.135834774406
-         dwelling_units        BIGINT        14706       263                   0               1679   7.70671834625323 39.614789221639995
-          building_sqft        BIGINT        14200      5710                   0            1380640  9655.169436619719  44805.33846745502
-      floor_area_source       VARCHAR        14191         2                   -                  -                  -                  -
-              land_sqft        BIGINT        14735      4555                   0            1540260  5820.645266372582 21361.221105753124
-              allow_far       BOOLEAN        14738         2                   -                  -                  -                  -
-            allow_dupac       BOOLEAN        14738         2                   -                  -                  -                  -
-                    far        DOUBLE        13499     11861 0.06141489033055298 32.509535794909056 1.2434493856527842 1.3235008307806746
-                  dupac        DOUBLE        13968      5456  1.3456904541241892  904.2268870494823  30.29384405524167  46.82623054645412
-            multifamily       BOOLEAN        14706         2                   -                  -                  -                  -
+            building_id       VARCHAR        16354     16354                   -                  -                  -                  -
+                  route       VARCHAR        16354         2                   -                  -                  -                  -
+          permit_number        BIGINT        13862     12788           100011918          100996898 100505263.79988457  280286.6802454169
+  member_permit_numbers       VARCHAR        13862     12788                   -                  -                  -                  -
+                 source       VARCHAR        16354         3                   -                  -                  -                  -
+             record_ids       VARCHAR        16354     16351                   -                  -                  -                  -
+             issue_date          DATE        13862      3669                   -                  -                  -                  -
+    assessor_year_built        BIGINT        16354        67                1871               2026 2011.5539929069341 11.890742820780268
+            date_source       VARCHAR        16354         2                   -                  -                  -                  -
+      construction_date          DATE        16354      3669                   -                  -                  -                  -
+      construction_year        BIGINT        16354        17                2006               2022 2012.2971750030574  5.489736422245842
+          boundary_year        BIGINT        16354         2                2003               2015 2007.5830989360402  5.830477685307039
+                    era       VARCHAR        16354         2                   -                  -                  -                  -
+                   ward        BIGINT        16354        50                   1                 50 24.662101015042193 15.557018942942383
+          neighbor_ward        BIGINT        16354        50                   1                 50  23.71107985813868 15.724497479107068
+              ward_pair       VARCHAR        16354       140                   -                  -                  -                  -
+distance_to_boundary_ft        DOUBLE        16354     16343  1.0214804405891442 27623.331640349745 1281.4115033200378 1583.2460449894377
+          within_1500ft       BOOLEAN        16354         2                   -                  -                  -                  -
+           within_500ft       BOOLEAN        16354         2                   -                  -                  -                  -
+        location_source       VARCHAR        16354         2                   -                  -                  -                  -
+                 x_3435        DOUBLE        16354     16341   1119172.951057051 1203743.2364847388 1162479.4122119083 12355.634375319523
+                 y_3435        DOUBLE        16354     16341   1816533.470025296 1951090.7647423265 1902930.9779680409 24713.233684080304
+         dwelling_units        BIGINT        16322       264                   0               1679   6.93732385737042  37.65916114968598
+          building_sqft        BIGINT        15814      5570                   0            1380640  8658.752055141014  42512.53192364531
+      floor_area_source       VARCHAR        15803         2                   -                  -                  -                  -
+              land_sqft        BIGINT        16351      5065                   0            1540260  5221.637942633478  20120.20458718679
+              allow_far       BOOLEAN        16354         2                   -                  -                  -                  -
+            allow_dupac       BOOLEAN        16354         2                   -                  -                  -                  -
+                    far        DOUBLE        14872     12752 0.06141489033055298 32.509535794909056  1.279274188844831  1.264484118506606
+                  dupac        DOUBLE        15333      5638  1.3456904541241892  904.2268870494823 30.765079909742397 44.346111345212485
+            multifamily       BOOLEAN        16322         2                   -                  -                  -                  -

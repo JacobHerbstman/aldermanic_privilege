@@ -57,10 +57,11 @@ parcel_descendants <- function(parcels) {
 
 # The assessment year whose measurement a building holds most often in its first `years` assessment years, the
 # earliest when tied. First-year records are often partial: a building still under construction, duplicate cards, or
-# a record before a condominium declaration. `signature` summarizes a year's measurement; a year without a complete
-# measurement (NA) does not count.
+# a record before a condominium declaration. `signature` summarizes a year's measurement and is the same on every row
+# of a year (one row per residential card); each year votes once. A year without a complete measurement (NA) does not
+# count.
 stable_year <- function(tax_year, signature, years) {
-  early <- tax_year < min(tax_year) + years & !is.na(signature)
+  early <- tax_year < min(tax_year) + years & !is.na(signature) & !duplicated(tax_year)
   if (!any(early)) return(min(tax_year))
   counts <- table(signature[early])
   min(tax_year[early & signature %in% names(counts)[counts == max(counts)]])

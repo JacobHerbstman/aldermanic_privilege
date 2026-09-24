@@ -117,7 +117,8 @@ non_residential_words <- paste0("HOTEL|MOTEL|OFFICE|DAY ?CARE|SCHOOL|CHURCH|REST
   "WAREHOUSE|STORAGE|INDUSTRIAL|FACTORY|PLANT\\b|BUILD-?OUT|TENANT|INTERIOR|CAR ?WASH|COMMUNITY|RECREATION|FIELD ?HOUSE|",
   "STATION|HOSPITAL|CLINIC|MEDICAL|LIBRARY|THEATER|BANK\\b|TOILET|SHELTER|CANOPY|PAVILION|STADIUM|POOL|EQUIPMENT|",
   "MECHANICAL|TRANSFORMER|GENERATOR|EXISTING")
-# An accessory structure is the object of the first clause: "ERECT A 33X24 FRAME GARAGE PER PLANS, TO AN EXISTING ...".
+# An accessory structure is the object of the first clause: "ERECT A 33X24 FRAME GARAGE PER PLANS, TO AN EXISTING ...",
+# "NEW DETACHED GARAGE-PER 2019 CHICAGO BUILDING CODE". Additions include misspellings ("NEW FRAME ONE STORY ADDTION").
 first_clause <- str_split_i(permits$main_text, ",|;|\\. |\\b(?:WITH|W/|AND|FOR|TO|AT|ON|OF|IN|BEHIND|SERVING)\\b", 1)
 # Every new-construction permit keeps one scope reason. New residential buildings continue, and so do new buildings
 # whose use the permit does not state ("ERECT NEW 3 STORY MASONRY BUILDING AS PER PLANS"): the Assessor decides those.
@@ -129,11 +130,12 @@ erects_dwellings <- str_detect(first_clause, "^(?:ERECT|CONSTRUCT|BUILD)\\b") & 
 permits <- permits |> mutate(scope = case_when(
   str_detect(main_text, "\\bREVISION TO\\b|\\bREVISIONS? (?:OF|FOR|TO) (?:THE )?(?:DDS )?PERMIT\\b|\\bPERMIT REVISION\\b|\\bREINSTAT") ~ "revision",
   str_detect(main_text, "\\bERECTION STARTS\\b|\\bPERMIT EXPIRES ON\\b|\\bTENTS?\\b|\\bTEMPORARY (?:STRUCTURE|EXHIBIT|STAGE)") ~ "temporary_structure",
-  str_detect(main_text, "(?<!IN )\\bADDITIONS?\\b|CONVER(?:T|SION)|\\bREHAB|\\bINTERIOR (?:ALTERATION|RENOVATION|REMODEL)") &
+  str_detect(main_text, "(?<!IN )\\bAD+I?T+I?ONS?\\b|CONVER(?:T|SION)|\\bREHAB|\\bINTERIOR (?:ALTERATION|RENOVATION|REMODEL)") &
     !erects_dwellings ~ "addition_or_conversion",
   str_detect(first_clause, paste0("\\b(?:GARAGES?|CARPORTS?|DECKS?|PORCH(?:ES)?|STAIRS?|STAIRWAYS?|FENCES?|PERGOLAS?|GAZEBOS?|SHEDS?|",
     "BREEZEWAY|RAMPS?|LANDINGS?|SUNROOMS?|CANOP(?:Y|IES))\\b")) &
-    !str_detect(first_clause, dwelling_words) & !str_detect(first_clause, "\\b(?:BUILDING|BLDG|UNITS?|D\\.?U)\\b") ~ "accessory_structure",
+    !str_detect(first_clause, dwelling_words) &
+    !str_detect(str_remove_all(first_clause, "BUILDING CODE"), "\\b(?:BUILDING|BLDG|UNITS?|D\\.?U)\\b") ~ "accessory_structure",
   str_detect(main_text, paste0("\\b(?:AT|FOR|TO|ON|SERVE|SERVES|SERVING|BEHIND) (?:AN |THE )?EXISTING (?:[0-9A-Z/.-]+ ){0,6}?",
     "(?:S\\.?F\\.?R|SINGLE[- ]?FAMILY|RESIDENCE|HOUSE|HOME|BUILDING|BLDG|DWELLING|UNIT)|\\bEXISTING ?:")) ~ "work_at_existing_building",
   stated_counts != "" | dwelling_text ~ "new_residential",
