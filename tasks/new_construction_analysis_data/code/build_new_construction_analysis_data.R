@@ -1,37 +1,87 @@
-# setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/new_construction_analysis_data/code")
-# adjacent_year_window <- 1
-# coincident_distance_ft <- 1
+# setwd("tasks/new_construction_analysis_data/code")
 source("../../setup_environment/code/packages.R")
 source("../../shared/code/save_data.R")
+source("../../shared/code/canonical_geometry_helpers.R")
 
-args <- commandArgs(trailingOnly = TRUE)
-if (interactive()) args <- c(adjacent_year_window, coincident_distance_ft)
-stopifnot(length(args) == 2L)
-adjacent_year_window <- as.integer(args[1])
-coincident_distance_ft <- as.numeric(args[2])
+boundary_window_ft <- 1500  # buildings this close to a ward-pair boundary enter the analysis
 
-projects <- read_csv("../output/construction_regressors.csv", col_types = cols(
-  project_id = "c", component_pins = "c", ward_pair = "c", segment_id = "c", zoning_group = "c", zoning_source = "c", zoning_note = "c", zoning_year = "i", .default = col_guess()))
-validated <- read_csv("../input/historical_zoning_project_construction_year.csv", col_types = cols(pin = "c")) |>
-  transmute(component_pin = pin, validated_year = as.integer(construction_year),
-    validated_group = construction_zone_group, longitude, latitude)
-stopifnot(!anyDuplicated(projects$project_id), !anyDuplicated(validated$component_pin))
+# New residential buildings from the permit-based construction data, near a ward boundary.
+buildings <- read_csv("../input/permit_construction.csv", col_types = cols(building_id = "c", permit_number = "c",
+    member_permit_numbers = "c", record_ids = "c", ward_pair = "c", construction_date = "D", .default = col_guess())) |>
+  filter(within_1500ft) |>
+  rename(density_far = far, density_dupac = dupac)
+stopifnot(!anyDuplicated(buildings$building_id))
 
-# Use construction-year zoning already established for a component parcel.
-components <- projects |> select(project_id, component_pins, construction_year) |>
-  separate_longer_delim(component_pins, delim = "/") |>
-  left_join(validated, by = c("component_pins" = "component_pin"), relationship = "many-to-one") |>
-  mutate(exact = construction_year == validated_year, adjacent = abs(construction_year - validated_year) <= adjacent_year_window) |>
-  group_by(project_id) |> summarise(
-    exact_count = n_distinct(validated_group[exact], na.rm = TRUE),
-    adjacent_count = n_distinct(validated_group[adjacent], na.rm = TRUE),
-    exact_group = paste(sort(unique(validated_group[exact])), collapse = ";"),
-    adjacent_group = paste(sort(unique(validated_group[adjacent])), collapse = ";"),
-    adjacent_first_year = if (any(adjacent, na.rm = TRUE)) min(validated_year[adjacent %in% TRUE]) else NA_integer_,
-    adjacent_last_year = if (any(adjacent, na.rm = TRUE)) max(validated_year[adjacent %in% TRUE]) else NA_integer_,
-    .groups = "drop")
+# City permit row ids of every permit behind each building, for scores estimated without them.
+permit_ids <- read_csv("../input/construction_permits.csv", col_types = cols(.default = col_character()),
+  col_select = c(permit_id, permit_number))
+stopifnot(!anyDuplicated(permit_ids$permit_number))
+building_permits <- buildings |> filter(!is.na(member_permit_numbers)) |> select(building_id, member_permit_numbers) |>
+  separate_longer_delim(member_permit_numbers, "/") |>
+  inner_join(permit_ids, by = c("member_permit_numbers" = "permit_number"), relationship = "many-to-one") |>
+  group_by(building_id) |> summarise(permit_ids = paste(sort(permit_id), collapse = "/"), .groups = "drop")
+buildings <- buildings |> left_join(building_permits, by = "building_id", relationship = "one-to-one")
 
-# Compare official zoning maps where a component has no construction-year record.
+# Nearest boundary segment of the building's ward pair.
+points <- st_as_sf(buildings, coords = c("x_3435", "y_3435"), crs = 3435, remove = FALSE)
+segments <- load_segment_line_layers("../input/boundary_segments_1320ft.gpkg", eras = sort(unique(buildings$era)))
+buildings$segment_id <- assign_points_to_nearest_segments(points, buildings$era, buildings$ward_pair, segments,
+  max_distance = units::set_units(boundary_window_ft, "ft"))
+assert_event_segment_contract(points, buildings$era, buildings$ward_pair, segments, buildings$segment_id,
+  buildings$distance_to_boundary_ft * 0.3048, max_distance_m = boundary_window_ft * 0.3048,
+  analysis_window_m = boundary_window_ft * 0.3048, context = "new construction")
+
+# Aldermen serving on each side on the construction date, their uncertainty scores, and ward controls in the
+# construction year.
+terms <- read_csv("../input/chicago_alderman_terms.csv", show_col_types = FALSE,
+  col_types = cols(ward = "i", alderman = "c", start_date = "D", end_date = "D"))
+term_overlap <- terms |> arrange(ward, start_date) |> group_by(ward) |> mutate(next_start = lead(start_date)) |> ungroup() |>
+  filter(!is.na(next_start), next_start <= end_date)
+stopifnot(!anyNA(terms), all(terms$start_date <= terms$end_date), nrow(term_overlap) == 0)
+controls <- read_csv("../input/ward_controls_2006_2022.csv", show_col_types = FALSE) |>
+  select(ward, year, share_white, share_black, median_hh_income, share_bach_plus, homeownership_rate)
+scores <- read_csv("../input/alderman_uncertainty_index_through2022.csv", show_col_types = FALSE) |>
+  select(alderman, score = uncertainty_index)
+stopifnot(!anyDuplicated(controls[c("ward", "year")]), !anyDuplicated(scores$alderman))
+buildings <- buildings |>
+  left_join(terms, by = join_by(ward, construction_date >= start_date, construction_date <= end_date),
+    relationship = "many-to-one") |>
+  rename(alderman_own = alderman, own_term_start = start_date) |> select(-end_date) |>
+  left_join(terms |> rename(alderman_neighbor = alderman, neighbor_term_start = start_date),
+    by = join_by(neighbor_ward == ward, construction_date >= neighbor_term_start, construction_date <= end_date),
+    relationship = "many-to-one") |> select(-end_date) |>
+  left_join(scores |> rename(alderman_own = alderman, strictness_own = score), by = "alderman_own", relationship = "many-to-one") |>
+  left_join(scores |> rename(alderman_neighbor = alderman, strictness_neighbor = score), by = "alderman_neighbor",
+    relationship = "many-to-one") |>
+  left_join(controls, by = c("ward", "construction_year" = "year"), relationship = "many-to-one") |>
+  left_join(controls, by = c("neighbor_ward" = "ward", "construction_year" = "year"), suffix = c("_own", "_neighbor"),
+    relationship = "many-to-one") |>
+  mutate(alderman_assignment_status = case_when(
+      is.na(alderman_own) | is.na(alderman_neighbor) ~ "no_recorded_term_on_construction_date",
+      !is.finite(strictness_own) | !is.finite(strictness_neighbor) ~ "serving_alderman_without_score",
+      strictness_own == strictness_neighbor ~ "equal_scores",
+      TRUE ~ "assigned"),
+    signed_distance_m = if_else(alderman_assignment_status == "assigned",
+      distance_to_boundary_ft * 0.3048 * sign(strictness_own - strictness_neighbor), NA_real_),
+    lenient_dist = abs(signed_distance_m) * as.integer(signed_distance_m <= 0),
+    strict_dist = abs(signed_distance_m) * as.integer(signed_distance_m > 0),
+    side = as.integer(signed_distance_m > 0),
+    continuous_score_difference = (strictness_own - strictness_neighbor) / 2,
+    pair_average_score = (strictness_own + strictness_neighbor) / 2,
+    # Joint service: one ward pair (within a map era) while the same two aldermen serve it, each term being one
+    # alderman's continuous tenure in the ward.
+    own_term = paste(alderman_own, own_term_start), neighbor_term = paste(alderman_neighbor, neighbor_term_start),
+    joint_service = if_else(is.na(alderman_own) | is.na(alderman_neighbor), NA_character_,
+      paste(era, ward_pair, pmin(own_term, neighbor_term), pmax(own_term, neighbor_term), sep = ":"))) |>
+  select(-own_term_start, -neighbor_term_start, -own_term, -neighbor_term)
+for (field in c("share_white_own", "share_black_own", "median_hh_income_own", "share_bach_plus_own", "homeownership_rate_own")) {
+  stopifnot(all(is.finite(buildings[[field]])))
+}
+
+# Zoning in effect at construction, from the official maps: the current polygon when its last amendment precedes
+# construction, and otherwise the latest snapshot before construction (the reconstructed 2006 map through 2012,
+# then the 2012, 2014 and 2016 maps). Where the 2006 reconstruction has no polygon, the 2012 map applies if the 2012,
+# 2014 and 2016 maps agree.
 zone_group <- function(code) {
   code <- str_to_upper(code)
   case_when(
@@ -47,77 +97,31 @@ zone_group <- function(code) {
     str_starts(code, "POS") ~ "Open Space",
     TRUE ~ "Other")
 }
-zoning_2006 <- st_read("../input/historical_zoning_2006_candidate.gpkg", quiet = TRUE) |>
-  transmute(group_2006 = candidate_zone_group_2006) |> st_transform(3435)
-zoning_2012 <- st_read("/vsizip/../input/zoning_nov2012.zip/Zoning_nov2012.shp", quiet = TRUE) |>
-  transmute(group_2012 = zone_group(ZONE_CLASS)) |> st_transform(3435)
-zoning_2014 <- st_read("/vsizip/../input/zoning_sep2014.zip/Zoning.shp", quiet = TRUE) |>
-  transmute(group_2014 = zone_group(ZONE_CLASS)) |> st_transform(3435)
-zoning_2016 <- st_read("/vsizip/../input/zoning_jan2016.zip/zoning_2016_01.shp", quiet = TRUE) |>
-  transmute(group_2016 = zone_group(ZONE_CLASS)) |> st_transform(3435)
-zoning_2025 <- st_read("../input/zoning_sep2025.geojson", quiet = TRUE) |>
-  transmute(group_2025 = zone_group(zone_class), ordinance_date = as.Date(ordinance_1)) |> st_transform(3435)
-points <- st_as_sf(projects, coords = c("x_3435", "y_3435"), crs = 3435, remove = FALSE) |>
-  st_join(zoning_2006, largest = TRUE) |> st_join(zoning_2012, largest = TRUE) |>
-  st_join(zoning_2014, largest = TRUE) |> st_join(zoning_2016, largest = TRUE) |>
-  st_join(zoning_2025, largest = TRUE)
-stopifnot(nrow(points) == nrow(projects), !anyDuplicated(points$project_id))
-validated_points <- st_as_sf(validated, coords = c("longitude", "latitude"), crs = 4326) |> st_transform(3435)
-nearest <- st_nearest_feature(points, validated_points)
-points$nearest_year <- validated$validated_year[nearest]
-points$nearest_group <- validated$validated_group[nearest]
-points$nearest_distance <- as.numeric(st_distance(points, validated_points[nearest, ], by_element = TRUE))
+zoned <- st_as_sf(buildings |> select(building_id, x_3435, y_3435), coords = c("x_3435", "y_3435"), crs = 3435) |>
+  st_join(st_read("../input/historical_zoning_2006_candidate.gpkg", quiet = TRUE) |>
+    transmute(group_2006 = candidate_zone_group_2006) |> st_transform(3435), largest = TRUE) |>
+  st_join(st_read("/vsizip/../input/zoning_nov2012.zip/Zoning_nov2012.shp", quiet = TRUE) |>
+    transmute(group_2012 = zone_group(ZONE_CLASS)) |> st_transform(3435), largest = TRUE) |>
+  st_join(st_read("/vsizip/../input/zoning_sep2014.zip/Zoning.shp", quiet = TRUE) |>
+    transmute(group_2014 = zone_group(ZONE_CLASS)) |> st_transform(3435), largest = TRUE) |>
+  st_join(st_read("/vsizip/../input/zoning_jan2016.zip/zoning_2016_01.shp", quiet = TRUE) |>
+    transmute(group_2016 = zone_group(ZONE_CLASS)) |> st_transform(3435), largest = TRUE) |>
+  st_join(st_read("../input/zoning_sep2025.geojson", quiet = TRUE) |>
+    transmute(group_2025 = zone_group(zone_class), ordinance_date = as.Date(ordinance_1)) |> st_transform(3435), largest = TRUE) |>
+  st_drop_geometry()
+stopifnot(!anyDuplicated(zoned$building_id))
+buildings <- buildings |> left_join(zoned, by = "building_id", relationship = "one-to-one") |>
+  mutate(preceding_group = case_when(construction_year <= 2012 ~ group_2006, construction_year <= 2014 ~ group_2012,
+      construction_year == 2015 ~ group_2014, TRUE ~ group_2016),
+    zoning_source = case_when(
+      !is.na(group_2025) & coalesce(ordinance_date <= construction_date, FALSE) ~ "current_map_amended_before_construction",
+      !is.na(preceding_group) ~ "latest_map_before_construction",
+      construction_year <= 2012 & group_2012 == group_2014 & group_2014 == group_2016 ~ "later_maps_agree_2006_missing"),
+    zone_group = case_when(zoning_source == "current_map_amended_before_construction" ~ group_2025,
+      zoning_source == "latest_map_before_construction" ~ preceding_group,
+      zoning_source == "later_maps_agree_2006_missing" ~ group_2012),
+    density_eligible = allow_far & allow_dupac & coalesce(density_far > 0 & density_dupac > 0, FALSE)) |>
+  select(-starts_with("group_"), -preceding_group, -ordinance_date)
+stopifnot(!any(buildings$density_eligible & is.na(buildings$zone_group)))
 
-zoning <- st_drop_geometry(points) |>
-  left_join(components, by = "project_id", relationship = "one-to-one") |>
-  mutate(construction_date = as.Date(construction_date),
-    adjacent_first_date = as.Date(if_else(is.na(adjacent_first_year), NA_character_, paste0(adjacent_first_year, "-06-15"))),
-    adjacent_last_date = as.Date(if_else(is.na(adjacent_last_year), NA_character_, paste0(adjacent_last_year, "-06-15"))),
-    nearest_date = as.Date(paste0(nearest_year, "-06-15")),
-    adjacent_event = coalesce(ordinance_date > pmin(construction_date, adjacent_first_date) &
-      ordinance_date <= pmax(construction_date, adjacent_last_date), FALSE),
-    nearest_event = coalesce(ordinance_date > pmin(construction_date, nearest_date) &
-      ordinance_date <= pmax(construction_date, nearest_date), FALSE),
-    coincident_group = if_else(nearest_distance <= coincident_distance_ft & abs(construction_year - nearest_year) <= adjacent_year_window &
-      !nearest_event, nearest_group, NA_character_),
-    stable_group = case_when(
-      construction_year == 2006 ~ group_2006,
-      construction_year <= 2012 & group_2006 == group_2012 ~ group_2006,
-      construction_year <= 2014 & group_2012 == group_2014 ~ group_2012,
-      construction_year == 2015 & group_2014 == group_2016 ~ group_2014,
-      construction_year >= 2016 & group_2016 == group_2025 ~ group_2016),
-    preceding_group = case_when(construction_year <= 2012 ~ group_2006,
-      construction_year <= 2014 ~ group_2012, construction_year == 2015 ~ group_2014,
-      construction_year >= 2016 ~ group_2016),
-    later_group = if_else(construction_year <= 2012 & is.na(preceding_group) &
-      group_2012 == group_2014 & group_2014 == group_2016 &
-      (is.na(ordinance_date) | ordinance_date > construction_date), group_2012, NA_character_),
-    zoning_assignment_source = case_when(
-      !is.na(zoning_group) & zoning_year == construction_year ~ paste0("recorded_corrected_year:", zoning_source),
-      exact_count == 1 ~ "validated_component_exact_year",
-      exact_count == 0 & adjacent_count == 1 & !adjacent_event ~ "validated_component_adjacent_year",
-      !is.na(coincident_group) ~ "coincident_validated_project",
-      !is.na(stable_group) ~ "stable_official_snapshot_interval",
-      !is.na(ordinance_date) & ordinance_date <= construction_date ~ "current_polygon_last_event_preconstruction",
-      !is.na(preceding_group) ~ "preceding_official_snapshot",
-      !is.na(later_group) ~ "stable_later_snapshots_missing_2006_polygon",
-      TRUE ~ "unresolved_snapshot_change"),
-    construction_zone_group = case_when(
-      str_starts(zoning_assignment_source, "recorded_corrected_year:") ~ zoning_group,
-      zoning_assignment_source == "validated_component_exact_year" ~ exact_group,
-      zoning_assignment_source == "validated_component_adjacent_year" ~ adjacent_group,
-      zoning_assignment_source == "coincident_validated_project" ~ coincident_group,
-      zoning_assignment_source == "stable_official_snapshot_interval" ~ stable_group,
-      zoning_assignment_source == "current_polygon_last_event_preconstruction" ~ group_2025,
-      zoning_assignment_source == "preceding_official_snapshot" ~ preceding_group,
-      zoning_assignment_source == "stable_later_snapshots_missing_2006_polygon" ~ later_group)) |>
-  select(project_id, source_family, construction_year, within_500ft, construction_zone_group, zoning_assignment_source)
-
-projects <- projects |>
-  left_join(zoning |> select(project_id, zone_group = construction_zone_group, zoning_assignment_source),
-    by = "project_id", relationship = "one-to-one") |>
-  mutate(density_eligible = allow_far & allow_dupac & is.finite(density_far) & density_far > 0 &
-    is.finite(density_dupac) & density_dupac > 0)
-stopifnot(!anyNA(projects$density_eligible),
-  !any(projects$within_500ft & (projects$allow_far | projects$allow_dupac) & (is.na(projects$zone_group) | projects$zone_group == "")))
-SaveData(projects |> arrange(construction_year, project_id), "project_id", "../output/new_construction_analysis_data.csv", na = "")
+SaveData(buildings |> arrange(construction_year, building_id), "building_id", "../output/new_construction_analysis_data.csv", na = "")

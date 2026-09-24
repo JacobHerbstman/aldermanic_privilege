@@ -3,8 +3,8 @@
 `output/construction_buildings.csv` has one row per new residential building: every building authorized by a
 City of Chicago new-construction permit issued 2006–2022 (`route = permit`), and every new building in Cook County
 Assessor records on a Chicago parcel that no such permit reaches (`route = assessor_only`). The permit file starts on
-January 3, 2006, so buildings completed in 2006–2007 are often on earlier permits. This task does not feed the paper
-yet; `tasks/audits/permit_density_comparison` compares it with the paper's current data.
+January 3, 2006, so buildings completed in 2006–2007 are often on earlier permits. `output/permit_construction.csv`
+feeds the paper's density analysis through `tasks/new_construction_analysis_data`.
 
 ## Rules
 
