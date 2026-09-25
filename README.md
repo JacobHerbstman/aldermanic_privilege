@@ -15,8 +15,8 @@ make
 
 This runs three steps in order:
 
-1. `make -C tasks/setup_environment/code` installs any missing R packages and the
-   pinned Python packages used by the data reports, and records their versions.
+1. `make -C tasks/setup_environment/code` installs any missing R packages, builds
+   the Python environment for the data reports, and records their versions.
 2. `make -C replication` downloads the recorded source archive from the
    [GitHub release](https://github.com/JacobHerbstman/aldermanic_privilege/releases/tag/recorded-sources-2026-09-10),
    verifies its checksum, and restores the recorded raw files under `data_raw/`.
@@ -33,9 +33,11 @@ missing or out-of-date file. An unchanged second
 
 - R (tested with 4.5.2) with the system libraries needed by `sf`, `units` and
   `arrow` (GDAL, GEOS, PROJ, UDUNITS).
-- Python 3.11 or later (tested with 3.13); the data reports pin `pandas==3.0.0`
-  and `duckdb==1.4.4`, which the setup step installs with `pip` into the active
-  Python. Use a virtual environment if you do not want them installed globally.
+- Python 3.11 or later on the PATH (tested with 3.13 and 3.14). The setup step
+  builds its own virtual environment in `tasks/setup_environment/output/python-env`
+  with the pinned report packages (`pandas==3.0.0`, `duckdb==1.4.4`); nothing is
+  installed into the system Python. If no Python 3.11+ is found, setup stops and
+  says how to install one.
 - GNU Make 3.81 or later, Bash, `curl`, `tar`, `gzip` and `shasum` (the optional source-refresh targets also use `wget`).
 - A LaTeX installation providing `pdflatex` and `bibtex`.
 - About 60 GB of free disk space for downloads and intermediate files.
