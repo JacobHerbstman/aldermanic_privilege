@@ -8,11 +8,11 @@ all: ../output/uncertainty_score_map_comparison.pdf \
 	../output/uncertainty_score_distribution_$(UNCERTAINTY_SPEC).pdf \
 	../output/uncertainty_score_predecessor_successor_$(UNCERTAINTY_SPEC).pdf
 
-../output/uncertainty_score_map_comparison.pdf: strictness_score_map.R ../input/alderman_uncertainty_index_$(UNCERTAINTY_SPEC).csv ../input/chicago_alderman_panel.csv ../input/ward_panel.gpkg Makefile ../../setup_environment/code/packages.R | ../output
+../output/uncertainty_score_map_comparison.pdf: strictness_score_map.R ../input/alderman_uncertainty_index_$(UNCERTAINTY_SPEC).csv ../input/chicago_alderman_panel.csv ../input/ward_panel.gpkg Makefile | ../output
 	$(R) $< $(EARLY_DATE) $(LATE_DATE) $(UNCERTAINTY_SPEC)
 
 ../%/uncertainty_score_distribution_$(UNCERTAINTY_SPEC).pdf \
-	../%/uncertainty_score_predecessor_successor_$(UNCERTAINTY_SPEC).pdf: plot_score_distribution_and_turnover.R ../input/alderman_uncertainty_index_$(UNCERTAINTY_SPEC).csv ../input/chicago_alderman_panel.csv ../../setup_environment/code/packages.R Makefile | ../output
+	../%/uncertainty_score_predecessor_successor_$(UNCERTAINTY_SPEC).pdf: plot_score_distribution_and_turnover.R ../input/alderman_uncertainty_index_$(UNCERTAINTY_SPEC).csv ../input/chicago_alderman_panel.csv Makefile | ../output
 	$(R) $< $(UNCERTAINTY_SPEC)
 
 ../input/alderman_uncertainty_index_$(UNCERTAINTY_SPEC).csv: ../../create_alderman_uncertainty_index/output/alderman_uncertainty_index_$(UNCERTAINTY_SPEC).csv | ../input

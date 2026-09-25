@@ -87,8 +87,11 @@ cards <- DBI::dbGetQuery(con, sprintf("
     pin)[tax_year == first_year]),
     same_floor_area = coalesce(abs(first(prior_sqft) - sum(building_sqft[new_card & tax_year == first_year])) <= 1, FALSE)) |>
   group_by(pin, tax_year) |> filter(any(new_card)) |>
-  mutate(signature = if_else(anyNA(building_sqft[new_card]), NA_character_,
-    paste(sum(building_sqft[new_card]), sum(new_card), sum(num_apartments[new_card], na.rm = TRUE)))) |>
+  # The signature includes the dwellings a year records, so a placeholder record without them (such as an omitted
+  # assessment) is incomplete.
+  mutate(units_measured = case_when(class %in% single_family_assessor_classes ~ 1, num_apartments > 0 ~ num_apartments),
+    signature = if_else(anyNA(building_sqft[new_card]) | anyNA(units_measured[new_card]), NA_character_,
+      paste(sum(building_sqft[new_card]), sum(new_card), sum(units_measured[new_card])))) |>
   group_by(pin) |> filter(tax_year == stable_year(tax_year, signature, measurement_years)) |>
   mutate(old_card_on_parcel = any(!new_card)) |> filter(new_card) |> ungroup() |>
   mutate(card_key = paste(record_id, card_num),
@@ -114,9 +117,10 @@ condominiums <- DBI::dbGetQuery(con, sprintf("
   SELECT c.pin10 AS record_id, c.pin10 AS pin10s, f.first_year, c.tax_year, min(c.year_built) AS year_built,
     count(*) FILTER (WHERE c.is_parking_space <> 'true' AND c.is_common_area <> 'true') AS units,
     max(c.building_sqft) AS building_sqft, max(c.land_sqft) AS land_sqft
-  FROM c JOIN first_year f ON c.pin10 = f.pin10 AND c.tax_year BETWEEN f.first_year AND f.first_year + %d
-  GROUP BY 1, 2, 3, 4", first_year_built - assessor_year_lead, measurement_years - 1)) |>
-  group_by(record_id) |> filter(tax_year == stable_year(tax_year, if_else(is.na(units), NA_character_, paste(units, building_sqft, land_sqft)), measurement_years)) |>
+  FROM c JOIN first_year f ON c.pin10 = f.pin10 AND c.tax_year >= f.first_year
+  GROUP BY 1, 2, 3, 4", first_year_built - assessor_year_lead)) |>
+  group_by(record_id) |> filter(tax_year == stable_year(tax_year, if_else(is.na(units), NA_character_, paste(units, building_sqft, land_sqft)), measurement_years,
+    extend_ties = TRUE)) |>
   ungroup() |> select(-tax_year) |>
   mutate(classes = "299", older_building = FALSE, single_family = FALSE, source = "condominium")
 DBI::dbDisconnect(con, shutdown = TRUE)
@@ -459,9 +463,10 @@ named_condominiums <- DBI::dbGetQuery(con, sprintf("
   SELECT c.pin10 AS record_id, f.first_year, c.tax_year, min(c.year_built) AS year_built,
     count(*) FILTER (WHERE c.is_parking_space <> 'true' AND c.is_common_area <> 'true') AS units,
     max(c.building_sqft) AS building_sqft, max(c.land_sqft) AS land_sqft
-  FROM c JOIN first_year f ON c.pin10 = f.pin10 AND c.tax_year BETWEEN f.first_year AND f.first_year + %d
-  GROUP BY 1, 2, 3", measurement_years - 1)) |>
-  group_by(record_id) |> filter(tax_year == stable_year(tax_year, if_else(is.na(units), NA_character_, paste(units, building_sqft, land_sqft)), measurement_years)) |>
+  FROM c JOIN first_year f ON c.pin10 = f.pin10 AND c.tax_year >= f.first_year
+  GROUP BY 1, 2, 3")) |>
+  group_by(record_id) |> filter(tax_year == stable_year(tax_year, if_else(is.na(units), NA_character_, paste(units, building_sqft, land_sqft)), measurement_years,
+    extend_ties = TRUE)) |>
   ungroup()
 DBI::dbDisconnect(con, shutdown = TRUE)
 remeasured <- record_decisions |> filter(field == "measure_record") |>

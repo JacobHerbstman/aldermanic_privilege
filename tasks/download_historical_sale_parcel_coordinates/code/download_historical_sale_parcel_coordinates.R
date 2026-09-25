@@ -1,4 +1,4 @@
-# setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/download_historical_sale_parcel_coordinates/code")
+# setwd("tasks/download_historical_sale_parcel_coordinates/code")
 # start_year <- 2006
 # end_year <- 2022
 

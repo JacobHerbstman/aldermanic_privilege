@@ -12,7 +12,7 @@ all: ../output/census_blocks_2010.csv \
 
 download-current: ../output/major_streets_current.geojson
 
-../output/major_streets_current.geojson: download_major_streets.R ../../setup_environment/code/packages.R | ../output ../temp
+../output/major_streets_current.geojson: download_major_streets.R | ../output ../temp
 	$(R) $<
 
 ../output/cta_stations.geojson: download_chicago_spatial_data.sh | ../output ../temp

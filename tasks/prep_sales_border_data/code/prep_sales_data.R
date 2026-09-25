@@ -1,19 +1,13 @@
-# --- Interactive Test Block ---
-# setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/prep_sales_border_data/code")
-# drop_inconsistent_rooms <- "TRUE"
-
-source("../input/packages.R")
-source("../input/save_data.R")
-args <- if (interactive()) c(drop_inconsistent_rooms) else commandArgs(trailingOnly = TRUE)
-stopifnot(length(args) == 1L, args[1] %in% c("TRUE", "FALSE"))
-drop_inconsistent_rooms <- args[1] == "TRUE"
+# setwd("tasks/prep_sales_border_data/code")
+source("../../setup_environment/code/packages.R")
+source("../../shared/code/save_data.R")
 
 sales <- fread(
   "../input/sales_with_ward_distances.csv",
   colClasses = list(character = "pin")
 )
 if (!"segment_id" %in% names(sales)) {
-  stop("Input sales_with_ward_distances.csv is missing segment_id. Rebuild merge_event_study_scores after segment assignment.", call. = FALSE)
+  stop("Input sales_with_ward_distances.csv is missing segment_id. Rebuild merge_sales_scores after segment assignment.", call. = FALSE)
 }
 sales[, `:=`(
   pin = gsub("[^0-9]", "", trimws(pin)),
@@ -79,18 +73,16 @@ sales_h[, `:=`(
 )]
 
 sales_out <- sales_h[sale_year >= 2006 & baseline_sale_eligible]
+property_restricted <- nrow(sales_out)
 
-# Missing apartment counts remain eligible.
-if (drop_inconsistent_rooms) {
-  sales_out <- sales_out[is.na(num_rooms) | is.na(num_bedrooms) | num_bedrooms <= num_rooms]
-  stopifnot(!any(sales_out$num_bedrooms > sales_out$num_rooms, na.rm = TRUE))
-}
+# Property records with more bedrooms than rooms are recording errors. Missing room or bedroom counts remain eligible.
+sales_out <- sales_out[is.na(num_rooms) | is.na(num_bedrooms) | num_bedrooms <= num_rooms]
+consistent_rooms <- nrow(sales_out)
 
 # As in school_closures_house_prices (tasks/clean_home_sales): more than $5,000 per building square foot is a
 # recording error (an 893 sq ft house sold for $134.9 million), and sales outside the within-year citywide 1st-99th
 # percentiles of nominal price are flagged, not trimmed.
 sales_out[, price_per_building_sqft := sale_price_nominal / building_sqft]
-cat(sprintf("Excluding %d sales above $5,000 per building square foot.\n", sales_out[price_per_building_sqft > 5000, .N]))
 sales_out <- sales_out[price_per_building_sqft <= 5000]
 sales_out[, price_outside_p01_p99 := sale_price_nominal < quantile(sale_price_nominal, 0.01, type = 7) |
   sale_price_nominal > quantile(sale_price_nominal, 0.99, type = 7), by = sale_year]
@@ -110,4 +102,13 @@ if (any(
   stop("Final residential sales data violate the structural eligibility rules.", call. = FALSE)
 }
 
+# Sample flow quoted in the paper's data appendix.
+sample_flow <- data.table(
+  step = c("located_sales", "one_building_whole_property", "more_bedrooms_than_rooms", "above_5000_per_sqft",
+    "sales_with_hedonics"),
+  count = c(nrow(sales), property_restricted, property_restricted - consistent_rooms,
+    consistent_rooms - nrow(sales_out), nrow(sales_out))
+)
+
 SaveData(sales_out, c("row_id"), "../output/sales_with_hedonics.parquet")
+SaveData(sample_flow, "step", "../output/sales_hedonics_sample_flow.csv")

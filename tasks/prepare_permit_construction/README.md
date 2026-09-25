@@ -58,9 +58,13 @@ Settings named below are set at the top of the script that applies them; those u
   parcel, so this applies only to permits for new residential buildings, on parcels within `rebuilt_distance_ft` of
   the permit's geocoded point (reviewers found all 4 farther matches wrong).
 - A building is dated by its first assessment and measured on the record it holds most often in its first
-  `measurement_years` assessment years (each year votes once, however many residential cards it has; the earliest
-  when tied; years without a complete measurement do not count, and a condominium building's measurement is its unit
-  count, floor area and land, or its unit count and land when the Assessor records no floor area):
+  `measurement_years` assessment years (each year votes once, however many residential cards it has; years without a
+  complete measurement, including a residential record without a dwelling count, do not count; a condominium
+  building's measurement is its unit count, floor area and land, or its unit count and land when the Assessor records
+  no floor area). When different measurements are held equally often, the earliest is used, except for condominiums,
+  whose unit parcels are declared, and parking parcels flagged, over several years: there each later assessment year
+  joins the vote until one measurement leads (10447 S Hale Ave records 1, 4, 9 and then 9 units), and the earliest is
+  used only if none ever does:
   first-year records are often partial (a building still under construction, duplicate cards, a record before a
   condominium declaration). A building on prorated parcels keeps its proration as first assessed.
 - Units, floor area and land come from one source and one measurement year, never mixed:

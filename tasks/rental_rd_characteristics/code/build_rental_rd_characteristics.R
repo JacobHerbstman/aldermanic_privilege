@@ -1,5 +1,5 @@
 # --- Interactive Test Block ---
-# setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/rental_rd_characteristics/code")
+# setwd("tasks/rental_rd_characteristics/code")
 # bandwidth_ft <- 1500
 
 source("../../setup_environment/code/packages.R")

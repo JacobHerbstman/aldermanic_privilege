@@ -1,5 +1,5 @@
 # --- Interactive Test Block ---
-# setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/border_segment_creation/code")
+# setwd("tasks/border_segment_creation/code")
 # segment_length_ft <- 1320
 # segment_layer_bws_m <- "100,250,400"
 

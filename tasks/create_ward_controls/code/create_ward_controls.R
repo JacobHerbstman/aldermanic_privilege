@@ -2,7 +2,7 @@
 ## Sources: 2000 Decennial, 2010 Decennial, and Annual ACS 5-Year Estimates
 
 ## --- Interactive Test Block ---
-# setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/create_ward_controls/code")
+# setwd("tasks/create_ward_controls/code")
 # start_year <- 2006
 # end_year <- 2022
 

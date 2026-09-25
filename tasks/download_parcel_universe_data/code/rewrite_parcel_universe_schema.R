@@ -1,4 +1,4 @@
-# setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/download_parcel_universe_data/code")
+# setwd("tasks/download_parcel_universe_data/code")
 
 source("../../shared/code/save_data.R")
 

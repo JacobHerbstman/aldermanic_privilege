@@ -5,7 +5,7 @@ END_YEAR ?= 2022
 
 all: ../output/ward_controls_$(START_YEAR)_$(END_YEAR).csv
 
-../output/ward_controls_$(START_YEAR)_$(END_YEAR).csv: create_ward_controls.R ../output/census_2000.gpkg ../output/census_2010.csv ../output/census_acs.csv ../output/census_block_groups.gpkg ../input/ward_panel.gpkg ../../setup_environment/code/packages.R Makefile ../../shared/code/save_data.R ../../shared/code/report.py | ../output ../report
+../output/ward_controls_$(START_YEAR)_$(END_YEAR).csv: create_ward_controls.R ../output/census_2000.gpkg ../output/census_2010.csv ../output/census_acs.csv ../output/census_block_groups.gpkg ../input/ward_panel.gpkg Makefile | ../output ../report
 	$(R) $< $(START_YEAR) $(END_YEAR)
 
 ../output/census_2000.gpkg: ../sources/census_2000.gpkg.gz | ../output ../temp
@@ -29,7 +29,7 @@ download-current: ../output/census_2000_current.gpkg ../output/census_2010_curre
 ../%/census_2000_current.gpkg \
 	../%/census_2010_current.csv \
 	../%/census_acs_current.csv \
-	../%/census_block_groups_current.gpkg: download_census_controls.R Makefile ../../setup_environment/code/packages.R ../../shared/code/save_data.R ../../shared/code/report.py | ../output ../temp ../report
+	../%/census_block_groups_current.gpkg: download_census_controls.R Makefile | ../output ../temp ../report
 	$(R) $< $(START_YEAR) $(END_YEAR)
 
 ../input/ward_panel.gpkg: ../../ward_panel_create/output/ward_panel.gpkg | ../input

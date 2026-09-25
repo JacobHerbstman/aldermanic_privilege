@@ -1,27 +1,9 @@
-# setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/run_event_study_permit/code")
-# bandwidth_m <- 152.4
-# bandwidth_label <- "500ft"
+# setwd("tasks/run_event_study_permit/code")
+# Blocks within 500 ft (152.4 m) of the ward boundary, as in run_binary_event_study_permit.R.
+bandwidth_m <- 152.4
+bandwidth_label <- "500ft"
 
 source("../../setup_environment/code/packages.R")
-
-cli_args <- commandArgs(trailingOnly = TRUE)
-if (length(cli_args) == 0L) {
-  cli_args <- c(bandwidth_m, bandwidth_label)
-}
-if (length(cli_args) != 2L) {
-  stop("Expected a bandwidth and bandwidth label.", call. = FALSE)
-}
-
-bandwidth_m <- as.numeric(cli_args[1])
-bandwidth_label <- cli_args[2]
-
-if (
-  !is.finite(bandwidth_m) ||
-    bandwidth_m <= 0 ||
-    !grepl("^[A-Za-z0-9_-]+$", bandwidth_label)
-) {
-  stop("Invalid bandwidth or bandwidth label.", call. = FALSE)
-}
 
 data <- arrow::read_parquet(
   "../input/permit_block_year_panel_2015.parquet"

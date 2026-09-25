@@ -1,5 +1,5 @@
 # --- Interactive Test Block ---
-# setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/strictness_score_map/code")
+# setwd("tasks/strictness_score_map/code")
 # early_date <- "2014-01"
 # late_date <- "2022-01"
 # uncertainty_spec <- "ptfeTRUE_rtfeTRUE_porchTRUE_cafeFALSE_2stage_volLAG1_BOTH_through2022"

@@ -1,5 +1,5 @@
 # --- Interactive Test Block ---
-# setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/process_residential_improvements_full/code")
+# setwd("tasks/process_residential_improvements_full/code")
 # start_year <- 2006
 # end_year <- 2022
 

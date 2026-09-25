@@ -1,5 +1,5 @@
 # --- Interactive Test Block ---
-# setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/permit_summary_stats/code")
+# setwd("tasks/permit_summary_stats/code")
 # max_application_ym <- "2022-12"
 
 source("../../setup_environment/code/packages.R")
@@ -16,6 +16,7 @@ if (length(cli_args) != 1) {
 max_application_ym <- cli_args[1]
 
 group_levels <- c("High-Discretion", "Low-Discretion")
+# Low-discretion permits are all permit types outside the high-discretion group except signs, as defined in paper/sections/data.tex.
 signs_permit_type <- "PERMIT - SIGNS"
 alderman_row_levels <- c(
   "Total permits in sample",

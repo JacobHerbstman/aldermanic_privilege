@@ -1,5 +1,5 @@
 # --- Interactive Test Block ---
-# setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/create_event_study_permit_data/code")
+# setwd("tasks/create_event_study_permit_data/code")
 # panel_max_distance_m <- 800
 # permit_start_year <- 2010
 # permit_end_year <- 2020

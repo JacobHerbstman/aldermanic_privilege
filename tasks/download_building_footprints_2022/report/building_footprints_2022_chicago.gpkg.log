@@ -1,17 +1,17 @@
 File: building_footprints_2022_chicago.gpkg
 Rows: 895674
 Columns: 7
-SHA-256 (saved bytes): a7f1d3b8e366e6ac950150ac1e0b126ed6c6e63e0eedb1f950604adecd6e4bd0
+SHA-256 (saved bytes): c2e2ebf7e0b8cba72d1c460c6f277418fa595e268619d444207a2233a0858d57
 Key: object_id
 Types: SQLite attributes read through pandas; geometry excluded.
 Distinct counts: approximate (exact up to 100,000 rows).
 Row counts, non-missing counts, and declared-key checks: exact.
 
-        column inferred_type  non_missing  distinct           min           max               mean                 sd
-           fid        BIGINT       895674    892843             1        895674           447837.5 258558.95684060143
-     object_id        BIGINT       895674   1071473        303429       1661607  985221.6240551808  379174.3661027368
-footprint_sqft        DOUBLE       895674    789542 100.121899654 3585046.16976 1925.1333794491827 10318.055678557152
-    image_year        BIGINT       895674         1          2022          2022             2022.0                0.0
-      ground_z        DOUBLE       895674    139582       555.199       747.827  608.1295314779792  18.23383113062431
-     max_point        DOUBLE       895674    118613        584.94      2319.941  630.2702047273746 22.043522968591844
-     height_ft        DOUBLE       895674     49346         7.078      1726.587 22.140673249419528 15.406671290221563
+        column inferred_type non_missing distinct           min           max               mean                 sd
+           fid        BIGINT      895674   892843             1        895674           447837.5 258558.95684060143
+     object_id        BIGINT      895674  1071473        303429       1661607  985221.6240551808  379174.3661027368
+footprint_sqft        DOUBLE      895674   789542 100.121899654 3585046.16976 1925.1333794491827 10318.055678557152
+    image_year        BIGINT      895674        1          2022          2022             2022.0                0.0
+      ground_z        DOUBLE      895674   139582       555.199       747.827  608.1295314779792  18.23383113062431
+     max_point        DOUBLE      895674   118613        584.94      2319.941  630.2702047273746 22.043522968591844
+     height_ft        DOUBLE      895674    49346         7.078      1726.587 22.140673249419528 15.406671290221563

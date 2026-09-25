@@ -107,7 +107,7 @@ all: \
 	../data_raw/replication_sources/residential_improvements_2006_2022_20260731.csv
 
 sources-2026-09-10.tar.gz: sources-2026-09-10.tar.gz.sha256
-	wget -O $@.tmp --no-use-server-timestamps https://github.com/JacobHerbstman/aldermanic_privilege/releases/download/recorded-sources-2026-09-10/sources-2026-09-10.tar.gz
+	curl -L --fail --retry 20 --retry-all-errors --retry-delay 10 -C - -o $@.tmp https://github.com/JacobHerbstman/aldermanic_privilege/releases/download/recorded-sources-2026-09-10/sources-2026-09-10.tar.gz
 	sed 's/  sources-2026-09-10.tar.gz$$/  sources-2026-09-10.tar.gz.tmp/' sources-2026-09-10.tar.gz.sha256 | shasum -a 256 -c -
 	mv $@.tmp $@
 

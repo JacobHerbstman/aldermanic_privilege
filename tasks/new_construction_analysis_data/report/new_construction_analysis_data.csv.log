@@ -1,68 +1,62 @@
 File: new_construction_analysis_data.csv
-Rows: 11788
-Columns: 58
-SHA-256 (saved bytes): 8d282321118e3ae92807f43d617edaf4071ef45062db4f8af700e8ad0f80d651
+Rows: 11794
+Columns: 52
+SHA-256 (saved bytes): 878c1f5cb36bd2ee609abb051c5a0bc18a9275818df8b9b5616bb269f396b512
 Key: building_id
 Types: DuckDB inference from the complete saved CSV.
 Distinct counts: exact (exact up to 100,000 rows).
 Row counts, non-missing counts, and declared-key checks: exact.
 
-                     column inferred_type  non_missing  distinct                 min                max                 mean                  sd
-                building_id       VARCHAR        11788     11788                   -                  -                    -                   -
-                      route       VARCHAR        11788         2                   -                  -                    -                   -
-              permit_number        BIGINT         9969      9204           100011918          100996898   100512585.46594442  276816.26739618497
-      member_permit_numbers       VARCHAR         9969      9204                   -                  -                    -                   -
-                     source       VARCHAR        11788         3                   -                  -                    -                   -
-                 record_ids       VARCHAR        11788     11785                   -                  -                    -                   -
-                 issue_date          DATE         9969      3282                   -                  -                    -                   -
-        assessor_year_built        BIGINT        11788        55                1878               2026   2011.5951815405497   12.21686969629071
-                date_source       VARCHAR        11788         2                   -                  -                    -                   -
-          construction_date          DATE        11788      3282                   -                  -                    -                   -
-          construction_year        BIGINT        11788        17                2006               2022    2012.394468951476   5.461168280382555
-              boundary_year        BIGINT        11788         2                2003               2015    2007.668476416695   5.850636610080655
-                        era       VARCHAR        11788         2                   -                  -                    -                   -
-                       ward        BIGINT        11788        49                   1                 50   23.633610451306414  15.661252889698828
-              neighbor_ward        BIGINT        11788        49                   1                 50   23.812690872073293  15.620223498839247
-                  ward_pair       VARCHAR        11788       134                   -                  -                    -                   -
-    distance_to_boundary_ft        DOUBLE        11788     11784  1.0214804405891442  1499.907075119423    628.8517624485405   401.3479178426405
-              within_1500ft       BOOLEAN        11788         1                   -                  -                    -                   -
-               within_500ft       BOOLEAN        11788         2                   -                  -                    -                   -
-            location_source       VARCHAR        11788         2                   -                  -                    -                   -
-                     x_3435        DOUBLE        11788     11782  1123387.8197389725  1194992.650004723   1162831.1128226789  10634.500516190546
-                     y_3435        DOUBLE        11788     11782  1819796.2082181748 1949487.2207315017    1904525.617713289   21817.51876174858
-             dwelling_units        BIGINT        11764       216                   0                848    6.738439306358382  33.504282606355844
-              building_sqft        BIGINT        11387      4646                   0            1252885    8733.272240273996   39807.82810739133
-          floor_area_source       VARCHAR        11383         2                   -                  -                    -                   -
-                  land_sqft        BIGINT        11787      4108                   0            1540260    4882.927801815559    18375.0344761479
-                  allow_far       BOOLEAN        11788         2                   -                  -                    -                   -
-                allow_dupac       BOOLEAN        11788         2                   -                  -                    -                   -
-                density_far        DOUBLE        10725      9265 0.06141489033055298 32.509535794909056   1.3454774799810911   1.250827033033755
-              density_dupac        DOUBLE        11074      4447  1.3456904541241892  904.2268870494823   32.285399366470116   43.33646952815741
-                multifamily       BOOLEAN        11764         2                   -                  -                    -                   -
-                 permit_ids       VARCHAR         9969      9204                   -                  -                    -                   -
-                 segment_id       VARCHAR        11788      1364                   -                  -                    -                   -
-               alderman_own       VARCHAR        11772       105                   -                  -                    -                   -
-          alderman_neighbor       VARCHAR        11722       106                   -                  -                    -                   -
-             strictness_own        DOUBLE        11771       104 -3.4455760928315984 3.3357244289705767   0.3275636473243616  0.8293117692163233
-        strictness_neighbor        DOUBLE        11722       106 -3.4455760928315984 3.3357244289705767   0.3028621261779724  0.8494006779975255
-            share_white_own        DOUBLE        11788       442 0.00358238087470588  0.872029224787542   0.4111890545592781  0.2612860544343914
-            share_black_own        DOUBLE        11788       442 0.00606358527153015 0.9760814204807162  0.23149550427642404 0.30022200237182717
-       median_hh_income_own        DOUBLE        11788       442   17794.77018835824 156816.80301053703    59975.68132847967  28039.650441087048
-        share_bach_plus_own        DOUBLE        11788       412 0.05282434878746028 0.8956085911763237   0.4186891549833932 0.23963669275892271
-     homeownership_rate_own        DOUBLE        11788       442 0.18817021270261344 0.8254221558463539  0.39304318246842795 0.10854272880834183
-       share_white_neighbor        DOUBLE        11788       442 0.00358238087470588  0.872029224787542   0.4092357546869613 0.26285446317033917
-       share_black_neighbor        DOUBLE        11788       442 0.00606358527153015 0.9760814204807162  0.24169232838274268  0.3008346075284725
-  median_hh_income_neighbor        DOUBLE        11788       442   17794.77018835824 156816.80301053703    59664.38825370629  27526.945123510795
-   share_bach_plus_neighbor        DOUBLE        11788       412 0.05282434878746028 0.8956085911763237  0.42103175719132374  0.2370838434930381
-homeownership_rate_neighbor        DOUBLE        11788       442 0.18817021270261344 0.8331291977771729    0.389462063687404 0.11493111793544517
- alderman_assignment_status       VARCHAR        11788         3                   -                  -                    -                   -
-          signed_distance_m        DOUBLE        11705     11702  -457.0965674067117  457.1716764964002  -1.3182489567295013  227.16867435849522
-               lenient_dist        DOUBLE        11705      5889                 0.0  457.0965674067117    96.29883116241538  129.36036216576727
-                strict_dist        DOUBLE        11705      5815                 0.0  457.1716764964002    94.98058220568602   128.7513193636903
-                       side        BIGINT        11705         2                   0                  1   0.4967108073472875  0.5000105403949544
-continuous_score_difference        DOUBLE        11705       531 -2.2543181677747937 1.9474431053984336 0.011068977947553588  0.5334285629169561
-         pair_average_score        DOUBLE        11705       296 -2.9558717070870006  3.060883503542838   0.3139885589068457  0.6491619265970782
-              joint_service       VARCHAR        11706       331                   -                  -                    -                   -
-              zoning_source       VARCHAR        11788         3                   -                  -                    -                   -
-                 zone_group       VARCHAR        11788         9                   -                  -                    -                   -
-           density_eligible       BOOLEAN        11788         2                   -                  -                    -                   -
+                     column inferred_type non_missing distinct                 min                max                mean                  sd
+                building_id       VARCHAR       11794    11794                   -                  -                   -                   -
+                      route       VARCHAR       11794        2                   -                  -                   -                   -
+              permit_number        BIGINT        9975     9204           100011918          100996898  100512780.86345865  276848.99911207467
+      member_permit_numbers       VARCHAR        9975     9204                   -                  -                   -                   -
+                     source       VARCHAR       11794        3                   -                  -                   -                   -
+                 record_ids       VARCHAR       11794    11791                   -                  -                   -                   -
+                 issue_date          DATE        9975     3282                   -                  -                   -                   -
+        assessor_year_built        BIGINT       11794       55                1878               2026  2011.5997117178226  12.215431184008258
+                date_source       VARCHAR       11794        2                   -                  -                   -                   -
+          construction_date          DATE       11794     3282                   -                  -                   -                   -
+          construction_year        BIGINT       11794       17                2006               2022  2012.3979989825334   5.462046478385482
+              boundary_year        BIGINT       11794        2                2003               2015  2007.6722062065458   5.851484153773402
+                        era       VARCHAR       11794        2                   -                  -                   -                   -
+                       ward        BIGINT       11794       49                   1                 50  23.637103612006104  15.658054260634762
+              neighbor_ward        BIGINT       11794       49                   1                 50   23.81558419535357  15.616796384537727
+                  ward_pair       VARCHAR       11794      134                   -                  -                   -                   -
+    distance_to_boundary_ft        DOUBLE       11794    11790  1.0214804405891442  1499.907075119423   628.7963461683183   401.3688359950029
+              within_1500ft       BOOLEAN       11794        1                   -                  -                   -                   -
+               within_500ft       BOOLEAN       11794        2                   -                  -                   -                   -
+            location_source       VARCHAR       11794        2                   -                  -                   -                   -
+                     x_3435        DOUBLE       11794    11788  1123387.8197389725  1194992.650004723  1162824.7999150986  10635.879689000065
+                     y_3435        DOUBLE       11794    11788  1819796.2082181748 1949487.2207315017   1904531.768463191  21814.613508737286
+             dwelling_units        BIGINT       11784      216                   0                848   6.728699932111337  33.476669512564726
+              building_sqft        BIGINT       11393     4645                   0            1252885   8728.672957078908   39797.65410002573
+          floor_area_source       VARCHAR       11389        2                   -                  -                   -                   -
+                  land_sqft        BIGINT       11793     4109                   0            1540260   4880.231493258712  18370.403007969227
+                  allow_far       BOOLEAN       11794        2                   -                  -                   -                   -
+                allow_dupac       BOOLEAN       11794        2                   -                  -                   -                   -
+                density_far        DOUBLE       10737     9274 0.06141489033055298 32.509535794909056  1.3446536434430465   1.250386554367105
+              density_dupac        DOUBLE       11086     4449  1.3456904541241892  904.2268870494823  32.264807810168236  43.317598073389675
+                multifamily       BOOLEAN       11784        2                   -                  -                   -                   -
+                 permit_ids       VARCHAR        9975     9204                   -                  -                   -                   -
+                 segment_id       VARCHAR       11794     1364                   -                  -                   -                   -
+               alderman_own       VARCHAR       11778      105                   -                  -                   -                   -
+          alderman_neighbor       VARCHAR       11728      106                   -                  -                   -                   -
+             strictness_own        DOUBLE       11777      104  -3.445538716858031 3.3357976529033273  0.3273452850079021  0.8291474001095303
+        strictness_neighbor        DOUBLE       11728      106  -3.445538716858031 3.3357976529033273  0.3027970494023614  0.8491861547110472
+            share_white_own        DOUBLE       11794      442 0.00358238087470588  0.872029224787542 0.41106551221788434 0.26127756895551013
+            share_black_own        DOUBLE       11794      442 0.00606358527153015 0.9760814204807162 0.23144731702576116  0.3002072879094928
+       median_hh_income_own        DOUBLE       11794      442   17794.77018835824 156816.80301053703  59971.497514404546  28033.254194227997
+        share_bach_plus_own        DOUBLE       11794      412 0.05282434878746028 0.8956085911763237  0.4185790197921096 0.23962585751962098
+     homeownership_rate_own        DOUBLE       11794      442 0.18817021270261344 0.8254221558463539  0.3930565354324751 0.10852623377346494
+       share_white_neighbor        DOUBLE       11794      442 0.00358238087470588  0.872029224787542 0.40917228763319585 0.26280530298758686
+       share_black_neighbor        DOUBLE       11794      442 0.00606358527153015 0.9760814204807162 0.24160893846966433   0.300794347015714
+  median_hh_income_neighbor        DOUBLE       11794      442   17794.77018835824 156816.80301053703   59668.30969830976  27523.224051088822
+   share_bach_plus_neighbor        DOUBLE       11794      412 0.05282434878746028 0.8956085911763237 0.42096053036394865 0.23706247324810945
+homeownership_rate_neighbor        DOUBLE       11794      442 0.18817021270261344 0.8331291977771729  0.3895062890741738  0.1149252581429453
+ alderman_assignment_status       VARCHAR       11794        3                   -                  -                   -                   -
+          signed_distance_m        DOUBLE       11711    11708  -457.0965674067117  457.1716764964002 -1.3987650138228607  227.15740579875526
+              joint_service       VARCHAR       11712      331                   -                  -                   -                   -
+              zoning_source       VARCHAR       11794        3                   -                  -                   -                   -
+                 zone_group       VARCHAR       11794        9                   -                  -                   -                   -

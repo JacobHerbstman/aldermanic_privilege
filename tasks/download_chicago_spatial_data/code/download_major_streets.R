@@ -1,4 +1,4 @@
-# setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/download_chicago_spatial_data/code")
+# setwd("tasks/download_chicago_spatial_data/code")
 
 source("../../setup_environment/code/packages.R")
 

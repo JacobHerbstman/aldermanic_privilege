@@ -162,8 +162,11 @@ cards <- cards |> filter(!predates_permit, !before_permit) |>
   mutate(record_id = first(if_else(coalesce(pin_proration_rate, 1) < 1 & !is.na(proration_key_pin), proration_key_pin,
     pin)[tax_year == first_year])) |>
   group_by(permit_id, pin, tax_year) |> filter(tax_year >= first_year, any(new_card)) |>
-  mutate(signature = if_else(anyNA(building_sqft[new_card]), NA_character_,
-    paste(sum(building_sqft[new_card]), sum(new_card), sum(num_apartments[new_card], na.rm = TRUE)))) |>
+  # The signature includes the dwellings a year records, so a placeholder record without them (such as an omitted
+  # assessment) is incomplete.
+  mutate(units_measured = case_when(class %in% single_family_assessor_classes ~ 1, num_apartments > 0 ~ num_apartments),
+    signature = if_else(anyNA(building_sqft[new_card]) | anyNA(units_measured[new_card]), NA_character_,
+      paste(sum(building_sqft[new_card]), sum(new_card), sum(units_measured[new_card])))) |>
   group_by(permit_id, pin) |> filter(tax_year == stable_year(tax_year, signature, measurement_years)) |>
   mutate(old_card_on_parcel = any(!new_card)) |> filter(new_card) |> ungroup()
 
@@ -193,7 +196,8 @@ condominiums <- DBI::dbGetQuery(con, sprintf("
 predates <- bind_rows(predates, condominiums |> filter(predates_permit) |> distinct(permit_id))
 condominiums <- condominiums |> filter(!predates_permit) |>
   group_by(permit_id, record_id) |> mutate(first_year = min(tax_year)) |>
-  filter(tax_year == stable_year(tax_year, if_else(is.na(units), NA_character_, paste(units, building_sqft, land_sqft)), measurement_years)) |> ungroup() |>
+  filter(tax_year == stable_year(tax_year, if_else(is.na(units), NA_character_, paste(units, building_sqft, land_sqft)), measurement_years,
+    extend_ties = TRUE)) |> ungroup() |>
   transmute(permit_id, record_id, permit_pin, first_year, year_built, classes = "299", units, building_sqft, land_sqft,
     older_building = FALSE, single_family = FALSE, rebuilt = FALSE, source = "condominium")
 

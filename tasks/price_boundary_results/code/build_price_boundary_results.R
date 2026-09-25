@@ -1,46 +1,23 @@
 # setwd("tasks/price_boundary_results/code")
-# official_property_type_fe <- "TRUE"
-# start_year <- 2006
-# end_year <- 2022
-# bandwidth_ft <- 500
-# bin_width_ft <- 100
-# placebo_ft <- 1000
-# donut_inner_ft <- 25
-# donut_outer_ft <- 50
-# rent_controls <- "log_sqft + beds_factor + log_baths + nearest_school_dist_kft + nearest_park_dist_kft + nearest_major_road_dist_kft + nearest_cta_stop_dist_kft + lake_michigan_dist_kft"
-# sales_controls <- "log_sqft + log_land_sqft + log_building_age + log_bedrooms + log_baths + has_garage + nearest_school_dist_ft + nearest_park_dist_ft + nearest_major_road_dist_ft + nearest_cta_stop_dist_ft + lake_michigan_dist_ft"
-# rent_fixed_effects <- "segment_id^year_month"
-# sales_fixed_effects <- "segment_id^year_quarter"
-# cluster <- "ward_pair"
-# rent_start_year <- 2014
-
-cli_args <- commandArgs(trailingOnly = TRUE)
-if (interactive()) cli_args <- c(official_property_type_fe, start_year, end_year, bandwidth_ft, bin_width_ft, placebo_ft, donut_inner_ft, donut_outer_ft, rent_controls, sales_controls, rent_fixed_effects, sales_fixed_effects, cluster, rent_start_year)
-stopifnot(length(cli_args) == 14L)
-official_property_type_fe <- cli_args[1]
-start_year <- as.integer(cli_args[2])
-end_year <- as.integer(cli_args[3])
-bandwidth_ft <- as.integer(cli_args[4])
-bin_width_ft <- as.integer(cli_args[5])
-placebo_ft <- as.integer(cli_args[6])
-donut_inner_ft <- as.integer(cli_args[7])
-donut_outer_ft <- as.integer(cli_args[8])
-rent_controls <- cli_args[9]
-sales_controls <- cli_args[10]
-rent_fixed_effects <- cli_args[11]
-sales_fixed_effects <- cli_args[12]
-cluster <- cli_args[13]
-rent_start_year <- as.integer(cli_args[14])
-stopifnot(start_year <= end_year, bandwidth_ft > 0, bin_width_ft > 0,
-  bandwidth_ft %% bin_width_ft == 0)
-
-stopifnot(official_property_type_fe %in% c("TRUE", "FALSE"))
-official_property_type_fe <- official_property_type_fe == "TRUE"
+start_year <- 2006L
+end_year <- 2022L
+# RentHub listings are used from 2014 onward.
+rent_start_year <- 2014L
+bandwidth_ft <- 500L
+bin_width_ft <- 100L
+placebo_ft <- 1000L
+donut_inner_ft <- 25L
+donut_outer_ft <- 50L
+# Property-type fixed effects (building type for rents, Assessor class for sales) are added to these controls.
+rent_controls <- "log_sqft + beds_factor + log_baths + nearest_school_dist_kft + nearest_park_dist_kft + nearest_major_road_dist_kft + nearest_cta_stop_dist_kft + lake_michigan_dist_kft"
+sales_controls <- "log_sqft + log_land_sqft + log_building_age + log_bedrooms + log_baths + has_garage + nearest_school_dist_ft + nearest_park_dist_ft + nearest_major_road_dist_ft + nearest_cta_stop_dist_ft + lake_michigan_dist_ft"
+rent_fixed_effects <- "segment_id^year_month"
+sales_fixed_effects <- "segment_id^year_quarter"
+cluster <- "ward_pair"
+stopifnot(start_year <= end_year, bandwidth_ft %% bin_width_ft == 0)
 
 source("../../setup_environment/code/packages.R")
-source("../../shared/code/save_data.R")
 source("../../shared/code/canonical_geometry_helpers.R")
-source("../../shared/code/price_boundary_helpers.R")
 
 rent <- arrow::read_parquet(
   "../input/rental_rd_characteristics_panel_bw1500.parquet"
@@ -203,7 +180,7 @@ location_keys <- c(
 
 locations <- dplyr::bind_rows(
   rent |>
-    dplyr::filter(abs(signed_dist_ft) < 500) |>
+    dplyr::filter(abs(signed_dist_ft) < bandwidth_ft) |>
     dplyr::transmute(
       market = "rent",
       longitude,
@@ -214,7 +191,7 @@ locations <- dplyr::bind_rows(
       expected_distance_ft = abs(signed_dist_ft)
     ),
   sales |>
-    dplyr::filter(abs(signed_dist_ft) < 500) |>
+    dplyr::filter(abs(signed_dist_ft) < bandwidth_ft) |>
     dplyr::transmute(
       market = "sales",
       longitude,
@@ -244,105 +221,14 @@ location_sf <- locations |>
   ) |>
   sf::st_transform(3435)
 
-location_sf$reconstructed_distance_ft <- NA_real_
-location_sf$left_endpoint_distance_m <- NA_real_
-location_sf$right_endpoint_distance_m <- NA_real_
-
-location_groups <- interaction(
-  location_sf$era,
-  location_sf$ward_pair,
-  drop = TRUE,
-  lex.order = TRUE
-)
-
-for (idx in split(seq_len(nrow(location_sf)), location_groups)) {
-  boundary_row <- boundaries |>
-    dplyr::filter(
-      era == location_sf$era[idx[1]],
-      ward_pair_id == location_sf$ward_pair[idx[1]]
-    )
-  if (nrow(boundary_row) != 1L) {
-    stop("Could not identify one ward-pair boundary for a price location.")
-  }
-
-  repeated_boundary <- sf::st_sfc(
-    rep(
-      list(sf::st_geometry(boundary_row)[[1]]),
-      length(idx)
-    ),
-    crs = sf::st_crs(boundary_row)
-  )
-  nearest_lines <- sf::st_nearest_points(
-    sf::st_geometry(location_sf[idx, ]),
-    repeated_boundary,
-    pairwise = TRUE
-  )
-
-  point_xy <- matrix(NA_real_, nrow = length(idx), ncol = 2)
-  boundary_xy <- matrix(NA_real_, nrow = length(idx), ncol = 2)
-  for (j in seq_along(idx)) {
-    nearest_coordinates <- sf::st_coordinates(nearest_lines[j])
-    point_xy[j, ] <- nearest_coordinates[1, c("X", "Y")]
-    boundary_xy[j, ] <- nearest_coordinates[
-      nrow(nearest_coordinates),
-      c("X", "Y")
-    ]
-  }
-
-  normal_vector <- boundary_xy - point_xy
-  normal_length <- sqrt(rowSums(normal_vector^2))
-  if (any(!is.finite(normal_length) | normal_length <= 0)) {
-    stop("A price observation lies directly on its assigned boundary.")
-  }
-
-  tangent_unit <- cbind(
-    -normal_vector[, 2] / normal_length,
-    normal_vector[, 1] / normal_length
-  )
-  half_line_ft <- 50 / 0.3048
-  left_xy <- boundary_xy - half_line_ft * tangent_unit
-  right_xy <- boundary_xy + half_line_ft * tangent_unit
-
-  left_points <- sf::st_sfc(
-    lapply(
-      seq_len(nrow(left_xy)),
-      function(j) sf::st_point(left_xy[j, ])
-    ),
-    crs = sf::st_crs(boundary_row)
-  )
-  right_points <- sf::st_sfc(
-    lapply(
-      seq_len(nrow(right_xy)),
-      function(j) sf::st_point(right_xy[j, ])
-    ),
-    crs = sf::st_crs(boundary_row)
-  )
-
-  location_sf$reconstructed_distance_ft[idx] <- normal_length
-  location_sf$left_endpoint_distance_m[idx] <- as.numeric(
-    sf::st_distance(left_points, sf::st_geometry(boundary_row))
-  ) * 0.3048
-  location_sf$right_endpoint_distance_m[idx] <- as.numeric(
-    sf::st_distance(right_points, sf::st_geometry(boundary_row))
-  ) * 0.3048
-}
-
+straightness <- boundary_straightness(location_sf, boundaries)
 location_classification <- location_sf |>
   sf::st_drop_geometry() |>
   dplyr::mutate(
-    straight_boundary = (
-      left_endpoint_distance_m <= 15 &
-        right_endpoint_distance_m <= 15
-    ),
-    distance_error_ft = abs(
-      reconstructed_distance_ft - expected_distance_ft
-    )
+    straight_boundary = straightness$straight_boundary,
+    distance_error_ft = abs(straightness$reconstructed_distance_ft - expected_distance_ft)
   ) |>
-  dplyr::select(
-    dplyr::all_of(location_keys),
-    straight_boundary,
-    distance_error_ft
-  )
+  dplyr::select(dplyr::all_of(location_keys), straight_boundary, distance_error_ft)
 
 max_distance_error <- max(
   location_classification$distance_error_ft,
@@ -392,6 +278,248 @@ checks <- tibble::tribble(
   "donut50ft", 0, donut_outer_ft, FALSE
 )
 
+# Estimate one distance-bin model and its average-difference model, and plot the bins.
+star_string <- function(p_value) {
+  dplyr::case_when(
+    p_value < 0.01 ~ "***",
+    p_value < 0.05 ~ "**",
+    p_value < 0.10 ~ "*",
+    TRUE ~ ""
+  )
+}
+
+estimate_bins <- function(
+    data,
+    market,
+    cutoff_ft,
+    donut_ft,
+    straight_only,
+    panel_title) {
+  controls <- c(
+    strsplit(if (market == "rent") rent_controls else sales_controls, " + ", fixed = TRUE)[[1]],
+    if (market == "rent") "building_type_factor" else "property_class_factor"
+  )
+  outcome <- if (market == "rent") "rent_price" else "sale_price"
+  fixed_effects <- if (market == "rent") {
+    rent_fixed_effects
+  } else {
+    sales_fixed_effects
+  }
+
+  bin_edges <- seq(-bandwidth_ft, bandwidth_ft, by = bin_width_ft)
+  bin_labels <- sprintf("bin_%02d", seq_len(length(bin_edges) - 1L))
+  reference_bin <- bin_labels[bandwidth_ft / bin_width_ft]
+
+  model_data <- data |>
+    dplyr::mutate(
+      running_distance_ft = signed_dist_ft - cutoff_ft,
+      distance_bin = cut(
+        running_distance_ft,
+        breaks = bin_edges,
+        labels = bin_labels,
+        include.lowest = TRUE,
+        right = FALSE
+      )
+    ) |>
+    dplyr::filter(
+      abs(running_distance_ft) < bandwidth_ft,
+      donut_ft == 0 | abs(running_distance_ft) >= donut_ft,
+      !straight_only | straight_boundary,
+      !is.na(distance_bin)
+    )
+
+  formula <- stats::as.formula(sprintf(
+    "log(%s) ~ i(distance_bin, ref = '%s') + %s | %s",
+    outcome,
+    reference_bin,
+    paste(controls, collapse = " + "),
+    fixed_effects
+  ))
+  model <- fixest::feols(
+    formula,
+    data = model_data,
+    cluster = stats::as.formula(paste("~", cluster)),
+    warn = FALSE,
+    notes = FALSE
+  )
+  # Average difference: one indicator for the side at or right of the (placebo) cutoff in place of the distance bins.
+  model_data$right_of_cutoff <- as.integer(model_data$running_distance_ft >= 0)
+  average <- fixest::coeftable(fixest::feols(
+    stats::as.formula(sprintf(
+      "log(%s) ~ right_of_cutoff + %s | %s",
+      outcome,
+      paste(controls, collapse = " + "),
+      fixed_effects
+    )),
+    data = model_data,
+    cluster = stats::as.formula(paste("~", cluster)),
+    warn = FALSE,
+    notes = FALSE
+  ))["right_of_cutoff", ]
+
+  coefficient_table <- fixest::coeftable(model)
+  coefficient_rows <- grepl(
+    "^distance_bin::",
+    rownames(coefficient_table)
+  )
+  estimates <- tibble::tibble(
+    distance_bin = sub(
+      "^distance_bin::",
+      "",
+      rownames(coefficient_table)[coefficient_rows]
+    ),
+    estimate = coefficient_table[coefficient_rows, "Estimate"],
+    std_error = coefficient_table[coefficient_rows, "Std. Error"],
+    p_value = coefficient_table[coefficient_rows, "Pr(>|t|)"]
+  )
+
+  cluster_count <- dplyr::n_distinct(model_data[[cluster]])
+  critical_value <- stats::qt(0.975, df = cluster_count - 1L)
+  results <- tibble::tibble(
+    distance_bin = bin_labels,
+    bin_start_ft = head(bin_edges, -1),
+    bin_end_ft = tail(bin_edges, -1),
+    bin_center_ft = head(bin_edges, -1) + bin_width_ft / 2
+  ) |>
+    dplyr::left_join(
+      estimates,
+      by = "distance_bin",
+      relationship = "one-to-one"
+    ) |>
+    dplyr::mutate(
+      estimate = dplyr::if_else(
+        distance_bin == reference_bin,
+        0,
+        estimate
+      ),
+      std_error = dplyr::if_else(
+        distance_bin == reference_bin,
+        NA_real_,
+        std_error
+      ),
+      p_value = dplyr::if_else(
+        distance_bin == reference_bin,
+        NA_real_,
+        p_value
+      ),
+      ci_low = estimate - critical_value * std_error,
+      ci_high = estimate + critical_value * std_error,
+      ribbon_low = dplyr::if_else(
+        distance_bin == reference_bin,
+        0,
+        ci_low
+      ),
+      ribbon_high = dplyr::if_else(
+        distance_bin == reference_bin,
+        0,
+        ci_high
+      ),
+      side_label = dplyr::case_when(
+        cutoff_ft == 0 & bin_center_ft < 0 ~ "Less Stringent",
+        cutoff_ft == 0 ~ "More Stringent",
+        bin_center_ft < 0 ~ "Left of cutoff",
+        TRUE ~ "Right of cutoff"
+      )
+    )
+
+  nearest_above <- results |>
+    dplyr::filter(bin_start_ft == 0)
+  nearest_stars <- star_string(nearest_above$p_value)
+
+  plot <- ggplot2::ggplot(
+    results,
+    ggplot2::aes(
+      x = bin_center_ft,
+      y = estimate,
+      color = side_label,
+      group = side_label
+    )
+  ) +
+    ggplot2::geom_hline(
+      yintercept = 0,
+      linetype = "dotted",
+      color = "gray55",
+      linewidth = 0.4
+    ) +
+    ggplot2::geom_vline(
+      xintercept = 0,
+      linetype = "dashed",
+      color = "gray35",
+      linewidth = 0.4
+    ) +
+    ggplot2::geom_ribbon(
+      ggplot2::aes(
+        ymin = ribbon_low,
+        ymax = ribbon_high,
+        fill = side_label
+      ),
+      alpha = 0.16,
+      color = NA
+    ) +
+    ggplot2::geom_line(linewidth = 0.65) +
+    ggplot2::geom_point(size = 2.3) +
+    ggplot2::scale_color_manual(
+      values = c(
+        "Less Stringent" = "#2478B5",
+        "More Stringent" = "#D92D27",
+        "Left of cutoff" = "#2478B5",
+        "Right of cutoff" = "#D92D27"
+      ),
+      name = NULL
+    ) +
+    ggplot2::scale_fill_manual(
+      values = c(
+        "Less Stringent" = "#2478B5",
+        "More Stringent" = "#D92D27",
+        "Left of cutoff" = "#2478B5",
+        "Right of cutoff" = "#D92D27"
+      ),
+      guide = "none"
+    ) +
+    ggplot2::scale_x_continuous(
+      limits = c(-bandwidth_ft, bandwidth_ft),
+      breaks = seq(-bandwidth_ft, bandwidth_ft, length.out = 5)
+    ) +
+    ggplot2::labs(
+      title = panel_title,
+      subtitle = sprintf(
+        "%s = %.3f%s (SE %.3f)\nAverage difference = %.3f%s (SE %.3f)",
+        if (cutoff_ft == 0) {
+          "Difference across boundary"
+        } else {
+          "Difference at placebo cutoff"
+        },
+        round(nearest_above$estimate, 3) + 0,
+        nearest_stars,
+        nearest_above$std_error,
+        round(average[["Estimate"]], 3) + 0,
+        star_string(average[["Pr(>|t|)"]]),
+        average[["Std. Error"]]
+      ),
+      x = if (cutoff_ft == 0) {
+        "Distance to ward boundary (feet)"
+      } else {
+        "Distance to placebo cutoff (feet)"
+      },
+      y = if (market == "rent") {
+        "Rent (log difference)"
+      } else {
+        "Sale price (log difference)"
+      }
+    ) +
+    ggplot2::theme_bw(base_size = 10) +
+    ggplot2::theme(
+      legend.position = "bottom",
+      plot.title = ggplot2::element_text(face = "bold", size = 11),
+      plot.subtitle = ggplot2::element_text(size = 14, face = "bold"),
+      axis.title = ggplot2::element_text(size = 9),
+      axis.text = ggplot2::element_text(size = 8),
+      panel.grid.minor = ggplot2::element_blank()
+    )
+
+  plot
+}
+
 fits <- list()
 for (market_name in c("rent", "sales")) {
   market_data <- if (market_name == "rent") rent else sales
@@ -423,18 +551,14 @@ for (market_name in c("rent", "sales")) {
       cutoff_ft = checks$cutoff_ft[check_i],
       donut_ft = checks$donut_ft[check_i],
       straight_only = checks$straight_only[check_i],
-      property_type_fe = official_property_type_fe,
-      panel_title = check_label,
-      rent_controls = rent_controls, sales_controls = sales_controls,
-      rent_fixed_effects = rent_fixed_effects, sales_fixed_effects = sales_fixed_effects,
-      bandwidth_ft = bandwidth_ft, bin_width_ft = bin_width_ft, cluster = cluster
+      panel_title = check_label
     )
   }
 }
 
 main_plot <- patchwork::wrap_plots(
-  fits$rent_main$plot,
-  fits$sales_main$plot,
+  fits$rent_main,
+  fits$sales_main,
   ncol = 2
 ) +
   patchwork::plot_annotation(
@@ -444,10 +568,10 @@ main_plot <- patchwork::wrap_plots(
   ggplot2::theme(legend.position = "bottom")
 
 placebo_plot <- patchwork::wrap_plots(
-  fits$rent_placebo_neg1000ft$plot,
-  fits$rent_placebo_pos1000ft$plot,
-  fits$sales_placebo_neg1000ft$plot,
-  fits$sales_placebo_pos1000ft$plot,
+  fits$rent_placebo_neg1000ft,
+  fits$rent_placebo_pos1000ft,
+  fits$sales_placebo_neg1000ft,
+  fits$sales_placebo_pos1000ft,
   ncol = 2
 ) +
   patchwork::plot_annotation(
@@ -457,18 +581,18 @@ placebo_plot <- patchwork::wrap_plots(
   ggplot2::theme(legend.position = "bottom")
 
 straight_plot <- patchwork::wrap_plots(
-  fits$rent_straight$plot,
-  fits$sales_straight$plot,
+  fits$rent_straight,
+  fits$sales_straight,
   ncol = 2
 ) +
   patchwork::plot_layout(guides = "collect") &
   ggplot2::theme(legend.position = "bottom")
 
 donut_plot <- patchwork::wrap_plots(
-  fits$rent_donut25ft$plot,
-  fits$rent_donut50ft$plot,
-  fits$sales_donut25ft$plot,
-  fits$sales_donut50ft$plot,
+  fits$rent_donut25ft,
+  fits$rent_donut50ft,
+  fits$sales_donut25ft,
+  fits$sales_donut50ft,
   ncol = 2
 ) +
   patchwork::plot_layout(guides = "collect") &

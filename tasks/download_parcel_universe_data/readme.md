@@ -16,7 +16,7 @@ before and after retrieval. The schema rewrite preserves source values.
 
 An intentional API refresh uses `make download-current` from `code/`.
 Its separate output is `parcel_universe_2025_city_native_current.csv`. An unchanged
-refresh build reuses that file; `make -B -f download_recipes.make` explicitly requests
+refresh build reuses that file; `make -B download-current` explicitly requests
 a new retrieval. Transfers are validated in a temporary directory before replacing
 that refresh output. Neither command changes the recorded snapshot or the paper's
 source selection. Adopting a new vintage requires preserving the new source,

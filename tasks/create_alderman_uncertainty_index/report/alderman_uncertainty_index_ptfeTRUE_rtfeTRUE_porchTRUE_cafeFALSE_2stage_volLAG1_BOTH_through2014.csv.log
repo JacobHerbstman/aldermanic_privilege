@@ -1,17 +1,17 @@
 File: alderman_uncertainty_index_ptfeTRUE_rtfeTRUE_porchTRUE_cafeFALSE_2stage_volLAG1_BOTH_through2014.csv
 Rows: 83
 Columns: 7
-SHA-256 (saved bytes): 4b9eafb02d771a704258011c01df885a48fa254bfae64d7095a0c0683724bf1e
+SHA-256 (saved bytes): df0b7fb4392a92aed48d6cf776322a12e2d62ebadc533386e104dbcca2e0f912
 Key: alderman
 Types: DuckDB inference from the complete saved CSV.
 Distinct counts: exact (exact up to 100,000 rows).
 Row counts, non-missing counts, and declared-key checks: exact.
 
-           column inferred_type non_missing distinct                 min                 max                    mean                  sd
-         alderman       VARCHAR          83       83                   -                   -                       -                   -
-        n_permits        BIGINT          83       80                  18                6278       856.1325301204819    850.107995593965
-       mean_resid        DOUBLE          83       83 -0.3221247967341517  0.3657540141165793  -0.0013691660052420746 0.12214012557980534
-  alderman_fe_raw        DOUBLE          83       83 -0.3737035671503795 0.47604210605782754 -2.5080339411712874e-18 0.15943566713153925
-      alderman_se        DOUBLE          83       83 0.03024018649298692 0.31704114186012455      0.0676643052407313 0.03802632147900039
-      shrinkage_B        DOUBLE          83       83 0.16186987145101003   0.955012469278416      0.8129760509381374 0.13149133043319555
-uncertainty_index        DOUBLE          83       83 -2.6261282212235035   3.005754074503109  1.6051417223496238e-17  0.9999999999999999
+           column inferred_type non_missing distinct                  min                 max                   mean                  sd
+         alderman       VARCHAR          83       83                    -                   -                      -                   -
+        n_permits        BIGINT          83       80                   18                6278      856.1325301204819    850.107995593965
+       mean_resid        DOUBLE          83       83  -0.3221282147287201  0.3657697388795893 -0.0013690521606072937 0.12213719849130163
+  alderman_fe_raw        DOUBLE          83       83  -0.3737088416817865 0.47606634569585127 -3.009640729405545e-18  0.1594334346451082
+      alderman_se        DOUBLE          83       83 0.030241110548472633 0.31704617388683753    0.06766463533230929 0.03802647264554439
+      shrinkage_B        DOUBLE          83       83  0.16186019844555177  0.9550081438931162     0.8129694378468564  0.1314923154093832
+uncertainty_index        DOUBLE          83       83   -2.626220074885348   3.005953923745381  1.471379912153822e-17                 1.0

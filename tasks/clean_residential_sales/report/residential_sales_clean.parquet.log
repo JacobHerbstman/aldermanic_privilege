@@ -7,26 +7,26 @@ Types: Stored Parquet schema.
 Distinct counts: approximate (exact up to 100,000 rows).
 Row counts, non-missing counts, and declared-key checks: exact.
 
-                          column inferred_type  non_missing  distinct     min         max               mean                 sd
-                          row_id       VARCHAR       227275    222059       -           -                  -                  -
-               sale_document_num       VARCHAR       227275    227271       -           -                  -                  -
-                             pin       VARCHAR       227275    173586       -           -                  -                  -
-                            year       INTEGER       227275        19    2006        2022 2014.4637245627544  5.321796912608109
-                       sale_date          DATE       227275      3739       -           -                  -                  -
-              sale_price_nominal        DOUBLE       227275      6915 10090.0 225000001.0 366276.79875481245  871623.6210057571
-                           class       INTEGER       227275        13     202         295  214.2870311296887  24.26882403500693
-                   township_code       INTEGER       227275         9      70          77  72.54315696843031 2.2809861948774923
-               neighborhood_code       INTEGER       227275       151   70010       77170  72697.00487075129 2246.1420628691426
-                   is_mydec_date       BOOLEAN       227275         2       -           -                  -                  -
-                  sale_deed_type       VARCHAR       227275         2       -           -                  -                  -
-                 mydec_deed_type       VARCHAR       227275         3       -           -                  -                  -
-                       sale_type       VARCHAR       227275         2       -           -                  -                  -
-                sale_seller_name       VARCHAR       227275    171359       -           -                  -                  -
-                 sale_buyer_name       VARCHAR       227275    181774       -           -                  -                  -
-                num_parcels_sale        DOUBLE       227275         1     1.0         1.0                1.0                0.0
-                same_party_names       BOOLEAN       227275         2       -           -                  -                  -
-               resale_within_365       BOOLEAN       227275         2       -           -                  -                  -
-        days_since_previous_sale       INTEGER        88380      5830       1        6191 1457.9022176963115 1347.3342893196275
-sale_filter_same_sale_within_365       BOOLEAN       227275         1       -           -                  -                  -
-       sale_filter_less_than_10k       BOOLEAN       227275         1       -           -                  -                  -
-           sale_filter_deed_type       BOOLEAN       227275         1       -           -                  -                  -
+                          column inferred_type non_missing distinct     min         max               mean                 sd
+                          row_id       VARCHAR      227275   222059       -           -                  -                  -
+               sale_document_num       VARCHAR      227275   227271       -           -                  -                  -
+                             pin       VARCHAR      227275   173586       -           -                  -                  -
+                            year       INTEGER      227275       19    2006        2022 2014.4637245627544  5.321796912608109
+                       sale_date          DATE      227275     3739       -           -                  -                  -
+              sale_price_nominal        DOUBLE      227275     6915 10090.0 225000001.0 366276.79875481245  871623.6210057571
+                           class       INTEGER      227275       13     202         295  214.2870311296887  24.26882403500693
+                   township_code       INTEGER      227275        9      70          77  72.54315696843031 2.2809861948774923
+               neighborhood_code       INTEGER      227275      151   70010       77170  72697.00487075129 2246.1420628691426
+                   is_mydec_date       BOOLEAN      227275        2       -           -                  -                  -
+                  sale_deed_type       VARCHAR      227275        2       -           -                  -                  -
+                 mydec_deed_type       VARCHAR      227275        3       -           -                  -                  -
+                       sale_type       VARCHAR      227275        2       -           -                  -                  -
+                sale_seller_name       VARCHAR      227275   171359       -           -                  -                  -
+                 sale_buyer_name       VARCHAR      227275   181774       -           -                  -                  -
+                num_parcels_sale        DOUBLE      227275        1     1.0         1.0                1.0                0.0
+                same_party_names       BOOLEAN      227275        2       -           -                  -                  -
+               resale_within_365       BOOLEAN      227275        2       -           -                  -                  -
+        days_since_previous_sale       INTEGER       88380     5830       1        6191 1457.9022176963115 1347.3342893196275
+sale_filter_same_sale_within_365       BOOLEAN      227275        1       -           -                  -                  -
+       sale_filter_less_than_10k       BOOLEAN      227275        1       -           -                  -                  -
+           sale_filter_deed_type       BOOLEAN      227275        1       -           -                  -                  -

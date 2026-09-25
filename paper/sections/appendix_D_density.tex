@@ -4,32 +4,35 @@
 \label{sec:appendix_density}
 
 This appendix asks whether the density result could be an artifact of how I measure aldermanic stringency or where ward boundaries happen to lie.
-It also tests for jumps away from true boundaries and checks whether projects immediately next to a boundary drive the result.
-Unless otherwise noted, each estimate compares the two 100~ft bands immediately across the ward boundary using Equation~\eqref{eq:segment_fe}.
-All checks use projects with both FAR and DUPAC available.
+It also tests for jumps away from true boundaries and checks whether buildings immediately next to a boundary drive the result.
+Unless otherwise noted, each check uses Equation~\eqref{eq:segment_fe}: the outcome is log dwelling units per acre, and the model includes boundary-segment-by-joint-service fixed effects, zoning-group fixed effects, and the ward demographic controls.
+A joint-service period is an uninterrupted interval during which the same two aldermen represent the two wards of a boundary.
+Each check reports two estimates: the difference between the two 100~ft bands immediately across the boundary, and the average difference, which replaces the distance bands with an indicator for the more-stringent side of the 500~ft window.
+All checks use buildings with a recorded dwelling count and lot area.
 
 \subsection{Stringency-Score Checks}
 \label{subsec:density_stringency_checks}
 
-The first check asks whether a project's own permits influence the score used to classify its boundary.
-For each project, I recalculate the scores for the two aldermen after removing permits matched to that project.
-The estimates are effectively unchanged.
+The first check asks whether a building's own permits influence the score used to classify its boundary.
+For each building, I recalculate the scores for the two aldermen after removing the permits matched to that building.
+Each building contributes at most a few of the more than 100,000 permits behind the scores, and the estimates are unchanged at three decimal places.
 The second check drops boundaries where the two aldermen receive similar scores and the more-stringent side is therefore harder to distinguish.
-The estimates of FAR and units per acre remain negative in both construction samples when the required score difference is either 0.25 or 0.50 standard deviations, although the multifamily estimates become less precise as the sample shrinks.
+The multifamily estimates remain negative when the required score difference is 0.25 or 0.50 standard deviations, but they are smaller and no longer statistically significant as the sample shrinks.
 
 \begin{table}[htbp]
     \centering
     \caption{Density Estimates Under Alternative Measures of Boundary Stringency}
     \label{tab:density_score_robustness}
-    \resizebox{0.98\textwidth}{!}{%
+    \resizebox{0.9\textwidth}{!}{%
         \input{../tasks/density_score_robustness/output/density_score_robustness.tex}%
     }
-    \begin{minipage}{0.98\textwidth}
+    \begin{minipage}{0.9\textwidth}
         \vspace{0.35em}
         \footnotesize
-        \textit{Notes:} Entries compare the two 100~ft bands immediately across the boundary using Equation~\eqref{eq:segment_fe}.
-        The second row removes permits matched to each construction project before recalculating the alderman scores used for that project.
-        The score-difference rows retain boundaries where the absolute difference between the two alderman scores is at least the stated number of standard deviations.
+        \textit{Notes:} The outcome is log dwelling units per acre, estimated with Equation~\eqref{eq:segment_fe}.
+        The difference across the boundary compares the two 100~ft bands immediately across it; the average difference compares the two sides of the 500~ft window.
+        In Panel A, the second set of rows removes the permits matched to each building before recalculating the alderman scores used for that building.
+        Panel B retains boundaries where the absolute difference between the two alderman scores is at least the stated number of standard deviations.
         Standard errors are clustered by ward pair.
         * $p<0.10$, ** $p<0.05$, *** $p<0.01$.
     \end{minipage}
@@ -40,21 +43,24 @@ The estimates of FAR and units per acre remain negative in both construction sam
 
 Figure~\ref{fig:rd_placebo_shifts} moves the cutoff 1,000~ft inside either side of the true ward boundary.
 These locations do not mark a change in aldermanic authority.
-None of the eight placebo estimates is statistically distinguishable from zero at the 10\% level.
+None of the twelve placebo estimates (two cutoffs, three samples, and two estimates each) is statistically distinguishable from zero at the 10\% level.
+At the placebo cutoffs, the average difference for multifamily buildings is $-0.022$ and $-0.030$, compared with $-0.061$ at the true boundary.
 
 \begin{figure}[p]
     \centering
     \textbf{Panel A: 1,000~ft inside the less-stringent side}\par
-    \includegraphics[width=0.75\textwidth]{../tasks/density_appendix_results/output/density_placebo_neg1000ft.pdf}
+    \includegraphics[width=\textwidth]{../tasks/density_appendix_results/output/density_placebo_neg1000ft.pdf}
 
     \vspace{0.5em}
     \textbf{Panel B: 1,000~ft inside the more-stringent side}\par
-    \includegraphics[width=0.75\textwidth]{../tasks/density_appendix_results/output/density_placebo_pos1000ft.pdf}
+    \includegraphics[width=\textwidth]{../tasks/density_appendix_results/output/density_placebo_pos1000ft.pdf}
     \caption{Density Estimates at Placebo Cutoffs}
     \figurenotes{Each artificial cutoff lies 1,000~ft inside the indicated side of the true ward boundary.
     The model uses a 500~ft window around the artificial cutoff and the same 100~ft distance bands, controls, and fixed effects as Equation~\eqref{eq:segment_fe}.
-    The 100~ft band just below the artificial cutoff is the reference group; subtitles report the difference for the 100~ft band just above it.
-    Shaded areas are 95\% confidence intervals based on standard errors clustered by ward pair.}
+    The 100~ft band just below the artificial cutoff is the reference group.
+    Subtitles report the difference for the 100~ft band just above the cutoff and the average difference between the two sides of the window.
+    Shaded areas are 95\% confidence intervals based on standard errors clustered by ward pair.
+    * $p<0.10$, ** $p<0.05$, *** $p<0.01$.}
     \label{fig:rd_placebo_shifts}
     \label{fig:rd_placebo_shift_neg}
     \label{fig:rd_placebo_shift_pos}
@@ -63,20 +69,22 @@ None of the eight placebo estimates is statistically distinguishable from zero a
 \subsection{Continuity in Location Characteristics}
 \label{subsec:density_location_continuity}
 
-Table~\ref{tab:density_location_continuity} tests whether fixed features of a project's location change at the ward boundary.
-None of the differences in distance to downtown, the nearest school, the nearest park, or Lake Michigan is statistically distinguishable from zero in either sample.
+Table~\ref{tab:density_location_continuity} tests whether fixed features of a building's location change at the ward boundary.
+Of the twelve differences in distance to downtown, the nearest school, the nearest park, and Lake Michigan, one is statistically significant: multifamily buildings on the more-stringent side are 0.010 miles closer to Lake Michigan.
 
 \begin{table}[htbp]
     \centering
     \caption{Continuity in Location Characteristics at Ward Boundaries}
     \label{tab:density_location_continuity}
-    \input{../tasks/density_boundary_checks/output/density_location_continuity.tex}
-    \begin{minipage}{0.94\textwidth}
+    \resizebox{0.9\textwidth}{!}{%
+        \input{../tasks/density_boundary_checks/output/density_location_continuity.tex}%
+    }
+    \begin{minipage}{0.9\textwidth}
         \vspace{0.35em}
         \footnotesize
         \textit{Notes:} Each row uses the listed location characteristic as the dependent variable.
         The reported coefficient compares the 0--100~ft band on the more-stringent side with the $-100$ to 0~ft band on the less-stringent side.
-        Regressions include 100~ft distance-band indicators, boundary-segment fixed effects, and construction-year fixed effects.
+        Regressions include 100~ft distance-band indicators and boundary-segment-by-joint-service fixed effects.
         Standard errors are clustered by ward pair.
         * $p<0.10$, ** $p<0.05$, *** $p<0.01$.
     \end{minipage}
@@ -88,24 +96,25 @@ None of the differences in distance to downtown, the nearest school, the nearest
 Some ward boundaries follow expressways, waterways, arterial roads, or other physical features.
 Table~\ref{tab:density_boundary_robustness} therefore repeats the analysis after restricting the sample based on the geometry of the assigned boundary segment.
 Removing segments with substantial expressway or water overlap leaves the estimates almost unchanged.
-A broader physical-feature and arterial-road restriction attenuates the multifamily estimates, while the all-construction estimates remain negative.
-Restricting the sample to locally straight boundaries also produces negative estimates for FAR and units per acre in both construction samples.
-These estimates are generally smaller and less precise in the reduced sample, but they do not suggest that boundary curvature alone creates the main pattern.
+The broader physical-feature and arterial-road restriction reduces the multifamily average difference to $-0.037$, while the estimates for buildings with five or more units become larger.
+Restricting the sample to locally straight boundaries leaves negative multifamily estimates of similar size.
+For all construction, the estimates remain close to zero under every restriction.
 
 \begin{table}[htbp]
     \centering
     \caption{Density Estimates Along Different Types of Ward Boundaries}
     \label{tab:density_boundary_robustness}
-    \resizebox{0.98\textwidth}{!}{%
+    \resizebox{0.9\textwidth}{!}{%
         \input{../tasks/density_boundary_checks/output/density_boundary_robustness.tex}%
     }
-    \begin{minipage}{0.98\textwidth}
+    \begin{minipage}{0.9\textwidth}
         \vspace{0.35em}
         \footnotesize
-        \textit{Notes:} Entries compare the two 100~ft bands immediately across the boundary using Equation~\eqref{eq:segment_fe}.
+        \textit{Notes:} The outcome is log dwelling units per acre, estimated with Equation~\eqref{eq:segment_fe}.
+        The difference across the boundary compares the two 100~ft bands immediately across it; the average difference compares the two sides of the 500~ft window.
         The expressway-or-water restriction removes segments for which either feature overlaps at least half of the segment.
         The broader restriction removes segments with at least 50\% park, water, or cemetery overlap, 40\% expressway overlap, or 75\% arterial-road overlap.
-        A boundary is classified as locally straight when a 328~ft straight line centered on the project's nearest boundary point stays within 49~ft of the actual boundary at both ends.
+        A boundary is classified as locally straight when a 328~ft straight line centered on the building's nearest boundary point stays within 49~ft of the actual boundary at both ends.
         Standard errors are clustered by ward pair.
         * $p<0.10$, ** $p<0.05$, *** $p<0.01$.
     \end{minipage}
@@ -113,17 +122,18 @@ These estimates are generally smaller and less precise in the reduced sample, bu
 
 \begin{figure}[p]
     \centering
-    \textbf{Panel A: Excluding projects within 25~ft}\par
-    \includegraphics[width=0.75\textwidth]{../tasks/density_appendix_results/output/density_donut25ft.pdf}
+    \textbf{Panel A: Excluding buildings within 25~ft}\par
+    \includegraphics[width=\textwidth]{../tasks/density_appendix_results/output/density_donut25ft.pdf}
 
     \vspace{0.5em}
-    \textbf{Panel B: Excluding projects within 50~ft}\par
-    \includegraphics[width=0.75\textwidth]{../tasks/density_appendix_results/output/density_donut50ft.pdf}
-    \caption{Density Estimates Excluding Projects Nearest the Boundary}
-    \figurenotes{This check asks whether projects immediately adjacent to a boundary drive the main result.
-    Each panel excludes projects within the indicated distance and otherwise uses the 500~ft sample and Equation~\eqref{eq:segment_fe}.
+    \textbf{Panel B: Excluding buildings within 50~ft}\par
+    \includegraphics[width=\textwidth]{../tasks/density_appendix_results/output/density_donut50ft.pdf}
+    \caption{Density Estimates Excluding Buildings Nearest the Boundary}
+    \figurenotes{This check asks whether buildings immediately adjacent to a boundary drive the main result.
+    Each panel excludes buildings within the indicated distance and otherwise uses the 500~ft sample and Equation~\eqref{eq:segment_fe}.
     After each exclusion, the remaining part of the $-100$ to 0~ft band on the less-stringent side is the reference group.
-    In each panel, the estimated difference across the boundary remains negative for FAR and units per acre in both construction samples.
+    Subtitles report the difference across the boundary and the average difference between the two sides of the window.
+    In each panel, the multifamily estimates remain negative and slightly larger than in the full sample, and the all-construction estimates remain close to zero.
     Shaded areas are 95\% confidence intervals based on standard errors clustered by ward pair.
     * $p<0.10$, ** $p<0.05$, *** $p<0.01$.}
     \label{fig:rd_donuts}

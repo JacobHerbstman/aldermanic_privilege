@@ -1,5 +1,5 @@
 # --- Interactive Test Block ---
-# setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/calculate_sale_distances/code")
+# setwd("tasks/calculate_sale_distances/code")
 
 source("../../setup_environment/code/packages.R")
 source("../../shared/code/save_data.R")

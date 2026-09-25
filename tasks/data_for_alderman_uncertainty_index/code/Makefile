@@ -3,7 +3,6 @@ include ../../shared/code/shell_functions.make
 all: ../output/permits_for_uncertainty_index.csv
 
 ../output/permits_for_uncertainty_index.csv: prepare_uncertainty_data.R \
-	../../shared/code/canonical_geometry_helpers.R \
 	../input/ward_panel.gpkg \
 	../input/building_permits_clean.gpkg \
 	../input/chicago_alderman_terms.csv \
@@ -14,7 +13,7 @@ all: ../output/permits_for_uncertainty_index.csv
 	../input/gis_osm_water_a_free_1.dbf \
 	../input/gis_osm_water_a_free_1.prj \
 	../input/gis_osm_water_a_free_1.shx \
-	../input/gis_osm_water_a_free_1.cpg ../../setup_environment/code/packages.R Makefile ../../shared/code/save_data.R ../../shared/code/report.py | ../output ../report
+	../input/gis_osm_water_a_free_1.cpg Makefile | ../output ../report
 	$(R) $<
 
 ../input/ward_panel.gpkg: ../../ward_panel_create/output/ward_panel.gpkg | ../input

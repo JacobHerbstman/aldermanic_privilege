@@ -1,28 +1,33 @@
 include ../../shared/code/shell_functions.make
 
-MAIN_BW_M ?= 152.4
-MAIN_BW_LABEL ?= 500ft
+all: ../output/permit_event_study_high_discretion_stable_signed_500ft.pdf \
+	../output/permit_event_study_high_discretion_stable_signed_500ft.csv \
+	../output/permit_event_study_high_discretion_stable_separate_500ft.pdf \
+	../output/permit_event_study_high_discretion_stable_separate_500ft.csv \
+	../output/permit_event_study_low_discretion_nosigns_stable_signed_500ft.pdf \
+	../output/permit_event_study_low_discretion_nosigns_stable_signed_500ft.csv \
+	../output/permit_event_study_high_discretion_all_signed_500ft.pdf \
+	../output/permit_event_study_high_discretion_all_signed_500ft.csv \
+	../output/permit_event_study_appendix_500ft.tex
 
-all: ../output/permit_event_study_high_discretion_stable_signed_$(MAIN_BW_LABEL).pdf \
-	../output/permit_event_study_high_discretion_stable_separate_$(MAIN_BW_LABEL).pdf \
-	../output/permit_event_study_low_discretion_nosigns_stable_signed_$(MAIN_BW_LABEL).pdf \
-	../output/permit_event_study_high_discretion_all_signed_$(MAIN_BW_LABEL).pdf \
-	../output/permit_event_study_appendix_$(MAIN_BW_LABEL).tex
+../%/permit_event_study_high_discretion_stable_signed_500ft.pdf ../%/permit_event_study_high_discretion_stable_signed_500ft.csv: \
+	run_binary_event_study_permit.R ../input/permit_block_year_panel_2015.parquet | ../output ../report
+	$(R) $< high_discretion stable signed
 
-../output/permit_event_study_high_discretion_stable_signed_$(MAIN_BW_LABEL).pdf: run_binary_event_study_permit.R ../input/permit_block_year_panel_2015.parquet Makefile ../../setup_environment/code/packages.R | ../output
-	$(R) $< high_discretion stable signed $(MAIN_BW_M) $(MAIN_BW_LABEL)
+../%/permit_event_study_high_discretion_stable_separate_500ft.pdf ../%/permit_event_study_high_discretion_stable_separate_500ft.csv: \
+	run_binary_event_study_permit.R ../input/permit_block_year_panel_2015.parquet | ../output ../report
+	$(R) $< high_discretion stable separate
 
-../output/permit_event_study_high_discretion_stable_separate_$(MAIN_BW_LABEL).pdf: run_binary_event_study_permit.R ../input/permit_block_year_panel_2015.parquet Makefile ../../setup_environment/code/packages.R | ../output
-	$(R) $< high_discretion stable separate $(MAIN_BW_M) $(MAIN_BW_LABEL)
+../%/permit_event_study_low_discretion_nosigns_stable_signed_500ft.pdf ../%/permit_event_study_low_discretion_nosigns_stable_signed_500ft.csv: \
+	run_binary_event_study_permit.R ../input/permit_block_year_panel_2015.parquet | ../output ../report
+	$(R) $< low_discretion_nosigns stable signed
 
-../output/permit_event_study_low_discretion_nosigns_stable_signed_$(MAIN_BW_LABEL).pdf: run_binary_event_study_permit.R ../input/permit_block_year_panel_2015.parquet Makefile ../../setup_environment/code/packages.R | ../output
-	$(R) $< low_discretion_nosigns stable signed $(MAIN_BW_M) $(MAIN_BW_LABEL)
+../%/permit_event_study_high_discretion_all_signed_500ft.pdf ../%/permit_event_study_high_discretion_all_signed_500ft.csv: \
+	run_binary_event_study_permit.R ../input/permit_block_year_panel_2015.parquet | ../output ../report
+	$(R) $< high_discretion all signed
 
-../output/permit_event_study_high_discretion_all_signed_$(MAIN_BW_LABEL).pdf: run_binary_event_study_permit.R ../input/permit_block_year_panel_2015.parquet Makefile ../../setup_environment/code/packages.R | ../output
-	$(R) $< high_discretion all signed $(MAIN_BW_M) $(MAIN_BW_LABEL)
-
-../output/permit_event_study_appendix_$(MAIN_BW_LABEL).tex: build_binary_event_study_table.R ../input/permit_block_year_panel_2015.parquet Makefile ../../setup_environment/code/packages.R | ../output
-	$(R) $< $(MAIN_BW_M) $(MAIN_BW_LABEL)
+../output/permit_event_study_appendix_500ft.tex: build_binary_event_study_table.R ../input/permit_block_year_panel_2015.parquet | ../output
+	$(R) $<
 
 ../input/permit_block_year_panel_2015.parquet: ../../create_event_study_permit_data/output/permit_block_year_panel_2015.parquet | ../input
 	ln -sf $< $@

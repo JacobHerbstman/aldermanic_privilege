@@ -1,39 +1,39 @@
 File: sales_with_ward_distances_through2022.csv
 Rows: 226081
 Columns: 29
-SHA-256 (saved bytes): 0bba8c87e1d14455a63e3914813022460f829ab0f2dc9309accbd80317343e9e
+SHA-256 (saved bytes): 6b054cd316e0fd3551e9911089ca15bc05fdbe20981601a113c2342fc299b9bb
 Key: row_id
 Types: DuckDB inference from the complete saved CSV.
 Distinct counts: approximate (exact up to 100,000 rows).
 Row counts, non-missing counts, and declared-key checks: exact.
 
-                      column inferred_type  non_missing  distinct                 min                max                mean                  sd
-                      row_id        BIGINT       226081    216837             7087411           98484848   80368197.23341192   35178590.05281459
-           sale_document_num        BIGINT       226081    168874           600632144         7901008166  1475720854.3685317  533166557.96136504
-                         pin       VARCHAR       226081    173586                   -                  -                   -                   -
-                        year        BIGINT       226081        19                2006               2022  2014.4964326944767   5.314305300011947
-                   sale_date          DATE       226081      3739                   -                  -                   -                   -
-                  sale_price        DOUBLE       226081    106451    10815.0808066276   285864232.870982   435607.3473750979  1047595.3425331403
-          sale_price_nominal        BIGINT       226081     10023               10090          225000001  365588.32197752135   814910.5769520055
-    sale_price_real_2022_raw        DOUBLE       226081    106451    10815.0808066276   285864232.870982   435607.3473750979  1047595.3425331403
-sale_price_cpi_chi_all_items        DOUBLE       226081       212               197.2            278.415   229.6531236459952   20.36759814984569
- sale_price_deflator_to_2022        DOUBLE       226081       199   0.981829582936743   1.38618703515889  1.1995505254985492 0.10492051470967065
-                       class        BIGINT       226081        13                 202                295  214.27014211720578  24.249889587262096
-                    latitude        DOUBLE       226081    156126    41.6448644623124   42.0226431371196  41.854867081359444   0.099115073417861
-                   longitude        DOUBLE       226081    210473   -87.8461794943848  -87.5248067824485  -87.69465385630257 0.06380397821847668
-           coordinate_source       VARCHAR       226081         1                   -                  -                   -                   -
-             coordinate_year        BIGINT       226081        19                2006               2022  2014.4964326944767   5.314305300011947
-                        ward        BIGINT       226081        45                   1                 50  25.372985788279422  13.522296692653333
-               neighbor_ward        BIGINT       226081        45                   1                 50  24.713301869683875   13.93930074027288
-                ward_pair_id       VARCHAR       226081       138                   -                  -                   -                   -
-                  segment_id       VARCHAR       138813      2360                   -                  -                   -                   -
-                      dist_m        DOUBLE       226081    164866   0.311350136612877     8682.014549416   566.9557246037377   750.7483302233394
-               signed_dist_m        DOUBLE       225616    198448   -8634.58691687031     8682.014549416  131.32910031574875   931.8589270037356
-                        sign        BIGINT       225616         2                  -1                  1 0.07456031487128573  0.9972187157967444
-                alderman_own       VARCHAR       225862       111                   -                  -                   -                   -
-           alderman_neighbor       VARCHAR       225852       111                   -                  -                   -                   -
-              strictness_own        DOUBLE       225856       112 -3.4455760928315984 3.3357244289705767 0.15382529000567594  0.9128603118014536
-         strictness_neighbor        DOUBLE       225841       112 -3.4455760928315984 3.3357244289705767 0.07259869381771286  0.9171357091131814
-            same_party_names       BOOLEAN       226081         2                   -                  -                   -                   -
-           resale_within_365       BOOLEAN       226081         2                   -                  -                   -                   -
-    days_since_previous_sale        BIGINT        88088      5830                   1               6191  1460.9585641631097   1348.173353618061
+                      column inferred_type non_missing distinct                min                max                mean                  sd
+                      row_id        BIGINT      226081   216837            7087411           98484848   80368197.23341192   35178590.05281459
+           sale_document_num        BIGINT      226081   168874          600632144         7901008166  1475720854.3685317  533166557.96136504
+                         pin       VARCHAR      226081   173586                  -                  -                   -                   -
+                        year        BIGINT      226081       19               2006               2022  2014.4964326944767   5.314305300011947
+                   sale_date          DATE      226081     3739                  -                  -                   -                   -
+                  sale_price        DOUBLE      226081   106451   10815.0808066276   285864232.870982   435607.3473750979  1047595.3425331403
+          sale_price_nominal        BIGINT      226081    10023              10090          225000001  365588.32197752135   814910.5769520055
+    sale_price_real_2022_raw        DOUBLE      226081   106451   10815.0808066276   285864232.870982   435607.3473750979  1047595.3425331403
+sale_price_cpi_chi_all_items        DOUBLE      226081      212              197.2            278.415   229.6531236459952   20.36759814984569
+ sale_price_deflator_to_2022        DOUBLE      226081      199  0.981829582936743   1.38618703515889  1.1995505254985492 0.10492051470967065
+                       class        BIGINT      226081       13                202                295  214.27014211720578  24.249889587262096
+                    latitude        DOUBLE      226081   156126   41.6448644623124   42.0226431371196  41.854867081359444   0.099115073417861
+                   longitude        DOUBLE      226081   210473  -87.8461794943848  -87.5248067824485  -87.69465385630257 0.06380397821847668
+           coordinate_source       VARCHAR      226081        1                  -                  -                   -                   -
+             coordinate_year        BIGINT      226081       19               2006               2022  2014.4964326944767   5.314305300011947
+                        ward        BIGINT      226081       45                  1                 50  25.372985788279422  13.522296692653333
+               neighbor_ward        BIGINT      226081       45                  1                 50  24.713301869683875   13.93930074027288
+                ward_pair_id       VARCHAR      226081      138                  -                  -                   -                   -
+                  segment_id       VARCHAR      138813     2360                  -                  -                   -                   -
+                      dist_m        DOUBLE      226081   164866  0.311350136612877     8682.014549416   566.9557246037377   750.7483302233394
+               signed_dist_m        DOUBLE      225616   198448  -8634.58691687031     8682.014549416  131.32910031574875   931.8589270037356
+                        sign        BIGINT      225616        2                 -1                  1 0.07456031487128573  0.9972187157967444
+                alderman_own       VARCHAR      225862      111                  -                  -                   -                   -
+           alderman_neighbor       VARCHAR      225852      111                  -                  -                   -                   -
+              strictness_own        DOUBLE      225856      106 -3.445538716858031 3.3357976529033273 0.15380592502641116  0.9128549127210387
+         strictness_neighbor        DOUBLE      225841      106 -3.445538716858031 3.3357976529033273 0.07258298120953753  0.9171346280054735
+            same_party_names       BOOLEAN      226081        2                  -                  -                   -                   -
+           resale_within_365       BOOLEAN      226081        2                  -                  -                   -                   -
+    days_since_previous_sale        BIGINT       88088     5830                  1               6191  1460.9585641631097   1348.173353618061

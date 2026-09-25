@@ -1,5 +1,5 @@
 # --- Interactive Test Block ---
-# setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/ward_panel_create/code")
+# setwd("tasks/ward_panel_create/code")
 # start_year <- 2003
 # end_year <- 2022
 

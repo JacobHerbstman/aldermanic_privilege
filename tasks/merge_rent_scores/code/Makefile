@@ -2,7 +2,7 @@ include ../../shared/code/shell_functions.make
 
 all: ../output/rent_with_ward_distances_full_through2022.parquet
 
-../output/rent_with_ward_distances_full_through2022.parquet: merge_rent_scores.R ../input/rent_pre_scores_full.parquet ../input/aldermen_uncertainty_scores_through2022.csv ../../setup_environment/code/packages.R Makefile ../../shared/code/save_data.R ../../shared/code/report.py | ../output ../report
+../output/rent_with_ward_distances_full_through2022.parquet: merge_rent_scores.R ../input/rent_pre_scores_full.parquet ../input/aldermen_uncertainty_scores_through2022.csv Makefile | ../output ../report
 	$(R) $<
 
 ../input/rent_pre_scores_full.parquet: ../../assign_segment_ids_sales_rental/output/rent_pre_scores_full_with_segments.parquet | ../input

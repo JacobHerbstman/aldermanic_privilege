@@ -1,4 +1,4 @@
-# setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/create_ward_controls/code")
+# setwd("tasks/create_ward_controls/code")
 # start_year <- 2006
 # end_year <- 2022
 source("../../setup_environment/code/packages.R")

@@ -1,7 +1,7 @@
 File: permits_for_uncertainty_index.csv
 Rows: 197202
 Columns: 28
-SHA-256 (saved bytes): 274157bce3f073dc468c3f982378f5f6362386bcbdc733e4d49e754b19d2af6b
+SHA-256 (saved bytes): f5951e23efcdf2579bf3dbfd517bf4ab864658f9beeeb7344068acbbf2b6ec25
 Key: id
 Types: DuckDB inference from the complete saved CSV.
 Distinct counts: approximate (exact up to 100,000 rows).
@@ -32,7 +32,7 @@ Row counts, non-missing counts, and declared-key checks: exact.
          share_white        DOUBLE      197202      573  0.00358238087470588  0.872029224787542 0.40109859838534706 0.28454174545832955
   homeownership_rate        DOUBLE      197202      567  0.18817021270261344 0.8331291977771729   0.423996031766705  0.1316268008602751
      share_bach_plus        DOUBLE      197202      493  0.05282434878746028 0.8956085911763237 0.42692683005053705   0.263911436636626
-         dist_cbd_km        DOUBLE      197202   111605 0.019487992829721596  27.60056426398292   8.677026457523386   5.646377386108803
-        dist_lake_km        DOUBLE      197202   115707 0.017052906921930164 21.660214084495756   4.935835070977871  3.7442808160485996
-n_rail_stations_800m        BIGINT      197202       22                    0                 19  1.7938104076023569   3.394225800392542
+         dist_cbd_km        DOUBLE      197202   100839   0.0194954600671344 27.611426398173684   8.680301574467576  5.6485065887525865
+        dist_lake_km        DOUBLE      197202   102680 0.017059512892145415 21.667773049608872   4.937694775688808  3.7456664353364575
+n_rail_stations_800m        BIGINT      197202       22                    0                 19   1.792851999472622  3.3932492416582636
          map_version        BIGINT      197202        2                    1                  2  1.4485045790610642 0.49734241314940697

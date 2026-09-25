@@ -63,11 +63,6 @@ buildings <- buildings |>
       TRUE ~ "assigned"),
     signed_distance_m = if_else(alderman_assignment_status == "assigned",
       distance_to_boundary_ft * 0.3048 * sign(strictness_own - strictness_neighbor), NA_real_),
-    lenient_dist = abs(signed_distance_m) * as.integer(signed_distance_m <= 0),
-    strict_dist = abs(signed_distance_m) * as.integer(signed_distance_m > 0),
-    side = as.integer(signed_distance_m > 0),
-    continuous_score_difference = (strictness_own - strictness_neighbor) / 2,
-    pair_average_score = (strictness_own + strictness_neighbor) / 2,
     # Joint service: one ward pair (within a map era) while the same two aldermen serve it, each term being one
     # alderman's continuous tenure in the ward.
     own_term = paste(alderman_own, own_term_start), neighbor_term = paste(alderman_neighbor, neighbor_term_start),
@@ -119,9 +114,9 @@ buildings <- buildings |> left_join(zoned, by = "building_id", relationship = "o
       construction_year <= 2012 & group_2012 == group_2014 & group_2014 == group_2016 ~ "later_maps_agree_2006_missing"),
     zone_group = case_when(zoning_source == "current_map_amended_before_construction" ~ group_2025,
       zoning_source == "latest_map_before_construction" ~ preceding_group,
-      zoning_source == "later_maps_agree_2006_missing" ~ group_2012),
-    density_eligible = allow_far & allow_dupac & coalesce(density_far > 0 & density_dupac > 0, FALSE)) |>
+      zoning_source == "later_maps_agree_2006_missing" ~ group_2012)) |>
   select(-starts_with("group_"), -preceding_group, -ordinance_date)
-stopifnot(!any(buildings$density_eligible & is.na(buildings$zone_group)))
+# Every building with a usable dwelling density needs a zoning group.
+stopifnot(!any(buildings$allow_dupac & coalesce(buildings$density_dupac > 0, FALSE) & is.na(buildings$zone_group)))
 
 SaveData(buildings |> arrange(construction_year, building_id), "building_id", "../output/new_construction_analysis_data.csv", na = "")

@@ -11,7 +11,7 @@ download-current: ../output/fred_cpi_cuura207sa0_current.csv
 	cp $< $@.tmp
 	mv $@.tmp $@
 
-../output/fred_cpi_cuura207sa0_current.csv: download_fred_cpi.R Makefile ../../setup_environment/code/packages.R | ../output
+../output/fred_cpi_cuura207sa0_current.csv: download_fred_cpi.R Makefile | ../output
 	$(R) $< $(SERIES_ID)
 
 .PHONY: download-current

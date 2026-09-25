@@ -1,5 +1,5 @@
 # --- Interactive Test Block ---
-# setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/create_block_treatment_panel/code")
+# setwd("tasks/create_block_treatment_panel/code")
 
 source("../../setup_environment/code/packages.R")
 source("../../shared/code/save_data.R")
@@ -8,17 +8,6 @@ source("../../shared/code/canonical_geometry_helpers.R")
 suppressMessages(sf_use_s2(FALSE))
 
 ward_panel <- st_read("../input/ward_panel.gpkg", quiet = TRUE)
-
-alderman_panel <- read_csv("../input/chicago_alderman_panel.csv", show_col_types = FALSE) %>%
-  mutate(
-    month_date = as.Date(paste("01", month), format = "%d %b %Y"),
-    year = year(month_date)
-  ) %>%
-  filter(month(month_date) == 6, year %in% c(2014L, 2015L)) %>%
-  select(year, ward, alderman)
-if (anyDuplicated(alderman_panel[c("year", "ward")]) > 0) {
-  stop("Alderman panel must be unique by ward-year after June filtering.", call. = FALSE)
-}
 
 blocks_2010 <- read_csv("../input/census_blocks_2010.csv", show_col_types = FALSE) %>%
   rename(geometry = the_geom) %>%
@@ -95,22 +84,9 @@ assignments_2015 <- intersections_2015 %>%
     .groups = "drop"
   )
 
-ward_turnover_2015 <- alderman_panel %>%
-  pivot_wider(names_from = year, values_from = alderman, names_prefix = "alderman_") %>%
-  mutate(ward_had_turnover = alderman_2014 != alderman_2015) %>%
-  select(ward, ward_had_turnover)
-if (anyDuplicated(ward_turnover_2015$ward) > 0) {
-  stop("The 2015 ward-turnover lookup must be unique by ward.", call. = FALSE)
-}
-
 block_treatment_pre_scores <- tibble(block_id = blocks_2010$block_id) %>%
   left_join(assignments_2014, by = "block_id", relationship = "one-to-one") %>%
   left_join(assignments_2015, by = "block_id", relationship = "one-to-one") %>%
-  left_join(
-    ward_turnover_2015,
-    by = c("ward_origin" = "ward"),
-    relationship = "many-to-one"
-  ) %>%
   mutate(
     block_vintage = "2010",
     switched = ward_origin != ward_dest & !is.na(ward_origin) & !is.na(ward_dest),
@@ -129,7 +105,6 @@ block_treatment_pre_scores <- tibble(block_id = blocks_2010$block_id) %>%
     ward_origin_n_wards,
     ward_dest_n_wards,
     switched,
-    ward_had_turnover,
     valid,
     has_complete_ward_assignment,
     cohort,

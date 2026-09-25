@@ -2,7 +2,7 @@ include ../../shared/code/shell_functions.make
 
 all: ../output/sales_with_ward_distances_through2022.csv
 
-../output/sales_with_ward_distances_through2022.csv: merge_sales_scores.R ../input/sales_pre_scores.csv ../input/aldermen_uncertainty_scores_through2022.csv ../../setup_environment/code/packages.R Makefile ../../shared/code/save_data.R ../../shared/code/report.py | ../output ../report
+../output/sales_with_ward_distances_through2022.csv: merge_sales_scores.R ../input/sales_pre_scores.csv ../input/aldermen_uncertainty_scores_through2022.csv Makefile | ../output ../report
 	$(R) $<
 
 ../input/sales_pre_scores.csv: ../../assign_segment_ids_sales_rental/output/sales_pre_scores_with_segments.csv | ../input

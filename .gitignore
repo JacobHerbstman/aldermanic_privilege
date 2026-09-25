@@ -71,12 +71,6 @@ tasks/_deprecated/
 !tasks/permit_block_hand_adjudications/output/
 tasks/permit_block_hand_adjudications/output/*
 !tasks/permit_block_hand_adjudications/output/manual_permit_block_assignments.csv
-!tasks/new_construction_analysis_data/output/
-tasks/new_construction_analysis_data/output/*
-!tasks/new_construction_analysis_data/output/new_construction_analysis_data.csv
-!tasks/density_boundary_characteristics/output/
-tasks/density_boundary_characteristics/output/*
-!tasks/density_boundary_characteristics/output/density_boundary_characteristics.csv
 
 # ================== ADDITIONS ==================
 

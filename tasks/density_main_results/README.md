@@ -1,28 +1,22 @@
 # Main Density Results
 
-The main figure estimates the paper's 100-foot distance-bin specification for
-FAR and DUPAC using the analysis data and current through-2022 alderman scores.
-Both outcomes use the common `density_eligible` field from the analysis-data
-producer, requiring usable, positive FAR and DUPAC for the same projects.
+`build_density_main_results.R` produces the paper's main density figure,
+`density_rd.pdf`. It regresses log dwelling units per acre (DUPAC) on ten 100-ft
+distance bands within 500 ft of the ward boundary, with the band just inside the
+less-stringent ward omitted. It also regresses log DUPAC on an indicator for the
+more-stringent side of the 500-ft window, which gives the average difference.
+The specification and samples are set in
+`tasks/shared/code/density_boundary_helpers.R` and shared with the appendix
+density tasks: 2006–2022 buildings with a usable DUPAC; ward demographic
+controls; boundary-segment-by-joint-service and zoning-group fixed effects;
+standard errors clustered by ward pair. The three panels cover all
+construction, multifamily buildings (two or more units, not single-family or
+townhouse homes), and multifamily buildings with five or more units.
 
-Table 1 is a separate citywide descriptive summary. It reads the full cleaned
-project ledger and construction-year boundary distances, retaining 2006–2022
-construction with both density measures usable and positive units. It has no
-boundary-distance, score-availability or regression-control restriction. The
-analysis data alone cannot supply this table because that file is limited to
-1,500 feet. The table retains two columns: all construction and multifamily.
-Its building-type classification is carried from the same construction
-measurement file as the regressions and checked on overlapping observations. The ward-pair/boundary-segment row counts
-distinct nearest ward pairs and boundary segments over this citywide sample,
-using the construction-year map. Segment assignments are checked against the
-analysis data where available. The summary CSV has a standard data report.
+`build_density_summary.R` produces Table 1 (`density_sample_summary.tex`) and
+its data (`density_sample_summary.csv`). The table describes the citywide sample
+of 2006–2022 buildings with a usable DUPAC and positive dwelling count, with no
+distance limit. Each building's nearest boundary segment on its ward pair is
+counted, and those assignments are checked against the analysis data.
 
-Run Make in code/. No data cleaning or regression definitions are changed by
-the descriptive table. The older citywide table's scope is restored; its obsolete
-measurement values are not reused.
-
-The paper labels the table "New Residential Construction in Chicago, 2006–2022."
-Its note defines FAR, DUPAC, and multifamily buildings for readers. Multifamily
-refers to buildings with two or more dwellings; the reviewed building-type
-classification above supplies the subgroup, rather than a cutoff based on the
-total units in a project containing several separate houses.
+Run `make` in `code/`.

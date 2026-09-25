@@ -2,7 +2,7 @@ include ../../shared/code/shell_functions.make
 
 all: ../output/sales_with_hedonics_amenities.parquet
 
-../output/sales_with_hedonics_amenities.parquet: enrich_sales_with_amenity_distances.R ../input/sales_with_hedonics.parquet ../input/schools_2015.gpkg ../input/parks.gpkg ../input/major_streets.gpkg ../input/cta_stops.gpkg ../input/gis_osm_water_a_free_1.shp ../input/gis_osm_water_a_free_1.dbf ../input/gis_osm_water_a_free_1.prj ../input/gis_osm_water_a_free_1.shx ../input/gis_osm_water_a_free_1.cpg Makefile ../input/packages.R ../input/save_data.R ../input/report.py ../input/amenity_distance_helpers.R | ../output ../report
+../output/sales_with_hedonics_amenities.parquet: enrich_sales_with_amenity_distances.R ../input/sales_with_hedonics.parquet ../input/schools_2015.gpkg ../input/parks.gpkg ../input/major_streets.gpkg ../input/cta_stops.gpkg ../input/gis_osm_water_a_free_1.shp ../input/gis_osm_water_a_free_1.dbf ../input/gis_osm_water_a_free_1.prj ../input/gis_osm_water_a_free_1.shx ../input/gis_osm_water_a_free_1.cpg | ../output ../report
 	$(R) $<
 
 ../input/sales_with_hedonics.parquet: ../../prep_sales_border_data/output/sales_with_hedonics.parquet | ../input
@@ -23,20 +23,7 @@ all: ../output/sales_with_hedonics_amenities.parquet
 ../input/gis_osm_water_a_free_1.%: ../../../data_raw/illinois-250919-free/gis_osm_water_a_free_1.% | ../input
 	ln -sf $< $@
 
-../input/packages.R: ../../setup_environment/code/packages.R | ../input
-	ln -sf $< $@
-
-../input/save_data.R: ../../shared/code/save_data.R | ../input
-	ln -sf $< $@
-
-../input/report.py: ../../shared/code/report.py | ../input
-	ln -sf $< $@
-
-../input/amenity_distance_helpers.R: ../../shared/code/amenity_distance_helpers.R | ../input
-	ln -sf $< $@
-
-link-inputs: ../input/packages.R ../input/save_data.R ../input/report.py ../input/amenity_distance_helpers.R \
-	../input/sales_with_hedonics.parquet \
+link-inputs: ../input/sales_with_hedonics.parquet \
 	../input/schools_2015.gpkg \
 	../input/parks.gpkg \
 	../input/major_streets.gpkg \

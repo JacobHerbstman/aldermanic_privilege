@@ -1,24 +1,9 @@
-# --- Interactive Test Block ---
-# setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/clean_residential_sales/code")
-# start_year <- 2006
-# end_year <- 2022
+# setwd("tasks/clean_residential_sales/code")
+start_year <- 2006L
+end_year <- 2022L
 
 source("../../setup_environment/code/packages.R")
-
 source("../../shared/code/save_data.R")
-cli_args <- commandArgs(trailingOnly = TRUE)
-if (interactive()) {
-  cli_args <- c(start_year, end_year)
-}
-if (length(cli_args) != 2) {
-  stop("Script requires start and end sale years.", call. = FALSE)
-}
-
-start_year <- as.integer(cli_args[1])
-end_year <- as.integer(cli_args[2])
-if (any(!is.finite(c(start_year, end_year))) || start_year > end_year) {
-  stop("Sale-year range is invalid.", call. = FALSE)
-}
 
 sales <- fread(
   "../input/parcel_sales_city.csv",
@@ -49,6 +34,7 @@ recorded_sales[, days_since_previous_sale := as.integer(sale_date - shift(sale_d
 sales[recorded_sales, on = "row_id", days_since_previous_sale := i.days_since_previous_sale]
 sales[, resale_within_365 := !is.na(days_since_previous_sale) & days_since_previous_sale <= 365L]
 
+raw_records <- nrow(sales)
 sales <- sales[market_sale == TRUE & year %between% c(start_year, end_year) & class %in% c(202:211, 234, 278, 295)]
 
 # Foreclosure auctions and transfers to a lender or land bank are not market sales, and REO resales by lenders,
@@ -88,13 +74,21 @@ sales[, `:=`(
   # Only warranty and trustee deeds convey ordinary sales. Special warranty deeds and sales without a deed record
   # include REO resales the party names miss (sellers such as "PB IL OREO LLC" or mortgage servicers).
   warranty_or_trustee_deed = sale_deed_type %chin% c("Warranty", "Trustee"))]
-cat(sprintf("Market sales: %s; removed %s foreclosure auctions, %s transfers to lenders, %s REO resales and %s other sales without a warranty or trustee deed; flagged %s resales within 365 days, %s identical party names\n",
-  format(nrow(sales), big.mark = ","), format(sum(sales$foreclosure_auction), big.mark = ","),
-  format(sum(sales$transfer_to_lender & !sales$foreclosure_auction), big.mark = ","),
-  format(sum(sales$reo_sale & !sales$foreclosure_auction & !sales$transfer_to_lender), big.mark = ","),
-  format(sum(!sales$warranty_or_trustee_deed & !sales$reo_sale & !sales$foreclosure_auction & !sales$transfer_to_lender), big.mark = ","),
-  format(sum(sales$resale_within_365), big.mark = ","), format(sum(sales$same_party_names), big.mark = ",")))
+# Sample flow quoted in the paper's data appendix; each removal counts sales not already removed above it, and the
+# flags count retained sales.
+sample_flow <- data.table(
+  step = c("raw_records", "market_sales", "foreclosure_auctions", "transfers_to_lenders", "reo_resales",
+    "not_warranty_or_trustee_deed", "clean_sales", "flag_resale_within_365", "flag_same_party_names"),
+  count = c(raw_records, nrow(sales), sum(sales$foreclosure_auction),
+    sum(sales$transfer_to_lender & !sales$foreclosure_auction),
+    sum(sales$reo_sale & !sales$foreclosure_auction & !sales$transfer_to_lender),
+    sum(!sales$warranty_or_trustee_deed & !sales$reo_sale & !sales$foreclosure_auction & !sales$transfer_to_lender),
+    NA, NA, NA)
+)
 sales <- sales[foreclosure_auction == FALSE & transfer_to_lender == FALSE & reo_sale == FALSE & warranty_or_trustee_deed]
+sample_flow[step == "clean_sales", count := nrow(sales)]
+sample_flow[step == "flag_resale_within_365", count := sum(sales$resale_within_365)]
+sample_flow[step == "flag_same_party_names", count := sum(sales$same_party_names)]
 
 if (nrow(sales) == 0) {
   stop("No residential sales passed the canonical transaction filters.", call. = FALSE)
@@ -145,3 +139,4 @@ sales <- sales[, .(
 setorder(sales, year, sale_date, pin, row_id)
 
 SaveData(sales, c("row_id"), "../output/residential_sales_clean.parquet")
+SaveData(sample_flow, "step", "../output/residential_sales_sample_flow.csv")

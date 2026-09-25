@@ -1,5 +1,5 @@
 # --- Interactive Test Block ---
-# setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/merge_sales_scores/code")
+# setwd("tasks/merge_sales_scores/code")
 
 source("../../setup_environment/code/packages.R")
 

@@ -1,45 +1,45 @@
 File: permit_buildings.csv
 Rows: 14507
 Columns: 35
-SHA-256 (saved bytes): c334e7cf66ec7f5943fcd56f04c7b7035a0a393252ad66c29b514eb635d3f10d
+SHA-256 (saved bytes): 4c643998302fa11a0144c456e0401c238400e1802db03ef5e41525af3d1a8a42
 Key: building_id
 Types: DuckDB inference from the complete saved CSV.
 Distinct counts: exact (exact up to 100,000 rows).
 Row counts, non-missing counts, and declared-key checks: exact.
 
-                     column inferred_type  non_missing  distinct                 min                max               mean                   sd
-                building_id        BIGINT        14507     14507             1161353            3293346  2420948.066726408    542228.9838822805
-              permit_number       VARCHAR        14507     14507                   -                  -                  -                    -
-      member_permit_numbers       VARCHAR        14507     14507                   -                  -                  -                    -
-  superseded_permit_numbers       VARCHAR          146       146                   -                  -                  -                    -
-                 issue_date          DATE        14507      3760                   -                  -                  -                    -
-                 issue_year        BIGINT        14507        17                2006               2022 2013.0767215826843    5.374655000186816
-                    address       VARCHAR        14507     14281                   -                  -                  -                    -
-                   latitude        DOUBLE        14477     14246   41.65129502144656  42.02261774982914 41.889330542859156   0.0710744757550167
-                  longitude        DOUBLE        14477     14246  -87.91442843927047 -87.52952274989771 -87.67939449469674 0.045320750549555415
-               permit_units        BIGINT        14006       230                   0                958  6.915322004855062    36.07942522831077
-              stated_counts       VARCHAR         5501       268                   -                  -                  -                    -
-              permit_status       VARCHAR        14507         7                   -                  -                  -                    -
-        any_permit_complete       BOOLEAN        14398         2                   -                  -                  -                    -
-              parcel_pin10s       VARCHAR        14096     13825                   -                  -                  -                    -
-parcel_changed_after_permit       BOOLEAN        14507         2                   -                  -                  -                    -
-                     status       VARCHAR        14507         6                   -                  -                  -                    -
-                     source       VARCHAR        12599         3                   -                  -                  -                    -
-                 record_ids       VARCHAR        12599     12597                   -                  -                  -                    -
-      record_dwelling_units       VARCHAR        12572       262                   -                  -                  -                    -
-       record_building_sqft       VARCHAR        12174      5081                   -                  -                  -                    -
-           record_land_sqft       VARCHAR        12598      3985                   -                  -                  -                    -
-                    classes       VARCHAR        12599       116                   -                  -                  -                    -
-      first_assessment_year        BIGINT        12599        21                2006               2026 2015.5771092943885    5.586429523253452
-        assessor_year_built        BIGINT        12599        69                1871               2026 2012.3711405667116   13.343753839428782
-             dwelling_units        BIGINT        12570       233                   0               1679 7.2906921241050116    39.67418203445795
-              building_sqft        BIGINT        12167      5002                   0            1380640  9339.512451713652   45728.111259535355
-                  land_sqft        BIGINT        12598      3867                   0            1540260  5642.180901730433    22461.82051045067
-                match_basis       VARCHAR        12599         4                   -                  -                  -                    -
-                      flags       VARCHAR          488         7                   -                  -                  -                    -
-                  allow_far       BOOLEAN        14507         2                   -                  -                  -                    -
-                allow_dupac       BOOLEAN        14507         2                   -                  -                  -                    -
-                        far        DOUBLE        11693     10185 0.15010161618116713 32.509535794909056 1.2039245947113866   1.3353341967329253
-                      dupac        DOUBLE        12075      4539  1.8282548476454292  904.2268870494823 28.733040993509714   46.441113308674005
-                multifamily       BOOLEAN        12570         2                   -                  -                  -                    -
-                description       VARCHAR        14507     12553                   -                  -                  -                    -
+                     column inferred_type non_missing distinct                 min                max               mean                   sd
+                building_id        BIGINT       14507    14507             1161353            3293346  2420948.066726408    542228.9838822805
+              permit_number       VARCHAR       14507    14507                   -                  -                  -                    -
+      member_permit_numbers       VARCHAR       14507    14507                   -                  -                  -                    -
+  superseded_permit_numbers       VARCHAR         146      146                   -                  -                  -                    -
+                 issue_date          DATE       14507     3760                   -                  -                  -                    -
+                 issue_year        BIGINT       14507       17                2006               2022 2013.0767215826843    5.374655000186816
+                    address       VARCHAR       14507    14281                   -                  -                  -                    -
+                   latitude        DOUBLE       14477    14246   41.65129502144656  42.02261774982914 41.889330542859156   0.0710744757550167
+                  longitude        DOUBLE       14477    14246  -87.91442843927047 -87.52952274989771 -87.67939449469674 0.045320750549555415
+               permit_units        BIGINT       14006      230                   0                958  6.915322004855062    36.07942522831077
+              stated_counts       VARCHAR        5501      268                   -                  -                  -                    -
+              permit_status       VARCHAR       14507        7                   -                  -                  -                    -
+        any_permit_complete       BOOLEAN       14398        2                   -                  -                  -                    -
+              parcel_pin10s       VARCHAR       14096    13825                   -                  -                  -                    -
+parcel_changed_after_permit       BOOLEAN       14507        2                   -                  -                  -                    -
+                     status       VARCHAR       14507        6                   -                  -                  -                    -
+                     source       VARCHAR       12599        3                   -                  -                  -                    -
+                 record_ids       VARCHAR       12599    12597                   -                  -                  -                    -
+      record_dwelling_units       VARCHAR       12588      260                   -                  -                  -                    -
+       record_building_sqft       VARCHAR       12174     5080                   -                  -                  -                    -
+           record_land_sqft       VARCHAR       12598     3985                   -                  -                  -                    -
+                    classes       VARCHAR       12599      114                   -                  -                  -                    -
+      first_assessment_year        BIGINT       12599       21                2006               2026 2015.5771092943885    5.586429523253452
+        assessor_year_built        BIGINT       12599       69                1871               2026 2012.3712199380902   13.343808143716545
+             dwelling_units        BIGINT       12588      233                   0               1679  7.282650142993327    39.64641161948155
+              building_sqft        BIGINT       12167     5001                   0            1380640  9339.784088107175    45728.07257255329
+                  land_sqft        BIGINT       12598     3867                   0            1540260  5641.982457532942   22461.837227808766
+                match_basis       VARCHAR       12599        4                   -                  -                  -                    -
+                      flags       VARCHAR         490        7                   -                  -                  -                    -
+                  allow_far       BOOLEAN       14507        2                   -                  -                  -                    -
+                allow_dupac       BOOLEAN       14507        2                   -                  -                  -                    -
+                        far        DOUBLE       11709    10196 0.15010161618116713 32.509535794909056 1.2031376120500792   1.3346082665433274
+                      dupac        DOUBLE       12091     4541  1.8282548476454292  904.2268870494823  28.71634012742745    46.41357595127146
+                multifamily       BOOLEAN       12588        2                   -                  -                  -                    -
+                description       VARCHAR       14507    12553                   -                  -                  -                    -

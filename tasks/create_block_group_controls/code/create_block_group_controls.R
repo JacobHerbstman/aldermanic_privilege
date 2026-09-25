@@ -1,27 +1,9 @@
-# --- Interactive Test Block ---
-# setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/create_block_group_controls/code")
-# acs_year <- 2014
-# geometry_year <- 2019
+# setwd("tasks/create_block_group_controls/code")
+# The recorded sources are 2014 ACS five-year block-group counts and 2019 block-group geography.
+acs_year <- 2014L
 
 source("../../setup_environment/code/packages.R")
-
 source("../../shared/code/save_data.R")
-cli_args <- commandArgs(trailingOnly = TRUE)
-if (interactive()) {
-  cli_args <- c(acs_year, geometry_year)
-}
-if (length(cli_args) != 2) {
-  stop("Script requires the ACS year and geometry year.", call. = FALSE)
-}
-
-acs_year <- as.integer(cli_args[1])
-geometry_year <- as.integer(cli_args[2])
-if (any(!is.finite(c(acs_year, geometry_year)))) {
-  stop("ACS and geometry years must be integers.", call. = FALSE)
-}
-if (acs_year != 2014L || geometry_year != 2019L) {
-  stop("The recorded inputs contain 2014 ACS counts and 2019 geography. Update the recorded sources before changing their years.")
-}
 
 block_group_controls <- read_csv("../output/acs_block_group_controls.csv", show_col_types = FALSE,
   col_types = cols(GEOID = col_character(), .default = col_guess())) %>%
@@ -48,6 +30,7 @@ block_group_areas <- block_group_geometry %>%
   st_drop_geometry() %>%
   select(GEOID, land_area_sqkm)
 
+# A 2014 block group whose GEOID has no 2019 polygon keeps its other controls and a missing population density.
 block_group_controls <- block_group_controls %>%
   left_join(block_group_areas, by = "GEOID", relationship = "many-to-one") %>%
   mutate(

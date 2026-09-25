@@ -20,10 +20,10 @@ all: ../output/alderman_uncertainty_index_$(FROZEN_SPEC).csv \
 	../output/alderman_uncertainty_index_$(PAPER_SPEC).csv \
 	../output/stage1_regression_$(PAPER_SPEC).tex
 
-../%/alderman_uncertainty_index_$(PAPER_SPEC).csv ../%/stage1_regression_$(PAPER_SPEC).tex: create_uncertainty_index.R ../../shared/code/alderman_uncertainty_helpers.R ../input/permits_for_uncertainty_index.csv Makefile ../../setup_environment/code/packages.R ../../shared/code/save_data.R ../../shared/code/report.py | ../output ../report
+../%/alderman_uncertainty_index_$(PAPER_SPEC).csv ../%/stage1_regression_$(PAPER_SPEC).tex: create_uncertainty_index.R ../input/permits_for_uncertainty_index.csv Makefile | ../output ../report
 	$(R) $< $(PTFE) $(RTFE) $(PORCH) $(CAFE) $(TWO_STAGE) $(STAGE2_WEIGHT) $(VOLUME_CTRL) $(VOLUME_STAGE) $(PAPER_CUTOFF) TRUE
 
-../output/alderman_uncertainty_index_$(FROZEN_SPEC).csv: create_uncertainty_index.R ../../shared/code/alderman_uncertainty_helpers.R ../input/permits_for_uncertainty_index.csv Makefile ../../setup_environment/code/packages.R ../../shared/code/save_data.R ../../shared/code/report.py | ../output ../report
+../output/alderman_uncertainty_index_$(FROZEN_SPEC).csv: create_uncertainty_index.R ../input/permits_for_uncertainty_index.csv Makefile | ../output ../report
 	$(R) $< $(PTFE) $(RTFE) $(PORCH) $(CAFE) $(TWO_STAGE) $(STAGE2_WEIGHT) $(VOLUME_CTRL) $(VOLUME_STAGE) $(FROZEN_CUTOFF) FALSE
 
 ../input/permits_for_uncertainty_index.csv: ../../data_for_alderman_uncertainty_index/output/permits_for_uncertainty_index.csv | ../input
