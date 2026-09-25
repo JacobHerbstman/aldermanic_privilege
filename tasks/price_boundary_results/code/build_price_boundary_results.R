@@ -17,6 +17,7 @@ cluster <- "ward_pair"
 stopifnot(start_year <= end_year, bandwidth_ft %% bin_width_ft == 0)
 
 source("../../setup_environment/code/packages.R")
+source("../../shared/code/save_data.R")
 source("../../shared/code/canonical_geometry_helpers.R")
 
 rent <- arrow::read_parquet(
@@ -517,7 +518,10 @@ estimate_bins <- function(
       panel.grid.minor = ggplot2::element_blank()
     )
 
-  plot
+  list(plot = plot, estimates = results |>
+    dplyr::transmute(distance_bin, bin_center_ft, estimate, std_error, p_value, ci_low = ribbon_low, ci_high = ribbon_high,
+      average_estimate = average[["Estimate"]], average_std_error = average[["Std. Error"]],
+      average_p_value = average[["Pr(>|t|)"]], observations = stats::nobs(model), ward_pairs = cluster_count))
 }
 
 fits <- list()
@@ -556,9 +560,16 @@ for (market_name in c("rent", "sales")) {
   }
 }
 
+# Every distance-band and average-difference estimate behind the figures, for the slide versions
+# (tasks/presentation_figures).
+estimates <- dplyr::bind_rows(lapply(names(fits), function(name) {
+  dplyr::mutate(fits[[name]]$estimates, market = sub("_.*$", "", name), check = sub("^[a-z]+_", "", name), .before = 1)
+}))
+SaveData(estimates, c("market", "check", "distance_bin"), "../output/price_boundary_estimates.csv")
+
 main_plot <- patchwork::wrap_plots(
-  fits$rent_main,
-  fits$sales_main,
+  fits$rent_main$plot,
+  fits$sales_main$plot,
   ncol = 2
 ) +
   patchwork::plot_annotation(
@@ -568,10 +579,10 @@ main_plot <- patchwork::wrap_plots(
   ggplot2::theme(legend.position = "bottom")
 
 placebo_plot <- patchwork::wrap_plots(
-  fits$rent_placebo_neg1000ft,
-  fits$rent_placebo_pos1000ft,
-  fits$sales_placebo_neg1000ft,
-  fits$sales_placebo_pos1000ft,
+  fits$rent_placebo_neg1000ft$plot,
+  fits$rent_placebo_pos1000ft$plot,
+  fits$sales_placebo_neg1000ft$plot,
+  fits$sales_placebo_pos1000ft$plot,
   ncol = 2
 ) +
   patchwork::plot_annotation(
@@ -581,18 +592,18 @@ placebo_plot <- patchwork::wrap_plots(
   ggplot2::theme(legend.position = "bottom")
 
 straight_plot <- patchwork::wrap_plots(
-  fits$rent_straight,
-  fits$sales_straight,
+  fits$rent_straight$plot,
+  fits$sales_straight$plot,
   ncol = 2
 ) +
   patchwork::plot_layout(guides = "collect") &
   ggplot2::theme(legend.position = "bottom")
 
 donut_plot <- patchwork::wrap_plots(
-  fits$rent_donut25ft,
-  fits$rent_donut50ft,
-  fits$sales_donut25ft,
-  fits$sales_donut50ft,
+  fits$rent_donut25ft$plot,
+  fits$rent_donut50ft$plot,
+  fits$sales_donut25ft$plot,
+  fits$sales_donut50ft$plot,
   ncol = 2
 ) +
   patchwork::plot_layout(guides = "collect") &

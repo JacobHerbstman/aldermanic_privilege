@@ -1,0 +1,50 @@
+% ==============================================================================
+% APPENDIX: NEW-CONSTRUCTION DATA
+% ==============================================================================
+\begin{frame}[label=construction-data-appendix]
+    \frametitle{Building the New-Construction Data}
+    \small
+    \begin{enumerate}[itemsep=0.55em]
+      \item \textbf{Permits.} Start from the City of Chicago permits issued 2006--2022 that erect a new building (26{,}921) and keep those for new residential buildings.
+      \item \textbf{Assessor records.} Link each permit to the Cook County Assessor records of the new building on its parcels (houses, condominiums, apartment buildings), which report dwelling units, lot area and floor area.
+      \item \textbf{One row per building.} Permits reaching the same building are combined; homes built under one permit are counted separately. Buildings completed in 2006--2007 under earlier permits enter from Assessor records.
+      \item \textbf{Checks.} Ambiguous matches are resolved by hand; density is withheld when records disagree with the permit or are implausible.
+    \end{enumerate}
+    \medskip
+    \textbf{Result:} 15{,}350 new residential buildings, 2006--2022, with dwelling units and lot area (5{,}322 multifamily), each dated, located and assigned to its ward and nearest boundary segment.
+    \vfill\hfill\hyperlink{data-main}{\beamerreturnbutton{Back}}
+\end{frame}
+
+% ==============================================================================
+% APPENDIX A: SUMMARY STATISTICS
+% ==============================================================================
+
+\begin{frame}[label=permit-summary-stats-appendix]
+    \frametitle{Permit Summary Statistics}
+    \begin{center}
+    \small
+    \setlength{\tabcolsep}{4pt}
+    \renewcommand{\arraystretch}{1.0}
+    \input{../tasks/permit_summary_stats/output/permit_processing_time_high_vs_low_alderman_summary.tex}
+    \end{center}
+    \vspace{0.4em}
+    {\footnotesize \textit{High-discretion permits}: new construction, renovation/alteration, wrecking/demolition, porch construction, reinstate revoked permit. \textit{Low-discretion permits}: all other permit types, excluding PERMIT\,--\,SIGNS.}
+    \vfill
+    \hfill\hyperlink{permit-stats-main}{\beamergotobutton{Back}}
+\end{frame}
+
+% ==============================================================================
+% Permit Volume Correlation
+% ==============================================================================
+\begin{frame}[label=permit-vol-corr-appendix]
+    \frametitle{Permit Volume and Processing Time}
+    \begin{center}
+    \setlength{\tabcolsep}{8pt}
+    \renewcommand{\arraystretch}{1.2}
+    \input{../tasks/permit_summary_stats/output/permit_processing_time_volume_correlation.tex}
+    \end{center}
+    \vspace{0.5em}
+    {\small Pearson correlation between ward-month mean processing time and ward-month permit volume.}
+    \vfill
+    \hfill\hyperlink{permit-stats-main}{\beamergotobutton{Back}}
+\end{frame}

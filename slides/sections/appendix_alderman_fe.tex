@@ -1,0 +1,17 @@
+\begin{frame}[label=score-plot-appendix]
+    \frametitle{Distribution of Aldermanic Stringency}
+    \centering
+    \includegraphics[width=0.91\textwidth,height=0.74\textheight,keepaspectratio]{../tasks/strictness_score_map/output/uncertainty_score_distribution_ptfeTRUE_rtfeTRUE_porchTRUE_cafeFALSE_2stage_volLAG1_BOTH_through2022.pdf}
+    \vfill\hfill\hyperlink{strictness-main}{\beamerreturnbutton{Back}}
+\end{frame}
+
+\begin{frame}[label=stage1-appendix]
+    \frametitle{Processing-Time Adjustment}
+    \centering\tiny
+    \renewcommand{\arraystretch}{0.82}
+    \input{../tasks/create_alderman_uncertainty_index/output/stage1_regression_ptfeTRUE_rtfeTRUE_porchTRUE_cafeFALSE_2stage_volLAG1_BOTH_through2022.tex}
+    \par\smallskip
+    \tiny Ward-clustered standard errors in parentheses; * $p<0.10$, ** $p<0.05$, *** $p<0.01$.
+    \vfill\hfill\hyperlink{strictness-main}{\beamerreturnbutton{Back}}
+    \note{The previous-month permit-volume control also enters the ward-month regression used to estimate alderman effects. All ten displayed controls enter the same permit-level regression.}
+\end{frame}

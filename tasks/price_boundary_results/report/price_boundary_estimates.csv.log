@@ -1,0 +1,24 @@
+File: price_boundary_estimates.csv
+Rows: 120
+Columns: 14
+SHA-256 (saved bytes): 7b4920d589ba520082b38a90bf4fa7264592c8a2e9850ab4534f79a381e5d80a
+Key: market, check, distance_bin
+Types: DuckDB inference from the complete saved CSV.
+Distinct counts: exact (exact up to 100,000 rows).
+Row counts, non-missing counts, and declared-key checks: exact.
+
+           column inferred_type non_missing distinct                    min                  max                  mean                    sd
+           market       VARCHAR         120        2                      -                    -                     -                     -
+            check       VARCHAR         120        6                      -                    -                     -                     -
+     distance_bin       VARCHAR         120       10                      -                    -                     -                     -
+    bin_center_ft        BIGINT         120       10                   -450                  450                   0.0    288.43244843624024
+         estimate        DOUBLE         120      109   -0.04314179339812036  0.05608075514432299  0.009824337984963303   0.02170037395627423
+        std_error        DOUBLE         108      108   0.009416329569874836  0.05310269821889724  0.015954795008948284  0.007118295806499757
+          p_value        DOUBLE         108      108 0.00031703013679776213   0.9944957032597586    0.3140778777175541    0.3080521146896397
+           ci_low        DOUBLE         120      109   -0.07486874869848956  0.02326263517496843 -0.018568640106201576  0.023643566820814876
+          ci_high        DOUBLE         120      109  -0.014230079500308131  0.16110863950558468   0.03821731607612817  0.030329597596049706
+ average_estimate        DOUBLE         120       12 -0.0049039450008860445 0.025321595049425723  0.011148087267305885   0.00773767425989166
+average_std_error        DOUBLE         120       12   0.006214840446400533 0.018323744427161115  0.009053628654258539 0.0030578671091174583
+  average_p_value        DOUBLE         120       12   0.005816272552420775   0.9925302383726182   0.23147463916438188    0.2573921068239062
+     observations        BIGINT         120       12                  39264               240713              120232.0     79058.79349620525
+       ward_pairs        BIGINT         120        5                    135                  141    139.33333333333334    1.6053133065931462

@@ -3,13 +3,15 @@ include ../../shared/code/shell_functions.make
 all: ../output/price_boundary_main.pdf \
 	../output/price_boundary_placebos.pdf \
 	../output/price_boundary_straight.pdf \
-	../output/price_boundary_donuts.pdf
+	../output/price_boundary_donuts.pdf \
+	../output/price_boundary_estimates.csv
 
 ../%/price_boundary_main.pdf \
 	../%/price_boundary_placebos.pdf \
 	../%/price_boundary_straight.pdf \
-	../%/price_boundary_donuts.pdf: build_price_boundary_results.R ../input/rental_rd_characteristics_panel_bw1500.parquet \
-	../input/sales_with_hedonics_amenities.parquet ../input/ward_pair_boundaries.gpkg | ../output
+	../%/price_boundary_donuts.pdf \
+	../%/price_boundary_estimates.csv: build_price_boundary_results.R ../input/rental_rd_characteristics_panel_bw1500.parquet \
+	../input/sales_with_hedonics_amenities.parquet ../input/ward_pair_boundaries.gpkg | ../output ../report
 	$(R) $<
 
 ../input/rental_rd_characteristics_panel_bw1500.parquet: ../../rental_rd_characteristics/output/rental_rd_characteristics_panel_bw1500.parquet | ../input

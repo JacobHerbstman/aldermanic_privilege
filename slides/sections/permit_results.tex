@@ -1,0 +1,47 @@
+% Permit results before density and prices
+\begin{frame}[label=permit-map-main]
+    \frametitle{2015 Redistricting Changes Who Represents the Same Block}
+    \centering
+    \includegraphics[width=\textwidth,height=0.49\textheight,keepaspectratio]{../tasks/presentation_figures/output/ward_pair_1-26_500ft.pdf}
+    \par\medskip
+    \small
+    \begin{itemize}[itemsep=0.3em]
+      \item Example: wards 1 and 26, blocks within 500 feet of the boundary.
+      \item Red and blue blocks switch toward more stringent and more lenient aldermen; gray blocks stay with the same alderman.
+      \item Compare changes in annual permit activity, holding block location fixed and absorbing ward-pair-specific changes each year.
+    \end{itemize}
+    \note{Eligible sample requires stable 2014 incumbents and positive high-discretion activity in 2010--2014. PPML can additionally remove separated observations.}
+\end{frame}
+
+\begin{frame}[label=permit-spec-main]
+    \frametitle{Event Study: Permit Activity After Ward Reassignment}
+    \small
+    \[
+      \log\mathbb{E}[Y_{by}\mid\cdot]=\mu_b+\lambda_{g(b),y}
+      +\sum_{t\neq-1}\beta_t Z_b\mathbf{1}\{y-2015=t\}.
+    \]
+    \begin{itemize}[itemsep=0.35em]
+      \item $Y_{by}$: annual high-discretion permit count, 2010-2020. Estimated by PPML.
+      \item $Z_b=+1$ for assignment to more stringent aldermen, $-1$ for more lenient, and $0$ for unchanged blocks.
+      \item \textbf{Fixed effects}: block $\mu_b$ and ward pair $\times$ year $\lambda_{g(b),y}$.
+    \end{itemize}
+    Parallel trends: absent reassignment, nearby switched and unchanged blocks would have followed comparable permit trends.
+    \vfill\hfill\hyperlink{permit-balance-history}{\beamergotobutton{Pre-period balance}}
+\end{frame}
+
+\begin{frame}[label=permit-result-main]
+    \frametitle{Permit Activity Falls With Assignment Toward Greater Stringency}
+    \centering
+    \includegraphics[width=0.85\textwidth,height=0.66\textheight,keepaspectratio]{../tasks/run_event_study_permit/output/permit_event_study_high_discretion_stable_signed_500ft.pdf}
+    \par\smallskip
+    \vfill\hfill\hyperlink{permit-placebo}{\beamergotobutton{Low-discretion permits}}
+    \hyperlink{permit-turnover}{\beamergotobutton{Include turnover}}
+\end{frame}
+
+\begin{frame}[label=permit-directions-main]
+    \frametitle{Assignments to More Stringent and More Lenient Aldermen}
+    \centering
+    \includegraphics[width=\textwidth,height=0.82\textheight,keepaspectratio]{../tasks/run_event_study_permit/output/permit_event_study_high_discretion_stable_separate_500ft.pdf}
+    \vfill\hfill\hyperlink{permit-pooled-appendix}{\beamergotobutton{Pooled estimates}}
+    \hyperlink{permit-separate-spec}{\beamergotobutton{Equation}}
+\end{frame}

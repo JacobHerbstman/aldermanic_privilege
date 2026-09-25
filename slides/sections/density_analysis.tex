@@ -1,0 +1,89 @@
+% ==============================================================================
+% DENSITY ANALYSIS SECTION
+% Density outcomes, sample, specification, and current results
+% ==============================================================================
+
+% ==============================================================================
+% SLIDE: DENSITY OUTCOME (DUPAC)
+% ==============================================================================
+\begin{frame}
+    \frametitle{Density Outcome: Dwelling Units per Acre}
+
+    \begin{columns}[T]
+    \begin{column}{0.50\textwidth}
+        \centering
+        \resizebox{\linewidth}{!}{%
+        \begin{tikzpicture}[x=1cm, y=1cm,
+            unit/.style={draw=orange!55!black, fill=orange!25, line width=0.5pt},
+            lot/.style={fill=green!25, draw=green!45!black, line width=0.7pt},
+            label/.style={font=\scriptsize\sffamily}]
+          % Two identical buildings on identical quarter-acre lots.
+          \foreach \x/\cols/\units/\dupac in {0/2/4/16, 4.4/4/8/32} {
+            \begin{scope}[shift={(\x,0)}]
+              \fill[lot] (-0.35,-0.25) rectangle (2.95,0);
+              \pgfmathsetmacro{\w}{2.6/\cols}
+              \foreach \r in {0,1} {
+                \foreach \c in {1,...,\cols} {
+                  \draw[unit] ({(\c-1)*\w},{\r*1.1}) rectangle ({\c*\w},{(\r+1)*1.1});
+                  \fill[orange!55!black] ({(\c-0.5)*\w-0.08},{\r*1.1+0.45}) rectangle ({(\c-0.5)*\w+0.08},{\r*1.1+0.75});
+                }
+              }
+              \draw[orange!55!black, line width=1pt] (0,0) rectangle (2.6,2.2);
+              \draw[<->, green!35!black] (-0.35,-0.45) -- (2.95,-0.45);
+              \node[label, below] at (1.3,-0.45) {$\tfrac14$-acre lot};
+              \node[font=\small\sffamily\bfseries, above] at (1.3,2.25) {\units\ homes};
+              \node[font=\small, below] at (1.3,-0.95) {$\mathrm{DUPAC}=\units \div \tfrac14=\mathbf{\dupac}$};
+            \end{scope}
+          }
+        \end{tikzpicture}}
+    \end{column}
+
+    \begin{column}{0.47\textwidth}
+        \small
+        \textbf{Dwelling units per acre (DUPAC)}
+        \[
+          \mathrm{DUPAC}=\frac{\text{number of dwelling units}}{\text{lot acreage}}
+        \]
+        \smallskip
+        \begin{itemize}[itemsep=0.4em]
+          \item Counts homes per acre of land.
+          \item The same building on the same lot can hold more homes with smaller units, doubling DUPAC.
+        \end{itemize}
+    \end{column}
+    \end{columns}
+\end{frame}
+
+
+
+\begin{frame}[label=density-data-main]
+    \frametitle{New Residential Construction}
+    \small
+    \input{../tasks/density_main_results/output/density_sample_summary.tex}
+\end{frame}
+
+\begin{frame}[label=identification-strategy]
+    \frametitle{Density Comparisons Across Ward Boundaries}
+    \small
+    \[
+      \log \mathrm{DUPAC}_{isj}=\beta\,\mathbf{1}\{\text{more-stringent side}\}_{i}
+      +X_i'\theta+\zeta_{z(i)}+\delta_{sj}+\varepsilon_{isj}.
+    \]
+    \begin{itemize}[itemsep=0.45em]
+      \item Compare buildings within 500 feet on opposite sides of a boundary segment; $\beta$ is the average difference between the two sides.
+      \item Boundary segment $\times$ joint service $\delta_{sj}$ FEs (the same two aldermen serving the two wards) and zoning group FEs $\zeta_{z(i)}$. Standard errors clustered by ward pair.
+      \item Samples: all new construction, multifamily (2+ units), multifamily with 5+ units.
+      \item $X_i$: White and Black population shares, household income, bachelor's-degree share, and homeownership in the building's ward.
+    \end{itemize}
+    \vfill\hfill\hyperlink{density-location}{\beamergotobutton{Location continuity}}
+\end{frame}
+
+\begin{frame}[label=visual-rd-main]
+    \frametitle{Development Density at Ward Boundaries}
+    \centering
+    \includegraphics[width=0.98\textwidth,height=0.72\textheight,keepaspectratio]{../tasks/presentation_figures/output/density_rd_slides.pdf}
+    \par\smallskip
+    \scriptsize Subtitles: average difference between the two sides. Points: 100-foot bands relative to the nearest less-stringent band. Segment $\times$ joint-service and zoning-group fixed effects; demographic controls; ward-pair-clustered 95\% confidence intervals.
+    \vfill\hfill\hyperlink{density-placebo-less}{\beamergotobutton{Placebos}}
+    \hyperlink{density-donut25}{\beamergotobutton{Donuts}}
+    \hyperlink{density-geometry}{\beamergotobutton{Boundary geometry}}
+\end{frame}

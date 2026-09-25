@@ -1,0 +1,30 @@
+% Stringency measurement
+\begin{frame}[label=index-construction-main]
+    \frametitle{Measuring Aldermanic Stringency}
+    \small
+    \textbf{1. Residualize permit processing times:}
+    \vspace{-0.6em}
+    \begin{itemize}[itemsep=0.1em]
+      \item Regress log processing time on ward demographics, location characteristics, and previous-month permit volume.
+      \item Year-month, permit-type, and review-type fixed effects.
+    \end{itemize}
+    \textbf{2. Project residuals onto alderman indicators:}
+    \vspace{-0.6em}
+    \begin{itemize}[itemsep=0.1em]
+      \item Weight each ward-month by its number of permits.
+      \item Apply empirical Bayes shrinkage  \cite{kline_systemic_2022,kline_discrimination_2024}, center, and standardize: mean 0, SD 1.
+    \end{itemize}
+    \smallskip
+    \textbf{Higher score = longer adjusted processing times.} Scores use 2006--2022 permits; the event study freezes the score sample at 2014.
+    \note{Stage 2 uses a full set of alderman indicators without an additional intercept. The lagged-volume control enters both stages. Source: tasks/shared/code/alderman_uncertainty_helpers.R and tasks/create_alderman_uncertainty_index/code/Makefile.}
+\end{frame}
+
+\begin{frame}[label=strictness-main]
+    \frametitle{Aldermanic Stringency Across Chicago}
+    \centering
+    \includegraphics[width=0.93\textwidth,height=0.68\textheight,keepaspectratio]{../tasks/strictness_score_map/output/uncertainty_score_map_comparison.pdf}
+    \par\smallskip
+    {\footnotesize Scores use 2006--2022 processing times; both maps use the same scale.}
+    \vfill\hfill\hyperlink{score-plot-appendix}{\beamergotobutton{Distribution}}
+    \hyperlink{stage1-appendix}{\beamergotobutton{First stage}}
+\end{frame}

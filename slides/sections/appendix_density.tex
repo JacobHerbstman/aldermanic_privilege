@@ -1,0 +1,54 @@
+\begin{frame}[label=density-placebo-less]
+    \frametitle{Density Placebo: Boundary Shifted 1,000 Feet Toward the Less-Stringent Side}
+    \centering
+    \includegraphics[width=0.98\textwidth,height=0.67\textheight,keepaspectratio]{../tasks/presentation_figures/output/density_placebo_neg1000ft_slides.pdf}
+    \par\smallskip\scriptsize Placebo cutoff lies 1,000 feet inside the less-stringent side, with a 500-foot window around it and the main specification.
+    \vfill\hfill\hyperlink{density-placebo-more}{\beamergotobutton{More-stringent side}}
+    \hyperlink{visual-rd-main}{\beamerreturnbutton{Back}}
+\end{frame}
+
+\begin{frame}[label=density-placebo-more]
+    \frametitle{Density Placebo: Boundary Shifted 1,000 Feet Toward the More-Stringent Side}
+    \centering
+    \includegraphics[width=0.98\textwidth,height=0.67\textheight,keepaspectratio]{../tasks/presentation_figures/output/density_placebo_pos1000ft_slides.pdf}
+    \par\smallskip\scriptsize Placebo cutoff lies 1,000 feet inside the more-stringent side, with a 500-foot window around it and the main specification.
+    \vfill\hfill\hyperlink{density-placebo-less}{\beamergotobutton{Less-stringent side}}
+    \hyperlink{visual-rd-main}{\beamerreturnbutton{Back}}
+\end{frame}
+
+\begin{frame}[label=density-donut25]
+    \frametitle{Density Estimates Excluding the Nearest 25 Feet}
+    \centering
+    \includegraphics[width=0.98\textwidth,height=0.67\textheight,keepaspectratio]{../tasks/presentation_figures/output/density_donut25ft_slides.pdf}
+    \par\smallskip\scriptsize Drop buildings within 25 feet of the true boundary; retain the original 100-foot bands, 500-foot window and fixed effects.
+    \vfill\hfill\hyperlink{density-donut50}{\beamergotobutton{50-foot exclusion}}
+    \hyperlink{visual-rd-main}{\beamerreturnbutton{Back}}
+\end{frame}
+
+\begin{frame}[label=density-donut50]
+    \frametitle{Density Estimates Excluding the Nearest 50 Feet}
+    \centering
+    \includegraphics[width=0.98\textwidth,height=0.67\textheight,keepaspectratio]{../tasks/presentation_figures/output/density_donut50ft_slides.pdf}
+    \par\smallskip\scriptsize Drop buildings within 50 feet of the true boundary; retain the original 100-foot bands, 500-foot window and fixed effects.
+    \vfill\hfill\hyperlink{density-donut25}{\beamergotobutton{25-foot exclusion}}
+    \hyperlink{visual-rd-main}{\beamerreturnbutton{Back}}
+\end{frame}
+
+\begin{frame}[label=density-geometry]
+    \frametitle{Density Estimates Across Different Boundary Geographies}
+    \centering
+    \begin{adjustbox}{max width=0.94\textwidth, max totalheight=0.70\textheight}\input{../tasks/presentation_figures/output/density_boundary_robustness_slides.tex}\end{adjustbox}
+    \par\medskip
+    \scriptsize Average differences between the two sides; segment $\times$ joint-service and zoning-group fixed effects and demographic controls. Standard errors clustered by ward pair. The second and third blocks drop segments that largely follow expressways or water, or physical features (water, parks, cemeteries), expressways, or major arterials; the last keeps straight segments.
+    \vfill\hfill\hyperlink{visual-rd-main}{\beamerreturnbutton{Back}}
+\end{frame}
+
+\begin{frame}[label=density-location]
+    \frametitle{Location Characteristics at Ward Boundaries}
+    \centering\small
+    \input{../tasks/presentation_figures/output/density_location_continuity_slides.tex}
+    \par\medskip
+    \footnotesize Average differences in location characteristics between the two sides, with segment $\times$ joint-service fixed effects. Standard errors clustered by ward pair. This is a continuity check, not proof that all neighborhood attributes are balanced.
+    \vfill\hfill\hyperlink{identification-strategy}{\beamerreturnbutton{Back}}
+\end{frame}
+
