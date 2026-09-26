@@ -48,11 +48,11 @@ slides.pdf: Makefile slides.tex ../paper/sections/aldermanic_privilege.bib \
 	../tasks/presentation_figures/output/ward_pair_1-26_500ft.pdf \
 	../tasks/run_event_study_permit/output/permit_event_study_appendix_500ft.tex \
 	../tasks/run_event_study_permit/output/permit_event_study_high_discretion_all_signed_500ft.pdf \
-	../tasks/run_event_study_permit/output/permit_event_study_high_discretion_stable_separate_500ft.pdf \
-	../tasks/run_event_study_permit/output/permit_event_study_high_discretion_stable_signed_500ft.pdf \
+	../tasks/presentation_figures/output/permit_event_study_high_discretion_stable_separate_500ft_slides.pdf \
+	../tasks/presentation_figures/output/permit_event_study_high_discretion_stable_signed_500ft_slides.pdf \
 	../tasks/run_event_study_permit/output/permit_event_study_low_discretion_nosigns_stable_signed_500ft.pdf \
 	../tasks/strictness_score_map/output/uncertainty_score_distribution_ptfeTRUE_rtfeTRUE_porchTRUE_cafeFALSE_2stage_volLAG1_BOTH_through2022.pdf \
-	../tasks/strictness_score_map/output/uncertainty_score_map_comparison.pdf
+	../tasks/presentation_figures/output/stringency_map_2007_2014_2022_slides.pdf
 	pdflatex -halt-on-error -interaction=nonstopmode -draftmode slides.tex
 	bibtex slides
 	pdflatex -halt-on-error -interaction=nonstopmode -draftmode slides.tex

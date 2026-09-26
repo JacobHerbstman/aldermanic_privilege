@@ -35,15 +35,21 @@ padding <- max(box["xmax"] - box["xmin"], box["ymax"] - box["ymin"]) * 0.08
 xlim <- as.numeric(box[c("xmin", "xmax")]) + c(-padding, padding)
 ylim <- as.numeric(box[c("ymin", "ymax")]) + c(-padding, padding)
 ward_colors <- setNames(c("#D62728", "#1F77B4"), strsplit(ward_pair, "-", fixed = TRUE)[[1]])
+# The ward whose alderman is more stringent is the one that blocks moving toward stringency join.
+stricter_ward <- unique(as.character(panel$ward_dest[panel$treatment == "More stringent"]))
+stopifnot(length(stricter_ward) == 1, stricter_ward %in% names(ward_colors),
+  all(as.character(panel$ward_origin[panel$treatment == "More lenient"]) == stricter_ward))
+ward_labels <- setNames(paste0(names(ward_colors), if_else(names(ward_colors) == stricter_ward, " (more stringent)",
+  " (more lenient)")), names(ward_colors))
 plots <- vector("list", 3)
 for (i in 1:3) {
   map_year <- if (i == 1) 2014 else 2015
   blocks$group <- if (i == 1) as.character(blocks$ward_origin) else if (i == 2) as.character(blocks$ward_dest) else blocks$treatment
-  colors <- if (i < 3) ward_colors else c("Unchanged" = "#999999", "More lenient" = "#2478B5", "More stringent" = "#D92D27")
+  colors <- if (i < 3) ward_colors else c("More stringent" = "#D92D27", "More lenient" = "#2478B5", "Unchanged" = "#999999")
   plots[[i]] <- ggplot() +
     geom_sf(data = blocks, aes(fill = group), color = "gray35", linewidth = 0.10) +
     geom_sf(data = filter(wards, year == map_year), fill = NA, color = "black", linewidth = 0.6) +
-    scale_fill_manual(values = colors, name = if (i < 3) "Ward" else NULL) +
+    scale_fill_manual(values = colors, breaks = names(colors), labels = if (i < 3) ward_labels[names(colors)] else waiver(), name = if (i < 3) "Ward" else NULL) +
     coord_sf(xlim = xlim, ylim = ylim, expand = FALSE) +
     labs(title = c("Before redistricting", "After redistricting", "Reassignment")[i]) +
     theme_void(base_size = 12) +

@@ -284,6 +284,31 @@ event_results <- event_results |>
     ci_high = estimate_log + critical_value * se
   )
 
+output_stem <- sprintf("../output/permit_event_study_%s_%s_%s_%s", outcome_family, sample_rule, direction_rule,
+  bandwidth_label)
+# Event-time coefficients and 95% confidence intervals, as plotted, with the pooled estimates in the subtitles (for
+# each direction when estimated separately), for the slide figures (tasks/presentation_figures).
+event_coefficients_out <- event_results |>
+  dplyr::select(dplyr::any_of("direction"), event_time, estimate, se, ci_low, ci_high)
+if (direction_rule == "signed") {
+  event_coefficients_out <- event_coefficients_out |>
+    dplyr::mutate(pooled_estimate = unname(pooled_estimate), pooled_se = unname(pooled_se),
+      pooled_p_value = unname(pooled_p_value))
+} else {
+  event_coefficients_out <- event_coefficients_out |>
+    dplyr::left_join(
+      direction_pooled_results |> dplyr::transmute(direction, pooled_estimate = estimate, pooled_se = se,
+        pooled_p_value = 2 * stats::pt(-abs(estimate / se), df = pooled_df)),
+      by = "direction",
+      relationship = "many-to-one"
+    )
+}
+SaveData(
+  event_coefficients_out,
+  if (direction_rule == "signed") "event_time" else c("direction", "event_time"),
+  paste0(output_stem, "_coefficients.csv")
+)
+
 if (direction_rule == "signed") {
   plot_title <- if (
     outcome_family == "high_discretion" &&
@@ -430,8 +455,6 @@ if (direction_rule == "signed") {
 
 # The pooled 2015-2020 effect, its percent change in annual permits, and the joint test that the pre-2015 effects are
 # zero, as quoted in the paper.
-output_stem <- sprintf("../output/permit_event_study_%s_%s_%s_%s", outcome_family, sample_rule, direction_rule,
-  bandwidth_label)
 SaveData(
   tibble::tibble(
     outcome_family, sample_rule, direction_rule, bandwidth_label,

@@ -6,7 +6,10 @@ all: ../output/ward_pair_1-26_500ft.pdf ../output/ward_map_2024.pdf \
 	../output/density_donut50ft_slides.pdf \
 	../output/density_boundary_robustness_slides.tex ../output/density_location_continuity_slides.tex \
 	../output/price_boundary_main_slides.pdf ../output/price_boundary_placebos_slides.pdf \
-	../output/price_boundary_straight_slides.pdf ../output/price_boundary_donuts_slides.pdf
+	../output/price_boundary_straight_slides.pdf ../output/price_boundary_donuts_slides.pdf \
+	../output/permit_event_study_high_discretion_stable_signed_500ft_slides.pdf \
+	../output/permit_event_study_high_discretion_stable_separate_500ft_slides.pdf \
+	../output/stringency_map_2007_2014_2022_slides.pdf
 
 ../output/ward_pair_1-26_500ft.pdf: plot_ward_pair.R ../input/permit_block_year_panel_2015.parquet \
 	../input/census_blocks_2010.csv ../input/ward_panel.gpkg | ../output
@@ -28,6 +31,17 @@ all: ../output/ward_pair_1-26_500ft.pdf ../output/ward_map_2024.pdf \
 	../%/price_boundary_donuts_slides.pdf: plot_price_slides.R ../input/price_boundary_estimates.csv | ../output
 	$(R) $<
 
+../%/permit_event_study_high_discretion_stable_signed_500ft_slides.pdf \
+	../%/permit_event_study_high_discretion_stable_separate_500ft_slides.pdf: plot_event_study_slides.R \
+	../input/permit_event_study_high_discretion_stable_signed_500ft_coefficients.csv \
+	../input/permit_event_study_high_discretion_stable_separate_500ft_coefficients.csv | ../output
+	$(R) $<
+
+../output/stringency_map_2007_2014_2022_slides.pdf: plot_stringency_map_slides.R \
+	../input/alderman_uncertainty_index_ptfeTRUE_rtfeTRUE_porchTRUE_cafeFALSE_2stage_volLAG1_BOTH_through2022.csv \
+	../input/chicago_alderman_panel.csv ../input/ward_panel.gpkg | ../output
+	$(R) $<
+
 ../input/permit_block_year_panel_2015.parquet: ../../create_event_study_permit_data/output/permit_block_year_panel_2015.parquet | ../input
 	ln -sf $< $@
 ../input/census_blocks_2010.csv: ../../download_chicago_spatial_data/output/census_blocks_2010.csv | ../input
@@ -42,9 +56,21 @@ all: ../output/ward_pair_1-26_500ft.pdf ../output/ward_map_2024.pdf \
 	ln -sf $< $@
 ../input/price_boundary_estimates.csv: ../../price_boundary_results/output/price_boundary_estimates.csv | ../input
 	ln -sf $< $@
+../input/permit_event_study_high_discretion_stable_signed_500ft_coefficients.csv: ../../run_event_study_permit/output/permit_event_study_high_discretion_stable_signed_500ft_coefficients.csv | ../input
+	ln -sf $< $@
+../input/permit_event_study_high_discretion_stable_separate_500ft_coefficients.csv: ../../run_event_study_permit/output/permit_event_study_high_discretion_stable_separate_500ft_coefficients.csv | ../input
+	ln -sf $< $@
+
+../input/alderman_uncertainty_index_ptfeTRUE_rtfeTRUE_porchTRUE_cafeFALSE_2stage_volLAG1_BOTH_through2022.csv: ../../create_alderman_uncertainty_index/output/alderman_uncertainty_index_ptfeTRUE_rtfeTRUE_porchTRUE_cafeFALSE_2stage_volLAG1_BOTH_through2022.csv | ../input
+	ln -sf $< $@
+../input/chicago_alderman_panel.csv: ../../create_alderman_data/output/chicago_alderman_panel.csv | ../input
+	ln -sf $< $@
 
 link-inputs: ../input/permit_block_year_panel_2015.parquet ../input/census_blocks_2010.csv ../input/ward_panel.gpkg \
 	../input/Wards_2024.geojson ../input/new_construction_analysis_data.csv ../input/density_boundary_characteristics.csv \
-	../input/price_boundary_estimates.csv
+	../input/price_boundary_estimates.csv ../input/permit_event_study_high_discretion_stable_signed_500ft_coefficients.csv \
+	../input/permit_event_study_high_discretion_stable_separate_500ft_coefficients.csv \
+	../input/alderman_uncertainty_index_ptfeTRUE_rtfeTRUE_porchTRUE_cafeFALSE_2stage_volLAG1_BOTH_through2022.csv \
+	../input/chicago_alderman_panel.csv
 
 include ../../shared/code/generic.make

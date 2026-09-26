@@ -1,0 +1,18 @@
+File: permit_event_study_high_discretion_stable_signed_500ft_coefficients.csv
+Rows: 11
+Columns: 8
+SHA-256 (saved bytes): 55a565c0b59791fb3c073a5119ee33ab898fe3a4c18b724fb389dee50a0771b8
+Key: event_time
+Types: DuckDB inference from the complete saved CSV.
+Distinct counts: exact (exact up to 100,000 rows).
+Row counts, non-missing counts, and declared-key checks: exact.
+
+         column inferred_type non_missing distinct                  min                  max                 mean                  sd
+     event_time        BIGINT          11       11                   -5                    5                  0.0     3.3166247903554
+       estimate        DOUBLE          11       11 -0.28600994472638364   0.0810070557793086 -0.06958137610606958 0.10796061438089322
+             se        DOUBLE          11       11                  0.0  0.11357561497965221  0.08458998957086228 0.03145892217051259
+         ci_low        DOUBLE          11       11  -0.4483008333756615                  0.0 -0.23753678334626818  0.1333557692717627
+        ci_high        DOUBLE          11       11 -0.12371905607710573  0.23915313403289756  0.09837403113412906 0.11545707859064085
+pooled_estimate        DOUBLE          11        1 -0.12651876380954583 -0.12651876380954583  -0.1265187638095458                 0.0
+      pooled_se        DOUBLE          11        1   0.0487857679560104   0.0487857679560104  0.04878576795601041                 0.0
+ pooled_p_value        DOUBLE          11        1 0.011023524657580504 0.011023524657580504 0.011023524657580502                 0.0

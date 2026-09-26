@@ -554,7 +554,7 @@ write_stage1_regression_table <- function(model, output_path, stage1_outcome) {
   }
   table_tex <- sub(
     "^\\s*month\\s*&",
-    "   Calendar Month Fixed Effects    &",
+    "   Year-Month Fixed Effects        &",
     table_tex
   )
   table_tex <- sub(

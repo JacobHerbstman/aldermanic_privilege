@@ -66,10 +66,11 @@
 % =============================================
 
 % Stage 1: Pre-application (always visible)
-\node[unobserved] (s1) at (0, 0) {
+\node[unobserved, text width=3.4cm] (s1) at (-0.2, 0) {
     \textbf{Pre-application}\\[1pt]
-    {\scriptsize\textit{Meet the alderman;}}\\[-2pt]
-    {\scriptsize\textit{community meetings}}
+    {\scriptsize\textit{Meet with planning}}\\[-2pt]
+    {\scriptsize\textit{dept.\ (DPD) +}}\\[-2pt]
+    {\scriptsize\textit{community engagement}}
 };
 
 % Stage 2: City Council zoning approval
@@ -122,7 +123,7 @@
     \draw[brack] (s4.east |- bracket) -- ++(0,3pt);
     \coordinate (mid34) at ($(s3.south)!0.5!(s4.south)$);
     \node[font=\tiny, text=pipeobs] at ([yshift=-12pt]mid34 |- bracket)
-        {Observable in permit data $\;\rightarrow\;$ proxy for $T(s)$};
+        {Observable in permit data $\;\rightarrow\;$ measure of regulatory delay};
 }
 
 % =============================================
@@ -135,7 +136,7 @@
 \only<1>{
     \node[font=\scriptsize, text=black!70, text width=7cm, align=left, anchor=north] (q1) at (qspot) {
         {\bfseries\scriptsize\textcolor{pipeaccent}{\textsc{Deterrence}}}\\[4pt]
-        Developers meet the ward's alderman and neighbors before filing. Projects discouraged here are never proposed.
+        Developers meet the Department of Planning and Development, the ward's alderman and neighbors before filing. Projects discouraged here are never proposed.
     };
 }
 

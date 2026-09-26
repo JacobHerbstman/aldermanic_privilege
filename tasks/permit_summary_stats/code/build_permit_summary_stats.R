@@ -114,28 +114,39 @@ permits_analysis_all <- permits_with_ward %>%
   mutate(alderman = gsub("\\s+", " ", trimws(as.character(alderman)))) %>%
   filter(!is.na(alderman), alderman != "")
 
-correlation_table <- bind_rows(
+# Ward-month processing time and permit volume by permit group; "All" pools the high- and low-discretion groups.
+ward_months <- bind_rows(
   permits_analysis_all %>% filter(high_discretion == 1) %>% mutate(group = "High-Discretion"),
   permits_analysis_all %>% filter(high_discretion == 0, permit_type != signs_permit_type) %>% mutate(group = "Low-Discretion"),
-  permits_analysis_all %>% mutate(group = "All")
+  permits_analysis_all %>% filter(high_discretion == 1 | permit_type != signs_permit_type) %>% mutate(group = "All")
 ) %>%
   mutate(group = factor(group, levels = c(group_levels, "All"))) %>%
   group_by(group, ward, application_start_date_ym) %>%
   summarise(
     mean_processing_time = mean(processing_time),
+    mean_log_processing_time = mean(log(processing_time)),
     ward_month_permit_volume = n(),
     .groups = "drop"
-  ) %>%
+  )
+
+# Raw Pearson correlation of mean days with volume, and the elasticity of mean log days with respect to volume within
+# ward and year-month (ward and year-month fixed effects, standard errors clustered by ward).
+correlation_table <- ward_months %>%
   group_by(group) %>%
-  summarise(
-    `Corr. of mean processing time and ward-month permit volume` = cor(
-      mean_processing_time,
-      ward_month_permit_volume,
-      use = "complete.obs",
-      method = "pearson"
-    ),
-    .groups = "drop"
-  ) %>%
+  group_modify(function(wm, key) {
+    elasticity_model <- feols(
+      mean_log_processing_time ~ log(ward_month_permit_volume) | ward + application_start_date_ym,
+      data = wm,
+      cluster = ~ward
+    )
+    tibble(
+      correlation = cor(wm$mean_processing_time, wm$ward_month_permit_volume, method = "pearson"),
+      elasticity = unname(coef(elasticity_model)[1]),
+      elasticity_se = unname(se(elasticity_model)[1]),
+      elasticity_p_value = unname(pvalue(elasticity_model)[1])
+    )
+  }) %>%
+  ungroup() %>%
   arrange(group)
 
 permits_analysis <- permits_analysis_all %>%
@@ -233,27 +244,28 @@ for (j in seq_len(nrow(alderman_summary_table))) {
 alderman_summary_tex_lines <- c(alderman_summary_tex_lines, "\\bottomrule", "\\end{tabular}")
 writeLines(alderman_summary_tex_lines, "../output/permit_processing_time_high_vs_low_alderman_summary.tex")
 
-correlation_tex_lines <- c(
-  "\\begin{tabular}{lr}",
-  "\\toprule",
-  "Permit group & Correlation with ward-month permit volume \\\\",
-  "\\midrule"
+elasticity_stars <- case_when(
+  correlation_table$elasticity_p_value < 0.01 ~ "***",
+  correlation_table$elasticity_p_value < 0.05 ~ "**",
+  correlation_table$elasticity_p_value < 0.10 ~ "*",
+  TRUE ~ ""
 )
-
-for (i in seq_len(nrow(correlation_table))) {
-  correlation_value_i <- correlation_table$`Corr. of mean processing time and ward-month permit volume`[i]
-  correlation_text_i <- ifelse(
-    is.finite(correlation_value_i),
-    formatC(correlation_value_i, format = "f", digits = 3),
-    ""
-  )
-  correlation_tex_lines <- c(
-    correlation_tex_lines,
-    sprintf("%s & %s \\\\", correlation_table$group[i], correlation_text_i)
-  )
-}
-
-correlation_tex_lines <- c(correlation_tex_lines, "\\bottomrule", "\\end{tabular}")
+correlation_tex_lines <- c(
+  "\\begin{tabular}{lcc}",
+  "\\toprule",
+  "Permit group & Raw correlation & Elasticity within ward and month \\\\",
+  "\\midrule",
+  sprintf(
+    "%s & %.3f & %.3f%s (%.3f) \\\\",
+    correlation_table$group,
+    correlation_table$correlation,
+    correlation_table$elasticity,
+    elasticity_stars,
+    correlation_table$elasticity_se
+  ),
+  "\\bottomrule",
+  "\\end{tabular}"
+)
 writeLines(correlation_tex_lines, "../output/permit_processing_time_volume_correlation.tex")
 
 p_density <- ggplot(
