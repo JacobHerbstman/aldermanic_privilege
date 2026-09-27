@@ -1,0 +1,22 @@
+File: alderman_permit_effects.csv
+Rows: 352
+Columns: 12
+SHA-256 (saved bytes): bd5c41928b87d16193abc674336cc1e5682a5ebbf7d70b2a61a1215b3325f5a5
+Key: design, outcome, alderman
+Types: DuckDB inference from the complete saved CSV.
+Distinct counts: exact (exact up to 100,000 rows).
+Row counts, non-missing counts, and declared-key checks: exact.
+
+         column inferred_type non_missing distinct                  min                 max                   mean                  sd
+         design       VARCHAR         352        2                    -                   -                      -                   -
+        outcome       VARCHAR         352        2                    -                   -                      -                   -
+       alderman       VARCHAR         352      110                    -                   -                      -                   -
+       estimate        DOUBLE         352      352  -0.7558397987194871 0.49261615754453636 1.6834702823684015e-17 0.17300807385757125
+      std_error        DOUBLE         352      352  0.06502386410448584 0.41880509754730405     0.1285172838483217 0.05442997343150984
+   observations        BIGINT         352        2               562428              676991               619709.5   57363.03954305621
+      shrinkage        DOUBLE         352      287                  0.0  0.8204122802917944     0.3033885852683708 0.25731568463237003
+shrunk_estimate        DOUBLE         352      287 -0.26525223012714627 0.25406301597032066  0.0016284850017328672 0.07015404136607793
+      signal_sd        DOUBLE         352        4                  0.0  0.1547946605935339    0.08534623140579857 0.06388098112433149
+    block_years        BIGINT         352      109                  709               26864      7859.522727272727   5646.160036358973
+     first_year        BIGINT         352       12                 2006                2022     2010.8068181818182   5.082471872181963
+      last_year        BIGINT         352       12                 2006                2022     2018.3636363636363   5.144480777073708

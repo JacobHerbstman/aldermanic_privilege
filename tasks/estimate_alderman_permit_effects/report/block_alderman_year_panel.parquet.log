@@ -1,0 +1,19 @@
+File: block_alderman_year_panel.parquet
+Rows: 787287
+Columns: 9
+SHA-256 (saved bytes): f32fb229e39a3631a56767f779ed9687ee1f13b37b2b43eb9079617bf48ffc3a
+Key: block_id, year
+Types: Stored Parquet schema.
+Distinct counts: approximate (exact up to 100,000 rows).
+Row counts, non-missing counts, and declared-key checks: exact.
+
+                  column inferred_type non_missing distinct  min  max                mean                 sd
+                block_id       VARCHAR      787287    51533    -    -                   -                  -
+           ward_2003_map        DOUBLE      787287       54  1.0 50.0  23.899613482757875 13.759753502180178
+           ward_2015_map        DOUBLE      787287       54  1.0 50.0  24.090496858197838 13.560277280023472
+                    year       INTEGER      787287       19 2006 2022              2014.0  4.898982596875091
+                    ward        DOUBLE      787287       54  1.0 50.0  23.989440953553153 13.666577149229406
+                alderman       VARCHAR      787287      107    -    -                   -                  -
+             days_served       INTEGER      787287       20  156  366    356.044795608209  34.16779709167176
+       n_high_discretion       INTEGER      787287       45    0   60 0.24952399823698346 0.9134378209331703
+n_low_discretion_nosigns       INTEGER      787287       97    0  128  0.6003731803014657 2.1400875593891584
