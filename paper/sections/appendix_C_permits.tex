@@ -21,6 +21,9 @@ Table~\ref{tab:permit_event_study_did} summarizes the average change in annual p
 The combined model treats reassignment toward greater stringency and greater leniency as changes of equal size in opposite directions.
 A second model allows the two directions to have different effects.
 Low-discretion permits show a more muted response.
+In the main models, unchanged blocks on both sides of the old boundary between the origin and destination wards form the comparison group.
+The last block compares each reassigned block only with unchanged blocks in the ward it left, which shared its alderman before 2015 and kept that alderman afterward.
+The high-discretion estimates are similar: $-0.132$ for the combined effect and $-0.261$ for moves toward greater stringency, with larger standard errors.
 
 \begin{table}[htbp]
     \centering
@@ -38,7 +41,7 @@ Low-discretion permits show a more muted response.
     The separate model includes one indicator for each reassignment direction.
     Its half-difference row puts the two-direction estimates on the same scale as the combined estimate.
     The final test asks whether the separately estimated effects are equal in size and opposite in sign.
-    Each model includes block fixed effects and ward-pair $\times$ year fixed effects.
+    Each model includes block fixed effects and ward-pair $\times$ year fixed effects, except that the last block uses ward-pair $\times$ original-ward $\times$ year fixed effects so that reassigned blocks are compared only with unchanged blocks in the ward they left.
     The estimator omits blocks with no permits of the relevant type in any sample year and ward-pair-year groups with no such permits.
     Standard errors, in parentheses, are clustered by ward pair.
     $^{*}p<0.10$, $^{**}p<0.05$, $^{***}p<0.01$.

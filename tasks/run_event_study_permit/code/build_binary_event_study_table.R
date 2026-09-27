@@ -1,282 +1,111 @@
 # setwd("tasks/run_event_study_permit/code")
-# Blocks within 500 ft (152.4 m) of the ward boundary, as in run_binary_event_study_permit.R.
+# Pooled 2015-2020 permit effects for the appendix table: the combined model (moves toward greater stringency and
+# greater leniency as opposite changes) and the model estimating the two directions separately, for high- and
+# low-discretion permits. The main comparison group is unchanged blocks on both sides of the old boundary between the
+# origin and destination wards; the second compares reassigned blocks only with unchanged blocks in the ward they
+# left. Blocks within 500 ft (152.4 m) of the ward boundary, as in run_binary_event_study_permit.R.
 bandwidth_m <- 152.4
 bandwidth_label <- "500ft"
 
 source("../../setup_environment/code/packages.R")
 
-data <- arrow::read_parquet(
-  "../input/permit_block_year_panel_2015.parquet"
-) |>
-  dplyr::filter(
-    dist_m <= bandwidth_m,
-    relative_year >= -5L,
-    relative_year <= 5L,
-    !is.na(strictness_change_frozen),
-    !is.na(ward_pair_id),
-    ward_pair_id != "",
-    stable_both
-  ) |>
+data <- arrow::read_parquet("../input/permit_block_year_panel_2015.parquet") |>
+  dplyr::filter(dist_m <= bandwidth_m, relative_year >= -5L, relative_year <= 5L, !is.na(strictness_change_frozen),
+    !is.na(ward_pair_id), ward_pair_id != "", stable_both) |>
   dplyr::mutate(
     stricter = as.integer(strictness_change_frozen > 0),
     lenient = as.integer(strictness_change_frozen < 0),
-    signed_direction = stricter - lenient,
     post = as.integer(relative_year >= 0L),
     post_stricter = post * stricter,
     post_lenient = post * lenient,
-    post_signed = post * signed_direction
+    post_signed = post * (stricter - lenient)
   )
+stopifnot(!anyDuplicated(data[c("block_id", "year")]), all(data$stricter + data$lenient <= 1L))
 
-if (anyDuplicated(data[c("block_id", "year")])) {
-  stop("Event-study data must be unique by block and year.", call. = FALSE)
-}
-if (
-  any(data$stricter + data$lenient > 1L) ||
-    any(!data$signed_direction %in% c(-1L, 0L, 1L))
-) {
-  stop("Binary treatment assignment failed validation.", call. = FALSE)
-}
-
+# Keep blocks with at least one high-discretion permit in 2010-2014.
 pre_period_activity <- data |>
   dplyr::filter(relative_year < 0L) |>
-  dplyr::summarise(
-    pre_period_permit_volume = sum(
-      n_high_discretion_application,
-      na.rm = TRUE
-    ),
-    .by = block_id
-  )
-
-if (anyDuplicated(pre_period_activity$block_id)) {
-  stop("Pre-period activity must be unique by block.", call. = FALSE)
-}
-
+  dplyr::summarise(pre_period_permit_volume = sum(n_high_discretion_application, na.rm = TRUE), .by = block_id)
 data <- data |>
-  dplyr::left_join(
-    pre_period_activity,
-    by = "block_id",
-    relationship = "many-to-one"
-  ) |>
+  dplyr::left_join(pre_period_activity, by = "block_id", relationship = "many-to-one") |>
   dplyr::filter(pre_period_permit_volume > 0)
 
-outcomes <- c(
-  high_discretion = "n_high_discretion_application",
-  low_discretion = "n_low_discretion_nosigns_application"
-)
-results <- vector("list", length(outcomes))
+outcomes <- c(high_discretion = "n_high_discretion_application", low_discretion = "n_low_discretion_nosigns_application")
+comparisons <- c(both_sides = "ward_pair_id^year", original_ward = "ward_pair_side^year")
+t_test_p <- function(estimate, std_error, df) 2 * stats::pt(-abs(estimate / std_error), df = df)
 
-for (i in seq_along(outcomes)) {
-  model_data <- data |>
-    dplyr::mutate(outcome = .data[[outcomes[i]]])
-
-  joint_model <- fixest::fepois(
-    outcome ~
-      post_stricter +
-      post_lenient |
-      block_id + ward_pair_id^year,
-    data = model_data,
-    cluster = ~ward_pair_id,
-    notes = FALSE
-  )
-  signed_model <- fixest::fepois(
-    outcome ~ post_signed |
-      block_id + ward_pair_id^year,
-    data = model_data,
-    cluster = ~ward_pair_id,
-    notes = FALSE
-  )
-
-  joint_coef <- stats::coef(joint_model)
-  joint_vcov <- stats::vcov(joint_model)
-  joint_df <- fixest::degrees_freedom(joint_model, type = "t")
-  signed_coef <- stats::coef(signed_model)[["post_signed"]]
-  signed_se <- sqrt(stats::vcov(signed_model)["post_signed", "post_signed"])
-  signed_df <- fixest::degrees_freedom(signed_model, type = "t")
-
-  stricter_coef <- unname(joint_coef["post_stricter"])
-  lenient_coef <- unname(joint_coef["post_lenient"])
-  stricter_se <- sqrt(joint_vcov["post_stricter", "post_stricter"])
-  lenient_se <- sqrt(joint_vcov["post_lenient", "post_lenient"])
-  stricter_lenient_cov <- joint_vcov[
-    "post_stricter",
-    "post_lenient"
-  ]
-  contrast_coef <- (stricter_coef - lenient_coef) / 2
-  contrast_se <- sqrt(
-    (
-      stricter_se^2 +
-        lenient_se^2 -
-        2 * stricter_lenient_cov
-    ) / 4
-  )
-  symmetry_coef <- stricter_coef + lenient_coef
-  symmetry_se <- sqrt(
-    stricter_se^2 +
-      lenient_se^2 +
-      2 * stricter_lenient_cov
-  )
-
-  results[[i]] <- tibble::tibble(
-    outcome = names(outcomes)[i],
-    specification = c(
-      "signed",
-      "stricter",
-      "lenient",
-      "contrast"
-    ),
-    estimate = c(
-      signed_coef,
-      stricter_coef,
-      lenient_coef,
-      contrast_coef
-    ),
-    standard_error = c(
-      signed_se,
-      stricter_se,
-      lenient_se,
-      contrast_se
-    ),
-    p_value = c(
-      2 * stats::pt(-abs(signed_coef / signed_se), df = signed_df),
-      2 * stats::pt(-abs(stricter_coef / stricter_se), df = joint_df),
-      2 * stats::pt(-abs(lenient_coef / lenient_se), df = joint_df),
-      2 * stats::pt(-abs(contrast_coef / contrast_se), df = joint_df)
-    ),
-    symmetry_p_value = c(
-      NA_real_,
-      NA_real_,
-      NA_real_,
-      2 * stats::pt(-abs(symmetry_coef / symmetry_se), df = joint_df)
-    ),
-    observations = c(
-      stats::nobs(signed_model),
-      rep(stats::nobs(joint_model), 3L)
+results <- list()
+for (outcome in names(outcomes)) {
+  for (comparison in names(comparisons)) {
+    model_data <- dplyr::mutate(data, outcome = .data[[outcomes[[outcome]]]])
+    fixed_effects <- paste("block_id +", comparisons[[comparison]])
+    combined <- fixest::fepois(stats::as.formula(paste("outcome ~ post_signed |", fixed_effects)),
+      data = model_data, cluster = ~ward_pair_id, notes = FALSE)
+    separate <- fixest::fepois(stats::as.formula(paste("outcome ~ post_stricter + post_lenient |", fixed_effects)),
+      data = model_data, cluster = ~ward_pair_id, notes = FALSE)
+    b <- stats::coef(separate)
+    v <- stats::vcov(separate)
+    separate_df <- fixest::degrees_freedom(separate, type = "t")
+    # The half difference puts the separate estimates on the combined model's scale; the symmetry test asks whether
+    # the two directions are equal in size and opposite in sign.
+    half_difference <- (b[["post_stricter"]] - b[["post_lenient"]]) / 2
+    half_difference_se <- sqrt(v["post_stricter", "post_stricter"] + v["post_lenient", "post_lenient"] -
+      2 * v["post_stricter", "post_lenient"]) / 2
+    symmetry_se <- sqrt(v["post_stricter", "post_stricter"] + v["post_lenient", "post_lenient"] +
+      2 * v["post_stricter", "post_lenient"])
+    results[[paste(outcome, comparison)]] <- tibble::tibble(
+      outcome, comparison,
+      specification = c("combined", "stricter", "lenient", "half_difference"),
+      estimate = c(stats::coef(combined)[["post_signed"]], b[["post_stricter"]], b[["post_lenient"]], half_difference),
+      std_error = c(fixest::se(combined)[["post_signed"]], sqrt(v["post_stricter", "post_stricter"]),
+        sqrt(v["post_lenient", "post_lenient"]), half_difference_se),
+      df = c(fixest::degrees_freedom(combined, type = "t"), rep(separate_df, 3L)),
+      symmetry_p_value = c(NA, NA, NA, t_test_p(b[["post_stricter"]] + b[["post_lenient"]], symmetry_se, separate_df)),
+      observations = c(stats::nobs(combined), rep(stats::nobs(separate), 3L))
     )
-  )
+  }
 }
+results <- dplyr::bind_rows(results) |> dplyr::mutate(p_value = t_test_p(estimate, std_error, df))
 
-results <- dplyr::bind_rows(results)
-
-format_estimate <- function(outcome, specification) {
-  row <- results |>
-    dplyr::filter(
-      .data$outcome == .env$outcome,
-      .data$specification == .env$specification
-    )
-  stars <- dplyr::case_when(
-    row$p_value <= 0.01 ~ "***",
-    row$p_value <= 0.05 ~ "**",
-    row$p_value <= 0.10 ~ "*",
-    TRUE ~ ""
-  )
-  sprintf("%.3f%s", row$estimate, stars)
+# One estimate row and one standard-error row, high-discretion then low-discretion permits.
+table_rows <- function(label, comparison, specification) {
+  rows <- results[results$comparison == comparison & results$specification == specification, ]
+  stopifnot(identical(rows$outcome, names(outcomes)))
+  stars <- dplyr::case_when(rows$p_value <= 0.01 ~ "***", rows$p_value <= 0.05 ~ "**", rows$p_value <= 0.10 ~ "*",
+    TRUE ~ "")
+  c(sprintf("%s & %s & %s \\\\", label, sprintf("%.3f%s", rows$estimate[1], stars[1]),
+      sprintf("%.3f%s", rows$estimate[2], stars[2])),
+    sprintf(" & (%.3f) & (%.3f) \\\\", rows$std_error[1], rows$std_error[2]))
 }
+symmetry <- results[results$comparison == "both_sides" & results$specification == "half_difference", ]
+observations <- results[results$comparison == "both_sides" & results$specification == "combined", ]
+stopifnot(identical(symmetry$outcome, names(outcomes)), identical(observations$outcome, names(outcomes)))
 
-format_se <- function(outcome, specification) {
-  row <- results |>
-    dplyr::filter(
-      .data$outcome == .env$outcome,
-      .data$specification == .env$specification
-    )
-  sprintf("(%.3f)", row$standard_error)
-}
-
-table_lines <- c(
+writeLines(c(
   "\\begin{tabular}{lcc}",
   "\\toprule",
   " & High-Discretion & Low-Discretion \\\\",
   "\\midrule",
-  sprintf(
-    "Combined reassignment effect & %s & %s \\\\",
-    format_estimate("high_discretion", "signed"),
-    format_estimate("low_discretion", "signed")
-  ),
-  sprintf(
-    " & %s & %s \\\\",
-    format_se("high_discretion", "signed"),
-    format_se("low_discretion", "signed")
-  ),
+  table_rows("Combined reassignment effect", "both_sides", "combined"),
   "\\addlinespace",
   "\\multicolumn{3}{l}{\\textit{Directions estimated separately}} \\\\",
-  sprintf(
-    "Assigned to more stringent aldermen & %s & %s \\\\",
-    format_estimate("high_discretion", "stricter"),
-    format_estimate("low_discretion", "stricter")
-  ),
-  sprintf(
-    " & %s & %s \\\\",
-    format_se("high_discretion", "stricter"),
-    format_se("low_discretion", "stricter")
-  ),
-  sprintf(
-    "Assigned to more lenient aldermen & %s & %s \\\\",
-    format_estimate("high_discretion", "lenient"),
-    format_estimate("low_discretion", "lenient")
-  ),
-  sprintf(
-    " & %s & %s \\\\",
-    format_se("high_discretion", "lenient"),
-    format_se("low_discretion", "lenient")
-  ),
-  sprintf(
-    "One-half difference between directions & %s & %s \\\\",
-    format_estimate("high_discretion", "contrast"),
-    format_estimate("low_discretion", "contrast")
-  ),
-  sprintf(
-    " & %s & %s \\\\",
-    format_se("high_discretion", "contrast"),
-    format_se("low_discretion", "contrast")
-  ),
-  sprintf(
-    "Equal-and-opposite test $p$-value & %.3f & %.3f \\\\",
-    results |>
-      dplyr::filter(
-        outcome == "high_discretion",
-        specification == "contrast"
-      ) |>
-      dplyr::pull(symmetry_p_value),
-    results |>
-      dplyr::filter(
-        outcome == "low_discretion",
-        specification == "contrast"
-      ) |>
-      dplyr::pull(symmetry_p_value)
-  ),
+  table_rows("Assigned to more stringent aldermen", "both_sides", "stricter"),
+  table_rows("Assigned to more lenient aldermen", "both_sides", "lenient"),
+  table_rows("One-half difference between directions", "both_sides", "half_difference"),
+  sprintf("Equal-and-opposite test $p$-value & %.3f & %.3f \\\\", symmetry$symmetry_p_value[1],
+    symmetry$symmetry_p_value[2]),
+  "\\addlinespace",
+  "\\multicolumn{3}{l}{\\textit{Comparison blocks from the original ward only}} \\\\",
+  table_rows("Combined reassignment effect", "original_ward", "combined"),
+  table_rows("Assigned to more stringent aldermen", "original_ward", "stricter"),
+  table_rows("Assigned to more lenient aldermen", "original_ward", "lenient"),
   "\\midrule",
   "Block fixed effects & Yes & Yes \\\\",
   "Ward-pair $\\times$ year fixed effects & Yes & Yes \\\\",
   "Positive pre-period permit activity required & Yes & Yes \\\\",
   "\\midrule",
-  sprintf(
-    "N & %s & %s \\\\",
-    format(
-      results |>
-        dplyr::filter(
-          outcome == "high_discretion",
-          specification == "signed"
-        ) |>
-        dplyr::pull(observations),
-      big.mark = ","
-    ),
-    format(
-      results |>
-        dplyr::filter(
-          outcome == "low_discretion",
-          specification == "signed"
-        ) |>
-        dplyr::pull(observations),
-      big.mark = ","
-    )
-  ),
+  sprintf("N & %s & %s \\\\", format(observations$observations[1], big.mark = ","),
+    format(observations$observations[2], big.mark = ",")),
   "\\bottomrule",
   "\\end{tabular}"
-)
-
-writeLines(
-  table_lines,
-  sprintf(
-    "../output/permit_event_study_appendix_%s.tex",
-    bandwidth_label
-  )
-)
+), sprintf("../output/permit_event_study_appendix_%s.tex", bandwidth_label))

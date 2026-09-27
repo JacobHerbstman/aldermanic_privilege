@@ -145,9 +145,7 @@ plot_density_boundary <- function(fit, title, cutoff_ft = 0) {
     ggplot2::labs(
       title = sprintf("Dwelling units per acre\n%s (N = %s)", title, format(fit$observations, big.mark = ",")),
       subtitle = sprintf(
-        "%s = %.3f%s (SE %.3f)\nAverage difference = %.3f%s (SE %.3f)",
-        if (cutoff_ft == 0) "Difference across boundary" else "Difference at placebo cutoff",
-        round(fit$first_bin$estimate, 3) + 0, stars(fit$first_bin$p_value), fit$first_bin$std_error,
+        "Average difference = %.3f%s (SE %.3f)",
         round(fit$average$estimate, 3) + 0, stars(fit$average$p_value), fit$average$std_error
       ),
       x = if (cutoff_ft == 0) "Distance to ward boundary (feet)" else "Distance to placebo cutoff (feet)",

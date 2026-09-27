@@ -99,10 +99,12 @@ Removing segments with substantial expressway or water overlap leaves the estima
 The broader physical-feature and arterial-road restriction reduces the multifamily average difference to $-0.037$, while the estimates for buildings with five or more units become larger.
 Restricting the sample to locally straight boundaries leaves negative multifamily estimates of similar size.
 For all construction, the estimates remain close to zero under every restriction.
+The last block replaces the segment-by-joint-service fixed effects with segment-by-construction-year fixed effects, which compare buildings on the same segment completed in the same year regardless of which aldermen served.
+The multifamily average difference is larger, $-0.105$ compared with $-0.061$, and the all-construction estimate remains close to zero.
 
 \begin{table}[htbp]
     \centering
-    \caption{Density Estimates Along Different Types of Ward Boundaries}
+    \caption{Density Estimates Along Different Types of Ward Boundaries and With Segment-by-Year Fixed Effects}
     \label{tab:density_boundary_robustness}
     \resizebox{0.9\textwidth}{!}{%
         \input{../tasks/density_boundary_checks/output/density_boundary_robustness.tex}%
@@ -115,6 +117,7 @@ For all construction, the estimates remain close to zero under every restriction
         The expressway-or-water restriction removes segments for which either feature overlaps at least half of the segment.
         The broader restriction removes segments with at least 50\% park, water, or cemetery overlap, 40\% expressway overlap, or 75\% arterial-road overlap.
         A boundary is classified as locally straight when a 328~ft straight line centered on the building's nearest boundary point stays within 49~ft of the actual boundary at both ends.
+        The last block uses the full sample with segment-by-construction-year and zoning-group fixed effects in place of segment-by-joint-service fixed effects.
         Standard errors are clustered by ward pair.
         * $p<0.10$, ** $p<0.05$, *** $p<0.01$.
     \end{minipage}

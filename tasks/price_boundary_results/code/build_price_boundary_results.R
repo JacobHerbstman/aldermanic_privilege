@@ -423,10 +423,6 @@ estimate_bins <- function(
       )
     )
 
-  nearest_above <- results |>
-    dplyr::filter(bin_start_ft == 0)
-  nearest_stars <- star_string(nearest_above$p_value)
-
   plot <- ggplot2::ggplot(
     results,
     ggplot2::aes(
@@ -484,15 +480,7 @@ estimate_bins <- function(
     ggplot2::labs(
       title = panel_title,
       subtitle = sprintf(
-        "%s = %.3f%s (SE %.3f)\nAverage difference = %.3f%s (SE %.3f)",
-        if (cutoff_ft == 0) {
-          "Difference across boundary"
-        } else {
-          "Difference at placebo cutoff"
-        },
-        round(nearest_above$estimate, 3) + 0,
-        nearest_stars,
-        nearest_above$std_error,
+        "Average difference = %.3f%s (SE %.3f)",
         round(average[["Estimate"]], 3) + 0,
         star_string(average[["Pr(>|t|)"]]),
         average[["Std. Error"]]

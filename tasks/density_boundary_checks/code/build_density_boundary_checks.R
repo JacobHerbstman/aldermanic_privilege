@@ -45,19 +45,21 @@ estimate_row <- function(label, estimates) {
 }
 
 # Density estimates on boundary segments without substantial expressway or water overlap, without substantial
-# physical-feature or arterial overlap, and on locally straight boundaries.
+# physical-feature or arterial overlap, and on locally straight boundaries, and with segment-by-construction-year in
+# place of segment-by-joint-service fixed effects.
 restrictions <- tibble::tribble(
-  ~label, ~keep,
-  "Main sample", "all",
-  "Limited expressway or water overlap", "simple_overlap_keep",
-  "Limited physical-feature or arterial overlap", "share_based_keep",
-  "Straight boundary segment", "straight_boundary"
+  ~label, ~keep, ~fixed_effects,
+  "Main sample", "all", density_fixed_effects,
+  "Limited expressway or water overlap", "simple_overlap_keep", density_fixed_effects,
+  "Limited physical-feature or arterial overlap", "share_based_keep", density_fixed_effects,
+  "Straight boundary segment", "straight_boundary", density_fixed_effects,
+  "Segment $\\times$ construction-year fixed effects", "all", "segment_id^construction_year + zone_group"
 )
 robustness_lines <- table_header
 for (r in seq_len(nrow(restrictions))) {
   restricted <- if (restrictions$keep[r] == "all") buildings else buildings[buildings[[restrictions$keep[r]]], ]
   fits <- lapply(density_samples$sample, function(sample) {
-    fit_density_boundary(filter_density_sample(restricted, sample))
+    fit_density_boundary(filter_density_sample(restricted, sample), fixed_effects = restrictions$fixed_effects[r])
   })
   robustness_lines <- c(
     robustness_lines,
