@@ -1,0 +1,14 @@
+File: elms_zoning_matter_requests.csv
+Rows: 6750
+Columns: 4
+SHA-256 (saved bytes): ce6b45facc3005e11ef970909ccb0456f54f17f12d20e0e4efdf233626b2611a
+Key: matter_id
+Types: DuckDB inference from the complete saved CSV.
+Distinct counts: exact (exact up to 100,000 rows).
+Row counts, non-missing counts, and declared-key checks: exact.
+
+       column inferred_type non_missing distinct min max mean sd
+    matter_id       VARCHAR        6750     6750   -   -    -  -
+record_number       VARCHAR        6750     6750   -   -    -  -
+       sha256       VARCHAR        6750     6750   -   -    -  -
+ retrieved_on          DATE        6750        1   -   -    -  -

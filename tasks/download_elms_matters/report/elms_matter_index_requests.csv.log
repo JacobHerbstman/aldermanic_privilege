@@ -1,0 +1,17 @@
+File: elms_matter_index_requests.csv
+Rows: 477
+Columns: 7
+SHA-256 (saved bytes): 88939693166126475b5126f34c0609faf4420a9c6036e6b724e0353633f76295
+Key: month, skip
+Types: DuckDB inference from the complete saved CSV.
+Distinct counts: exact (exact up to 100,000 rows).
+Row counts, non-missing counts, and declared-key checks: exact.
+
+          column inferred_type non_missing distinct min  max               mean                sd
+           month       VARCHAR         477      201   -    -                  -                 -
+            skip        BIGINT         477        9   0 4000  471.6981132075472 545.9321004051098
+             url       VARCHAR         477      477   -    -                  -                 -
+matters_in_month        BIGINT         477      170   0 4257 1162.2683438155136 671.0939295613542
+ matters_in_page        BIGINT         477      156   0  500  379.3039832285115 174.4932092923463
+          sha256       VARCHAR         477      463   -    -                  -                 -
+    retrieved_on          DATE         477        1   -    -                  -                 -
