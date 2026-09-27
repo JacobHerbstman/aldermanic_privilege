@@ -1,0 +1,19 @@
+File: boundary_cell_jumps.csv
+Rows: 2768
+Columns: 9
+SHA-256 (saved bytes): d36187af0914b135c31dc64c37f7069604f6bf24d46a5cce15862a1e87682963
+Key: sample, line, cell
+Types: DuckDB inference from the complete saved CSV.
+Distinct counts: exact (exact up to 100,000 rows).
+Row counts, non-missing counts, and declared-key checks: exact.
+
+    column inferred_type non_missing distinct                  min                max                  mean                  sd
+    sample       VARCHAR        2768        4                    -                  -                     -                   -
+      line       VARCHAR        2768        3                    -                  -                     -                   -
+      cell       VARCHAR        2768     1833                    -                  -                     -                   -
+  estimate        DOUBLE        2768     2768   -2.341744838007319 1.9977098580785144 -0.005602961982089907 0.23338249326443758
+ std_error        DOUBLE        2768     2768 0.003821675331023575 2.0349593943934483   0.14837271972324698 0.16229849306878014
+    n_side        BIGINT        2768      301                    3               7395     72.61091040462428  269.88833838672423
+   n_other        BIGINT        2768      321                    3               6471     80.71531791907515   310.4314237258733
+segment_id       VARCHAR        2768     1272                    -                  -                     -                   -
+first_date          DATE        2768      366                    -                  -                     -                   -

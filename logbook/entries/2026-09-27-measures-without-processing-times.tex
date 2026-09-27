@@ -1,0 +1,32 @@
+\clearpage
+\section*{Two tests of whether aldermen matter that do not use processing times}
+\textit{September 27, 2026. Agent-drafted exploratory work on branch \texttt{alderman-effects}, requested by Jacob
+after he asked for alternatives to the processing-time index.}
+
+\textit{Alderman effects on permit applications.} A citywide panel of every 2010 census block for 2006--2022 (787,287
+block-years) records high- and low-discretion permit applications and the alderman serving the block for most of each
+year; its counts match the event-study panel exactly on the 359,579 block-years they share. Poisson regressions with
+block and year fixed effects give each of 110 aldermen an effect on applications, identified by the 2015 remap and
+turnover; a second design adds 2003-ward-by-year fixed effects, so only blocks of one old ward represented by
+different aldermen identify the effects. Beyond sampling noise, alderman effects spread by 0.155 log points for
+high-discretion applications and 0.037 for low-discretion ones (0.135 and zero in the second design), and the two
+designs rank aldermen alike (Spearman 0.92). But the effects do not persist over an alderman's tenure: estimated from
+two interleaved halves of each ward's blocks they correlate at 0.55, from odd and even years at only 0.14. They look
+like ward-period development activity credited to whoever is serving, which one remap and turnover cannot separate
+from alderman behavior. They are also unrelated to the processing-time index (Spearman $-0.03$).
+
+\textit{Jumps at ward boundaries in either direction.} Labeling each side by ward number and estimating the jump
+within each boundary segment and pair of facing aldermen, jumps in listed rents vary across cells about as much at
+real boundaries as at placebo lines 1,000 feet inside a ward (variance 0.0127, SE 0.0016, against 0.0104 and 0.0108).
+When the facing aldermen change, a segment's rent jump changes somewhat more at real boundaries (0.0069, SE 0.0019)
+than at placebo lines (0.0024 and 0.0046), by one to two standard errors. Sales jumps are indistinguishable from
+placebo jumps. The density samples are too small for the test.
+
+Neither test provides a stringency ranking better than the index. What survives is narrower: permit activity
+differs more across aldermen for high-discretion than low-discretion permits, and rent discontinuities may shift
+somewhat when facing aldermen change. Building the 2006--2009 and 2021--2022 block counts required 48 more
+hand-reviewed drops of permits outside every block, added to \path{tasks/permit_block_hand_adjudications}.
+
+\textit{Reproduction.} Run \texttt{make} in \path{tasks/estimate_alderman_permit_effects/code/} and
+\path{tasks/test_boundary_heterogeneity/code/} on branch \texttt{alderman-effects}; the task READMEs describe the
+designs and standard errors.

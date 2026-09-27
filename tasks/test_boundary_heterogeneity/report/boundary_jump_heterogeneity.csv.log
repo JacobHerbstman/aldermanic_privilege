@@ -1,0 +1,18 @@
+File: boundary_jump_heterogeneity.csv
+Rows: 23
+Columns: 8
+SHA-256 (saved bytes): 5b8479147c8b14ce041dfa30f004ca2091eabed6fbe7108865a8fba8979c5c05
+Key: sample, line, comparison
+Types: DuckDB inference from the complete saved CSV.
+Distinct counts: exact (exact up to 100,000 rows).
+Row counts, non-missing counts, and declared-key checks: exact.
+
+            column inferred_type non_missing distinct                   min                 max                mean                  sd
+            sample       VARCHAR          23        4                     -                   -                   -                   -
+              line       VARCHAR          23        3                     -                   -                   -                   -
+        comparison       VARCHAR          23        2                     -                   -                   -                   -
+             units        BIGINT          23       22                     1                 572  142.17391304347825  178.36292220024396
+   signal_variance        DOUBLE          23       23    -2.504254822047843  0.0658864241773179 -0.1263877324302261  0.5345006169513029
+signal_variance_se        DOUBLE          21       21 0.0008712052233416722 0.22982412063944616  0.0269321975141376 0.05132182103809448
+ share_significant        DOUBLE          23       20                   0.0 0.43253968253968256 0.15249315777470349 0.12470537672032253
+         signal_sd        DOUBLE          23       18                   0.0 0.25668350974949267 0.09107857807453992 0.08023021047532455
