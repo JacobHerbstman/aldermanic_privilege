@@ -1,0 +1,39 @@
+\clearpage
+\section*{The permit event study: comparison group and alderman turnover after 2015}
+\textit{September 27, 2026. Agent-drafted checks requested by Jacob. The original-ward comparison was added to
+Appendix Table C.2 at Jacob's request; the turnover checks are exploratory and change nothing in the paper.}
+
+In the event study, each reassigned block is compared with every unchanged block within 500 feet of the old
+boundary between its origin and destination wards, on both sides of that boundary: the ward-pair-by-year fixed
+effect pools them. Unchanged blocks in the destination ward had the new alderman before and after 2015, so they are
+valid controls only if trends are parallel across the old line. Comparing reassigned blocks only with unchanged
+blocks in the ward they left (ward-pair-by-original-ward-by-year fixed effects) gives $-0.132$ (0.066) for the
+combined effect, $-0.261$ (0.126) for moves toward greater stringency and $0.049$ (0.073) for moves toward greater
+leniency, against $-0.127$, $-0.231$ and $0.067$ in the main specification, with larger standard errors.
+
+A larger issue is timing. Treatment is fixed at the aldermen serving the two wards in 2014, and the sample requires
+only that both still served in June 2015; blocks are then followed through 2020. After the May 2019 election, 67
+percent of reassigned blocks and 55 percent of unchanged blocks have a different alderman in at least one ward of
+their pair, against 3 to 6 percent in 2016--2018. The main estimate is concentrated in these later years: $-0.087$
+(0.064) in 2015--2018 and $-0.225$ (0.063) in 2019--2020. Ending the window in 2018, or dropping block-years from a
+pair's first change, gives $-0.088$ and $-0.083$, neither significant.
+
+Classifying blocks each year by the aldermen actually serving requires the 2006--2022 index, because aldermen first
+elected in 2019 have no 2006--2014 score. On that index, the fixed 2014 classification gives $-0.100$ (0.054) pooled,
+$-0.034$ in 2015--2018 and $-0.263$ in 2019--2020; the classification by serving aldermen gives $0.029$ (0.062) pooled
+and essentially zero in both periods. The 2019 turnover reversed the direction of 203 of the 687 reassigned blocks.
+Under the fixed classification, the 2019--2020 effect is $-0.169$ (0.071) where the direction held and $-0.485$
+(0.081) where it reversed. A block given a more lenient alderman in 2019 should gain permits if serving aldermen's
+stringency drives permitting; these blocks show the largest decline relative to their 2014 classification.
+
+The permit decline therefore follows the 2015 assignment, not the stringency of the aldermen serving later. Possible
+explanations are persistent deterrence of projects from 2015--2018, other changes in the reassigned areas after
+2019, or a small number of boundaries; the reversed-direction groups contain 97 and 106 blocks. Which boundaries
+carry the 2019--2020 effect has not yet been examined. The paper's description of this result, and the stable-sample
+definition, should be revisited before the manuscript is rewritten.
+
+\textit{Reproduction.} The original-ward comparison is built by
+\path{tasks/run_event_study_permit/code/build_binary_event_study_table.R}. The turnover checks run with
+\texttt{make} in \path{tasks/audits/permit_event_study_turnover/code/}, which reads the production block panel, the
+monthly alderman panel and the 2006--2022 index; the main estimate is reproduced before any change. A ward-month
+vacancy counts as a change; the serving alderman of a ward-year is the one serving most of its months.

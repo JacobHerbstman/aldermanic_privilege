@@ -1,0 +1,27 @@
+\clearpage
+\section*{Alderman characteristics and the stringency score}
+\textit{September 27, 2026. Agent-researched characteristics and agent-drafted comparison, requested by Jacob.}
+
+A hand-researched table records, for all 113 aldermen in the 2006--2022 index, gender, race or ethnicity, birth year,
+first year on the council, whether they were appointed, their occupation before the council, whether they were
+lawyers or did property-tax or real-estate work, prior elected office, family political ties, Progressive Reform
+Caucus membership, indictment or conviction for conduct related to office, and how they left. Each row lists its web
+sources and notes; fields are left missing when no source documents them. Race is documented for 85 aldermen from
+self-description, news descriptions, council caucus membership or documented ancestry; the other 28, mostly North
+and Northwest Side aldermen, have no documented race and are not coded from surnames. Caucus membership agrees with
+the caucus's published roster except for one alderman coded a member from other sources.
+
+No characteristic predicts the score. Female aldermen score 0.16 SD lower, Black aldermen 0.06 lower and Hispanic
+aldermen 0.08 higher, none significant. The largest differences are for prior elected office ($+0.30$ SD, $p=0.13$,
+14 aldermen), indictment or conviction ($+0.53$, $p=0.23$, 9 aldermen) and Progressive Caucus membership ($-0.20$,
+$p=0.35$). Together the characteristics explain 12 percent of the score's variation, and ward demographics, averaged
+over each alderman's permits, are uncorrelated with it (all $|r|<0.08$). The score is not a proxy for aldermen's
+observable backgrounds; with 113 aldermen and a score that is partly noise, the comparison has little power to detect
+moderate relationships.
+
+This complements the donation comparison of September 14, which found at most modest correlations with donor
+composition. The characteristics are also intended for the planned alternative measures of alderman behavior.
+
+\textit{Reproduction.} Run \texttt{make} in \path{tasks/audits/alderman_score_correlates/code/}. The table is
+\path{tasks/audits/alderman_score_correlates/sources/alderman_characteristics.csv}; the task README documents its
+fields and coding rules.
