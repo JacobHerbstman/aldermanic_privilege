@@ -15,8 +15,17 @@ API (City of Chicago, Office of the City Clerk, https://api.chicityclerkelms.chi
   roll calls, sponsors and attachment list; the list endpoint returns metadata only. Bodies are kept as received, in
   index order, with a request record in `elms_zoning_matter_requests.csv`. Records received so far are kept in
   `../temp`, so an interrupted download resumes.
+- `download_elms_zoning_legislation_files.R` downloads the files attached to those matters as "Legislation" (the
+  introduced ordinance and, where one exists, the substitute that passed), from the public cloud storage paths in the
+  attachment lists: 9,344 files, 9,339 of them PDFs, plus two RTF files, two Word documents and one image (13 GB, in
+  `output/zoning_legislation_files`). Each is saved under its storage object's name, prefixed with the container name
+  for the 25 objects listed in both the legacy and the current container (matters re-filed in 2023). Files are
+  checked against their format's signature and moved into the output folder only when complete, so an interrupted
+  download resumes. `elms_zoning_legislation_files.csv` records every file with its SHA-256; three are recorded
+  rather than kept: one object that is empty at the source (the introduced version of SO2011-2264) and two that return
+  404 (the RTF files of SO2015-6397 and SO2019-328).
 
-The API limits requests per window and returns 429 when the limit is used up; both scripts wait a minute and retry.
+The API limits requests per window and returns 429 when the limit is used up; the scripts wait and retry.
 Zoning map amendments are ordinances; most are applications transmitted through the Zoning Administrator (filing
 office "Misc."), and 1,347 were filed by an alderman (filing office a ward number). The districts before and after a
 change appear only in the attached ordinance PDFs.

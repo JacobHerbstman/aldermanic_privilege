@@ -1,0 +1,44 @@
+File: zoning_map_amendments.csv
+Rows: 6750
+Columns: 34
+SHA-256 (saved bytes): 95f1f2fa871e1b61a88c533c4e62bba2ff456b76087035af805bba3166a8ebba
+Key: matter_id
+Types: DuckDB inference from the complete saved CSV.
+Distinct counts: exact (exact up to 100,000 rows).
+Row counts, non-missing counts, and declared-key checks: exact.
+
+                column inferred_type non_missing distinct  min    max               mean                 sd
+             matter_id       VARCHAR        6750     6750    -      -                  -                  -
+         record_number       VARCHAR        6750     6750    -      -                  -                  -
+                 title       VARCHAR        6750     6589    -      -                  -                  -
+     introduction_date          DATE        6750      234    -      -                  -                  -
+     final_action_date          DATE        5856      177    -      -                  -                  -
+            sub_status       VARCHAR        6750       12    -      -                  -                  -
+         filing_office       VARCHAR        6747       53    -      -                  -                  -
+        filing_sponsor       VARCHAR        6747      106    -      -                  -                  -
+           passed_date          DATE        5784      187    -      -                  -                  -
+     held_in_committee       BOOLEAN        6750        2    -      -                  -                  -
+            roll_calls        BIGINT        6750        3    0      2 0.8423703703703703 0.3764205226199419
+     filed_by_alderman       BOOLEAN        6750        2    -      -                  -                  -
+           filing_ward        BIGINT        1347       50    1     50 23.394951744617668  14.07731479126752
+               outcome       VARCHAR        6750        6    -      -                  -                  -
+       days_to_passage        BIGINT        5784      252 -673   1428  83.41320885200554 105.99591869346709
+    application_number        BIGINT        5326     5184 7731 222572 20022.781449493054  4348.834594470928
+            map_number       VARCHAR        6441      252    -      -                  -                  -
+               address       VARCHAR        6706     6118    -      -                  -                  -
+         sentence_from       VARCHAR        4844      322    -      -                  -                  -
+           sentence_to       VARCHAR        4504       62    -      -                  -                  -
+      change_sentences        BIGINT        6729        8    0     13 0.8348937434982909 0.5171791556001725
+to_planned_development       BOOLEAN        6729        2    -      -                  -                  -
+             form_from       VARCHAR        2696      197    -      -                  -                  -
+               form_to       VARCHAR        1576       71    -      -                  -                  -
+        from_districts       VARCHAR        5399      352    -      -                  -                  -
+          to_districts       VARCHAR        4930       68    -      -                  -                  -
+           from_source       VARCHAR        6750        4    -      -                  -                  -
+             to_source       VARCHAR        6750        4    -      -                  -                  -
+              in_steps       BOOLEAN        6729        2    -      -                  -                  -
+ from_sources_disagree       BOOLEAN        6729        2    -      -                  -                  -
+   to_sources_disagree       BOOLEAN        6729        2    -      -                  -                  -
+              from_far        DOUBLE        5365       18  0.5   16.0 1.9134109972040811 1.4935926150867729
+                to_far        DOUBLE        4909       18  0.5   16.0 2.3086575677327663 1.4989035692181347
+             direction       VARCHAR        6750        5    -      -                  -                  -
