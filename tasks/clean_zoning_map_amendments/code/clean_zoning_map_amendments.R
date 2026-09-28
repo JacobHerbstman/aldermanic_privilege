@@ -14,8 +14,11 @@ districts <- read_csv("../input/zoning-code-summary-district-types.csv", show_co
   transmute(district = district_type_code, floor_area_ratio = suppressWarnings(as.numeric(floor_area_ratio)))
 stopifnot(!anyDuplicated(districts$district))
 
-# 1. The matter records.
+# 1. The matter records. The download also holds 28 communications (residents' and aldermen's objections to or notices
+# about rezonings) and 6 resolutions on zoning exceptions filed under the zoning category; only ordinances are map
+# amendments.
 matters <- lapply(readLines("../input/elms_zoning_matter_details.jsonl"), jsonlite::fromJSON, simplifyVector = FALSE)
+matters <- Filter(function(m) identical(m$type, "Ordinance"), matters)
 amendments <- bind_rows(lapply(matters, function(m) {
   action_names <- vapply(m$actions, function(a) a$actionName %||% "", character(1))
   action_dates <- as.Date(substr(vapply(m$actions, function(a) a$actionDate %||% NA_character_, character(1)), 1, 10))

@@ -1,7 +1,8 @@
 # Zoning map amendments, 2010–2026
 
-`clean_zoning_map_amendments.R` builds one row per zoning map amendment in the City Clerk's eLMS records (6,750
-matters introduced from 2010 to September 2026; `tasks/download_elms_matters`), in `output/zoning_map_amendments.csv`.
+`clean_zoning_map_amendments.R` builds one row per zoning map amendment in the City Clerk's eLMS records (6,716
+ordinances introduced from 2010 to September 2026, leaving aside 34 communications and resolutions filed under the
+zoning category; `tasks/download_elms_matters`), in `output/zoning_map_amendments.csv`.
 Run `make` in `code/`.
 
 - **Filing and outcome.** Whether an alderman filed the amendment (filing office a ward number) or it is an
