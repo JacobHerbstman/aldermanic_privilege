@@ -17,6 +17,6 @@ Of 6,716 amendments, 6,396 are placed by their geocoded address and 156 by the f
 matched by the geocoder, 63 titles give no street address (intersections or map numbers only) and 4 points fall
 outside the ward maps. For 1,189 amendments filed by an alderman with a geocoded address, the geocoded ward equals
 the filing ward for 93.4 percent. Of the 80 that differ, about 30 percent lie within 500 feet of the filing ward;
-others are far from it, so the filing office is not always the property's ward. 6,046 amendments have an alderman;
-the others fall after June 24, 2025, where the term records end, or in two vacancies (ward 4 in early 2016, ward 11
-in March 2022).
+others are far from it, so the filing office is not always the property's ward. 6,549 amendments have an alderman
+(terms recorded through September 27, 2026); the other 167 have no ward, apart from three introduced during
+vacancies (ward 4 in February 2016, ward 11 in March 2022).
