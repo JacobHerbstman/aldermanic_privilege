@@ -1,0 +1,17 @@
+File: zoning_outcomes_by_direction.csv
+Rows: 10
+Columns: 7
+SHA-256 (saved bytes): b0389b49d7a457487d77505850205b5a13fba8ca6b4b1b94fe8c625b0c547064
+Key: filed_by_alderman, direction
+Types: DuckDB inference from the complete saved CSV.
+Distinct counts: exact (exact up to 100,000 rows).
+Row counts, non-missing counts, and declared-key checks: exact.
+
+                column inferred_type non_missing distinct                  min                  max                 mean                   sd
+     filed_by_alderman       BOOLEAN          10        2                    -                    -                    -                    -
+             direction       VARCHAR          10        5                    -                    -                    -                    -
+            amendments        BIGINT          10       10                   31                 2500                671.6    722.8176656514269
+            stall_rate        DOUBLE          10       10 0.034883720930232544   0.2636363636363636  0.15004802598296302   0.0755591216971835
+          passed_share        DOUBLE          10       10   0.7162790697674418   0.9523809523809523   0.8464236325114189  0.07635294863521007
+       withdrawn_share        DOUBLE          10        8                  0.0 0.014466546112115732 0.005734846305601815 0.005181242139059009
+median_days_to_passage        DOUBLE          10        8                 49.0                135.0                69.05   25.582600423812362

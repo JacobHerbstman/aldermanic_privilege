@@ -1,0 +1,17 @@
+File: measures_by_characteristic.csv
+Rows: 105
+Columns: 7
+SHA-256 (saved bytes): 54a018608b1e23ba5ac4fc0d88412b0f2cae9c9f30e74ab2701123b63e4e7852
+Key: measure, characteristic
+Types: DuckDB inference from the complete saved CSV.
+Distinct counts: exact (exact up to 100,000 rows).
+Row counts, non-missing counts, and declared-key checks: exact.
+
+        column inferred_type non_missing distinct                  min                 max                 mean                  sd
+       measure       VARCHAR         105        7                    -                   -                    -                   -
+characteristic       VARCHAR         105       15                    -                   -                    -                   -
+          with        BIGINT         105       31                    3                  43    21.63809523809524  10.375751881489222
+       without        BIGINT         105       48                   16                 104    71.21904761904761  20.291140996267387
+ difference_sd        DOUBLE         105      105  -0.7813220452449141  0.8491446334163701 0.007654551621626773 0.28471704698150935
+     std_error        DOUBLE         105      105   0.1636182802563446 0.49308792426633047   0.2637512044930485 0.06714899232070988
+       p_value        DOUBLE         105      105 0.008132412627525377  0.9824110867680691  0.46059997615502435  0.2660171993497626

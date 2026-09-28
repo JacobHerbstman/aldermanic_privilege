@@ -1,0 +1,19 @@
+File: alderman_share_beyond_ward.csv
+Rows: 4
+Columns: 9
+SHA-256 (saved bytes): 4fbd68166421b29efc4948e539655064929991879f92abfb33717619f462eab7
+Key: outcome
+Types: DuckDB inference from the complete saved CSV.
+Distinct counts: exact (exact up to 100,000 rows).
+Row counts, non-missing counts, and declared-key checks: exact.
+
+              column inferred_type non_missing distinct                  min                 max                mean                  sd
+             outcome       VARCHAR           4        4                    -                   -                   -                   -
+        applications        BIGINT           4        4                 3794                5205             4451.25   601.7698203355388
+       wards_on_maps        BIGINT           4        2                  100                 150               137.5  24.999999999999996
+            aldermen        BIGINT           4        4                   92                 107               102.5    7.04745817062199
+added_alderman_terms        BIGINT           4        3                   29                  31               29.75  0.9574271077563381
+        r2_ward_only        DOUBLE           4        4   0.0824650967241799 0.29632919607822017 0.15748082463290905 0.09476989779878486
+    r2_with_alderman        DOUBLE           4        4  0.09473264320827735  0.3021758705079012   0.166466377760342 0.09239544385236753
+         f_statistic        DOUBLE           4        4   1.0822124045490424  1.9170144223106855     1.5305164573916  0.4369388679021466
+             p_value        DOUBLE           4        4 0.001653371160902386  0.3484170022622742  0.1336117384269267 0.16634651347648796

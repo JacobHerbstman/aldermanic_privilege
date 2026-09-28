@@ -1,0 +1,15 @@
+File: measures_by_ward_characteristics.csv
+Rows: 42
+Columns: 5
+SHA-256 (saved bytes): 12457b793f5189766a4258ee2734c9f809f3d025c787a4b06f1ab311550397d7
+Key: measure, ward_characteristic
+Types: DuckDB inference from the complete saved CSV.
+Distinct counts: exact (exact up to 100,000 rows).
+Row counts, non-missing counts, and declared-key checks: exact.
+
+             column inferred_type non_missing distinct                   min                max                 mean                  sd
+            measure       VARCHAR          42        7                     -                  -                    -                   -
+ward_characteristic       VARCHAR          42        6                     -                  -                    -                   -
+           aldermen        BIGINT          42        6                    83                113    99.85714285714286  10.839339887585695
+           spearman        DOUBLE          42       42   -0.3159717985094658 0.2345693483308162 -0.03560467245043117 0.12517841858564374
+            p_value        DOUBLE          42       42 0.0013626167954687222 0.9801902691037918  0.41982672442576524 0.30486246105562076

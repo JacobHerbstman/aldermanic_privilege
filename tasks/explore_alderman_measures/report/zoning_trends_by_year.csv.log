@@ -1,0 +1,19 @@
+File: zoning_trends_by_year.csv
+Rows: 17
+Columns: 9
+SHA-256 (saved bytes): 4ac00872e47907e25588c0c8523848623c2e96bc254f702331bc811c3095e01f
+Key: introduction_year
+Types: DuckDB inference from the complete saved CSV.
+Distinct counts: exact (exact up to 100,000 rows).
+Row counts, non-missing counts, and declared-key checks: exact.
+
+                               column inferred_type non_missing distinct                 min                 max                mean                 sd
+                    introduction_year        BIGINT          17       17                2010                2026              2018.0  5.049752469181039
+                           amendments        BIGINT          17       17                  70                 510  395.05882352941177 109.31175061963563
+                         applications        BIGINT          17       17                  57                 426  315.94117647058823  93.54442165906748
+                    filed_by_aldermen        BIGINT          17       16                  13                 145   79.11764705882354 33.282657557918164
+                 alderman_downzonings        BIGINT          17       16                   0                  50  25.294117647058822 17.138278450162204
+               application_stall_rate        DOUBLE          14       14 0.05250596658711219 0.38922155688622756 0.10760670347143043 0.0858315578001673
+               median_days_to_passage        BIGINT          17        9                  34                  71                52.0 11.022703842524303
+           application_upzoning_share        DOUBLE          17       17  0.4814814814814815  0.6637931034482759  0.5656896309095518 0.0577639244246021
+application_planned_development_share        DOUBLE          17       17 0.06101694915254242 0.33333333333333337 0.13716090133172273 0.0583744220714858

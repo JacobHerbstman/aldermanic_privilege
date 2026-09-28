@@ -1,0 +1,15 @@
+File: measure_correlations.csv
+Rows: 21
+Columns: 5
+SHA-256 (saved bytes): 986fe71e7994894e0f82e53dac2de3ea3ec316bc0210296f79f26cd28d7a4c81
+Key: measure_a, measure_b
+Types: DuckDB inference from the complete saved CSV.
+Distinct counts: exact (exact up to 100,000 rows).
+Row counts, non-missing counts, and declared-key checks: exact.
+
+   column inferred_type non_missing distinct                 min                max                mean                  sd
+measure_a       VARCHAR          21        6                   -                  -                   -                   -
+measure_b       VARCHAR          21        6                   -                  -                   -                   -
+ aldermen        BIGINT          21       13                  60                110   89.80952380952381   14.20429177262649
+ spearman        DOUBLE          21       21 -0.2009193054136875 0.7139078963939379 0.04103055472218407 0.18362337416395666
+  p_value        DOUBLE          21       21                 0.0 0.9809173180248889  0.5336702447357711  0.3264090108824444

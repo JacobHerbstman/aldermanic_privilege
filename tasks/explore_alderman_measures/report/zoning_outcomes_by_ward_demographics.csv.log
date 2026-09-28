@@ -1,0 +1,16 @@
+File: zoning_outcomes_by_ward_demographics.csv
+Rows: 20
+Columns: 6
+SHA-256 (saved bytes): 0ede36c0a20ccdaee443bc1a16d74f1987472c973dda62e6be571a8f68aa1186
+Key: outcome, ward_characteristic
+Types: DuckDB inference from the complete saved CSV.
+Distinct counts: exact (exact up to 100,000 rows).
+Row counts, non-missing counts, and declared-key checks: exact.
+
+             column inferred_type non_missing distinct                    min                  max                  mean                   sd
+            outcome       VARCHAR          20        4                      -                    -                     -                    -
+ward_characteristic       VARCHAR          20        5                      -                    -                     -                    -
+           estimate        DOUBLE          20       20   -0.10439882054963433 0.032702713587178155 -0.005757277059781558 0.028812046731313073
+          std_error        DOUBLE          20       20  0.0020756876949941656  0.03591266976255524  0.010486111878040506 0.008414178285911322
+            p_value        DOUBLE          20       20 3.9118714637729385e-05   0.9669331301790779    0.3577151225165682  0.33882954317348085
+       applications        BIGINT          20        3                   2880                 4040                3655.0   485.87956055839715

@@ -1,0 +1,16 @@
+File: zoning_outcomes_by_boundary_distance.csv
+Rows: 5
+Columns: 6
+SHA-256 (saved bytes): 7d4ac91e4bb3ae3572f079b0635377a05317204205c283c7c1d4b3e357bfa982
+Key: distance_band_ft
+Types: DuckDB inference from the complete saved CSV.
+Distinct counts: exact (exact up to 100,000 rows).
+Row counts, non-missing counts, and declared-key checks: exact.
+
+                column inferred_type non_missing distinct                 min                 max                mean                   sd
+      distance_band_ft       VARCHAR           5        5                   -                   -                   -                    -
+          applications        BIGINT           5        5                 801                1262              1041.4   201.25307451067673
+            stall_rate        DOUBLE           5        5 0.08888888888888903 0.10803324099722984 0.09892657181482101 0.008556621520785448
+median_days_to_passage        BIGINT           5        2                  49                  56                54.6    3.130495168499706
+        upzoning_share        DOUBLE           5        5   0.505443234836703  0.6333333333333335   0.579452770066005   0.0516286373882501
+     mean_far_increase        DOUBLE           5        5  0.4618213660245185  0.7292773645058448  0.6235211774234909  0.10357321245549343

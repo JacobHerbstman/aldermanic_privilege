@@ -1,0 +1,19 @@
+File: alderman_measures.csv
+Rows: 129
+Columns: 9
+SHA-256 (saved bytes): 86621dd85216d98b6e2c74ac97f6705d7eb5dd618658f3e6492f5f17697da85a
+Key: alderman
+Types: DuckDB inference from the complete saved CSV.
+Distinct counts: exact (exact up to 100,000 rows).
+Row counts, non-missing counts, and declared-key checks: exact.
+
+                       column inferred_type non_missing distinct                  min                 max                   mean                   sd
+                     alderman       VARCHAR         129      129                    -                   -                      -                    -
+                   stall_rate        DOUBLE          92       92 -0.08110830912273573 0.14956242822908034 -0.0017917220262800434 0.045408684998668736
+              days_to_passage        DOUBLE         106      106 -0.25479398590119845  0.2521486871089607   -0.01810245502120819  0.08043363078719226
+              own_downzonings        DOUBLE         115       75  0.04533017751190249  3.9139552858029223    0.49360697162164824   0.5506749510310128
+         applications_decided        BIGINT          92       62                    1                 400      45.66304347826087    64.09818656019671
+        processing_time_index        DOUBLE         113      113   -3.445538716858031  3.3357976529033273  3.929993007522678e-18                  1.0
+   processing_time_index_2014        DOUBLE          83       83   -2.626220074885348   3.005953923745381  1.070094481566416e-17   1.0000000000000002
+fewer_high_discretion_permits        DOUBLE         110      110 -0.25406301597032066 0.26525223012714627  -0.004199304845307962  0.10519312205243157
+ fewer_low_discretion_permits        DOUBLE         110      110 -0.03131909561533604 0.03590776448919215  0.0009879385566502572 0.014029768591897303

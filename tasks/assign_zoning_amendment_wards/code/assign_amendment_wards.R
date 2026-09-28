@@ -73,6 +73,7 @@ stopifnot(!anyDuplicated(serving$matter_id))
 
 wards <- wards |>
   left_join(serving, by = "matter_id", relationship = "one-to-one") |>
-  select(matter_id, introduction_date, address_query, geocode_match, geocode_match_type, matched_address, map_year,
-    ward, ward_source, filing_ward_agrees, alderman)
+  mutate(longitude = if_else(geocoded, longitude, NA_real_), latitude = if_else(geocoded, latitude, NA_real_)) |>
+  select(matter_id, introduction_date, address_query, geocode_match, geocode_match_type, matched_address, longitude,
+    latitude, map_year, ward, ward_source, filing_ward_agrees, alderman)
 SaveData(wards, "matter_id", "../output/zoning_amendment_wards.csv")
