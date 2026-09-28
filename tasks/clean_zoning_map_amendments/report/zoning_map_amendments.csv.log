@@ -1,0 +1,44 @@
+File: zoning_map_amendments.csv
+Rows: 6716
+Columns: 34
+SHA-256 (saved bytes): 846ea2950522ca9478a7deec093c958ad0e89bf4bc38f26ad255eed410aa1058
+Key: matter_id
+Types: DuckDB inference from the complete saved CSV.
+Distinct counts: exact (exact up to 100,000 rows).
+Row counts, non-missing counts, and declared-key checks: exact.
+
+                column inferred_type non_missing distinct  min    max               mean                  sd
+             matter_id       VARCHAR        6716     6716    -      -                  -                   -
+         record_number       VARCHAR        6716     6716    -      -                  -                   -
+                 title       VARCHAR        6716     6557    -      -                  -                   -
+     introduction_date          DATE        6716      230    -      -                  -                   -
+     final_action_date          DATE        5822      176    -      -                  -                   -
+            sub_status       VARCHAR        6716       10    -      -                  -                   -
+         filing_office       VARCHAR        6716       53    -      -                  -                   -
+        filing_sponsor       VARCHAR        6716      106    -      -                  -                   -
+           passed_date          DATE        5784      187    -      -                  -                   -
+     held_in_committee       BOOLEAN        6716        2    -      -                  -                   -
+            roll_calls        BIGINT        6716        3    0      2 0.8458904109589042 0.37324851840536993
+     filed_by_alderman       BOOLEAN        6716        2    -      -                  -                   -
+           filing_ward        BIGINT        1345       50    1     50  23.38364312267658   14.07436774749017
+               outcome       VARCHAR        6716        5    -      -                  -                   -
+       days_to_passage        BIGINT        5784      252 -673   1428  83.41320885200554  105.99591869346709
+    application_number        BIGINT        5318     5184 7731 222572 20019.900150432495   4351.248550051571
+            map_number       VARCHAR        6440      252    -      -                  -                   -
+               address       VARCHAR        6673     6102    -      -                  -                   -
+         sentence_from       VARCHAR        4844      322    -      -                  -                   -
+           sentence_to       VARCHAR        4504       62    -      -                  -                   -
+      change_sentences        BIGINT        6695        8    0     13 0.8391336818521284  0.5150479794896676
+to_planned_development       BOOLEAN        6695        2    -      -                  -                   -
+             form_from       VARCHAR        2696      197    -      -                  -                   -
+               form_to       VARCHAR        1575       71    -      -                  -                   -
+        from_districts       VARCHAR        5399      352    -      -                  -                   -
+          to_districts       VARCHAR        4929       68    -      -                  -                   -
+           from_source       VARCHAR        6716        4    -      -                  -                   -
+             to_source       VARCHAR        6716        4    -      -                  -                   -
+              in_steps       BOOLEAN        6695        2    -      -                  -                   -
+ from_sources_disagree       BOOLEAN        6695        2    -      -                  -                   -
+   to_sources_disagree       BOOLEAN        6695        2    -      -                  -                   -
+              from_far        DOUBLE        5365       18  0.5   16.0 1.9134109972040811  1.4935926150867729
+                to_far        DOUBLE        4908       18  0.5   16.0 2.3085167074164934  1.4990237976632896
+             direction       VARCHAR        6716        5    -      -                  -                   -

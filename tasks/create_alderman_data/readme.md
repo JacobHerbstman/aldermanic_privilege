@@ -9,6 +9,22 @@ It writes:
 - `output/chicago_alderman_panel.csv`
 - `output/chicago_alderman_terms.csv`
 
+## Terms through September 2026
+
+Terms still running end on September 27, 2026, the date the current council was last checked against the City
+Council's membership (Wikipedia's list of current members, which gives every member's start date). Two seats changed
+after the 2023 election:
+
+- Ward 35: Carlos Ramirez-Rosa's own site states "As of March 24, 2025, I am no longer Alderman of Chicago's 35th
+  Ward" (https://www.aldermancarlosrosa.org/), so March 23 is his last day. Anthony Quezada was confirmed and sworn in
+  on April 7, 2025 (Block Club Chicago and WTTW, April 7, 2025). The intervening period is left vacant.
+- Ward 27: Walter Burnett Jr.'s resignation took effect August 7, 2025 (WTTW, "As Ald. Walter Burnett Officially
+  Resigns From City Council"; Wikipedia), so August 6 is his last day. His son Walter Redmond ("Red") Burnett was
+  confirmed and took his seat on September 25, 2025 (WTTW and Block Club Chicago, September 25, 2025). The intervening
+  period is left vacant.
+
+These terms had previously run to June 24, 2025 for every seat, including Ramirez-Rosa's after his resignation.
+
 ## Corrected historical transitions
 
 - Ward 26: the May 13, 2009 Council journal says Billy Ocasio would resign on

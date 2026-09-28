@@ -1,0 +1,16 @@
+File: alderman_zoning_measures_by_half.csv
+Rows: 198
+Columns: 6
+SHA-256 (saved bytes): 52e7881380aa05184e180b262f584dee1cfb0ee19169197f710e7cef1e4eab06
+Key: measure, alderman
+Types: DuckDB inference from the complete saved CSV.
+Distinct counts: exact (exact up to 100,000 rows).
+Row counts, non-missing counts, and declared-key checks: exact.
+
+              column inferred_type non_missing distinct                 min                max                  mean                  sd
+             measure       VARCHAR         198        2                   -                  -                     -                   -
+            alderman       VARCHAR         198      107                   -                  -                     -                   -
+applications_earlier        BIGINT         192       57                   1                227    24.307291666666668  32.903704480540746
+  applications_later        BIGINT         191       55                   1                192    21.670157068062828   29.72525241318956
+      effect_earlier        DOUBLE         192      191 -1.7374819952736984  0.912008609586401  -0.01362334065651351  0.2392303480903628
+        effect_later        DOUBLE         191      188 -0.5610330177661309 1.5255571068283906 -0.011779080054150994 0.23311207031195377

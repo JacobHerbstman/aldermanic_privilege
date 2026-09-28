@@ -1,0 +1,23 @@
+File: alderman_zoning_measures.csv
+Rows: 115
+Columns: 13
+SHA-256 (saved bytes): bb2151dbe6901aeab066933d42d9f82a069d13c35c70166d8133e0f6960f6774
+Key: alderman
+Types: DuckDB inference from the complete saved CSV.
+Distinct counts: exact (exact up to 100,000 rows).
+Row counts, non-missing counts, and declared-key checks: exact.
+
+                column inferred_type non_missing distinct                  min                 max                   mean                   sd
+              alderman       VARCHAR         115      115                    -                   -                      -                    -
+       years_in_office        DOUBLE         115       42  0.07665982203969883  16.654346338124572      7.228354611195429    4.796166239952129
+  applications_decided        BIGINT          92       62                    1                 400      45.66304347826087    64.09818656019671
+          stall_effect        DOUBLE          92       92  -0.1846888131919193  0.9071216217830769  0.0049148381262103065  0.13276288393684021
+              stall_se        DOUBLE          92       62 0.014516516146690549 0.29033032293381095     0.0760681195222393 0.059645429059881946
+          stall_shrunk        DOUBLE          92       92 -0.08110830912273573 0.14956242822908034 -0.0017917220262800438 0.045408684998668736
+   applications_passed        BIGINT         106       61                    1                 401     43.443396226415096   59.531357113578096
+           days_effect        DOUBLE         106      106  -1.1356198193485039  0.9638015056274334  -0.025798213661355075  0.23520227903281155
+               days_se        DOUBLE         106       61   0.0305462146911405  0.6116874725011592    0.15775293993657705  0.12294270205202977
+           days_shrunk        DOUBLE         106      106 -0.25479398590119845  0.2521486871089607  -0.018102455021208195  0.08043363078719226
+           downzonings        BIGINT         115       19                    0                  40      3.739130434782609    6.161691150464677
+       downzoning_rate        DOUBLE         115       56                  0.0   5.197606727037517    0.45476687221875023   0.7330489073239949
+downzoning_rate_shrunk        DOUBLE         115       75  0.04533017751190249  3.9139552858029223    0.49360697162164824   0.5506749510310128

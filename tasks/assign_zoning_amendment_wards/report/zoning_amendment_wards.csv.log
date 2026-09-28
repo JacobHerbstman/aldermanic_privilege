@@ -1,0 +1,21 @@
+File: zoning_amendment_wards.csv
+Rows: 6716
+Columns: 11
+SHA-256 (saved bytes): 42e389cdae70b8785d57e1559c2e250e891a57d831872de6c796459ad94b50ba
+Key: matter_id
+Types: DuckDB inference from the complete saved CSV.
+Distinct counts: exact (exact up to 100,000 rows).
+Row counts, non-missing counts, and declared-key checks: exact.
+
+            column inferred_type non_missing distinct  min  max               mean                 sd
+         matter_id       VARCHAR        6716     6716    -    -                  -                  -
+ introduction_date          DATE        6716      230    -    -                  -                  -
+     address_query       VARCHAR        6527     5803    -    -                  -                  -
+     geocode_match       VARCHAR        6527        3    -    -                  -                  -
+geocode_match_type       VARCHAR        6405        2    -    -                  -                  -
+   matched_address       VARCHAR        6405     5630    -    -                  -                  -
+          map_year        BIGINT        6716        3 2003 2024  2013.698332340679   7.19806813375136
+              ward        BIGINT        6552       50    1   50 25.027625152625152 14.543782167389079
+       ward_source       VARCHAR        6716        5    -    -                  -                  -
+filing_ward_agrees       BOOLEAN        1189        2    -    -                  -                  -
+          alderman       VARCHAR        6549      111    -    -                  -                  -
