@@ -1,7 +1,7 @@
 File: alderman_uncertainty_index_ptfeTRUE_rtfeTRUE_porchTRUE_cafeFALSE_2stage_volLAG1_BOTH_through2014.csv
 Rows: 83
 Columns: 7
-SHA-256 (saved bytes): df0b7fb4392a92aed48d6cf776322a12e2d62ebadc533386e104dbcca2e0f912
+SHA-256 (saved bytes): 8db0ebb004c257da95f22a13b86d4849f829a5f41a43e714200ba40b90891131
 Key: alderman
 Types: DuckDB inference from the complete saved CSV.
 Distinct counts: exact (exact up to 100,000 rows).
@@ -10,8 +10,8 @@ Row counts, non-missing counts, and declared-key checks: exact.
            column inferred_type non_missing distinct                  min                 max                   mean                  sd
          alderman       VARCHAR          83       83                    -                   -                      -                   -
         n_permits        BIGINT          83       80                   18                6278      856.1325301204819    850.107995593965
-       mean_resid        DOUBLE          83       83  -0.3221282147287201  0.3657697388795893 -0.0013690521606072937 0.12213719849130163
-  alderman_fe_raw        DOUBLE          83       83  -0.3737088416817865 0.47606634569585127 -3.009640729405545e-18  0.1594334346451082
-      alderman_se        DOUBLE          83       83 0.030241110548472633 0.31704617388683753    0.06766463533230929 0.03802647264554439
-      shrinkage_B        DOUBLE          83       83  0.16186019844555177  0.9550081438931162     0.8129694378468564  0.1314923154093832
-uncertainty_index        DOUBLE          83       83   -2.626220074885348   3.005953923745381  1.471379912153822e-17                 1.0
+       mean_resid        DOUBLE          83       83 -0.32212821472844544   0.365769738879169  -0.001369052160604258 0.12213719849114227
+  alderman_fe_raw        DOUBLE          83       83  -0.3737088416815542 0.47606634569558715 8.3601131372376245e-19 0.15943343464497134
+      alderman_se        DOUBLE          83       83  0.03024111054847163  0.3170461738868383    0.06766463533230664 0.03802647264554344
+      shrinkage_B        DOUBLE          83       83  0.16186019844524902  0.9550081438930232      0.812969437846569  0.1314923154094723
+uncertainty_index        DOUBLE          83       83  -2.6262200748865507   3.005953923745837 6.6880905097900996e-18                 1.0

@@ -1,17 +1,17 @@
 File: alderman_uncertainty_index_ptfeTRUE_rtfeTRUE_porchTRUE_cafeFALSE_2stage_volLAG1_BOTH_through2022.csv
 Rows: 113
 Columns: 7
-SHA-256 (saved bytes): bd763c5680f6059b1ec5bed0b61882e44979af41947c9c3b18ba86306715e8d1
+SHA-256 (saved bytes): 11e405c500c7d2994d331704772e45961731fdcf46216e3930e27221c641c76d
 Key: alderman
 Types: DuckDB inference from the complete saved CSV.
 Distinct counts: exact (exact up to 100,000 rows).
 Row counts, non-missing counts, and declared-key checks: exact.
 
-           column inferred_type non_missing distinct                  min                 max                   mean                  sd
-         alderman       VARCHAR         113      113                    -                   -                      -                   -
-        n_permits        BIGINT         113      110                   18                9560       1066.41592920354  1190.1736947490335
-       mean_resid        DOUBLE         113      113 -0.37120304896299333  0.3684714049855687   0.004619182819365518 0.10907502793208172
-  alderman_fe_raw        DOUBLE         113      113 -0.45149451483924463  0.5161864965714968  1.964996503761339e-18 0.15019904264762557
-      alderman_se        DOUBLE         113      113  0.02375646067615631 0.30282461371303926    0.06592725216974363  0.0394444599301215
-      shrinkage_B        DOUBLE         113      113  0.15383074505775837  0.9672556403499802     0.7984984454628024 0.15265214956322345
-uncertainty_index        DOUBLE         113      113   -3.445538716858031  3.3357976529033273 2.1123712415434393e-17  0.9999999999999999
+           column inferred_type non_missing distinct                  min                 max                   mean                   sd
+         alderman       VARCHAR         113      113                    -                   -                      -                    -
+        n_permits        BIGINT         113      110                   18                9560       1066.41592920354   1190.1736947490335
+       mean_resid        DOUBLE         113      113  -0.3712030489629857 0.36847140498554126   0.004619182819365909  0.10907502793207896
+  alderman_fe_raw        DOUBLE         113      113 -0.45149451483923886  0.5161864965714603 2.2106210667315064e-18  0.15019904264762254
+      alderman_se        DOUBLE         113      113 0.023756460676155975 0.30282461371304426    0.06592725216974343 0.039444459930121814
+      shrinkage_B        DOUBLE         113      113  0.15383074505774696  0.9672556403499794     0.7984984454627956   0.1526521495632259
+uncertainty_index        DOUBLE         113      113  -3.4455387168580534   3.335797652903158  2.063246328949406e-17   0.9999999999999999
