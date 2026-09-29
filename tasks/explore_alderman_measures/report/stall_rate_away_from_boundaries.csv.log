@@ -1,0 +1,13 @@
+File: stall_rate_away_from_boundaries.csv
+Rows: 90
+Columns: 3
+SHA-256 (saved bytes): 01958f6769702b2a8c04c72a6a483fec7b3d6dd25af731634d269426bb1ff29c
+Key: alderman
+Types: DuckDB inference from the complete saved CSV.
+Distinct counts: exact (exact up to 100,000 rows).
+Row counts, non-missing counts, and declared-key checks: exact.
+
+         column inferred_type non_missing distinct                  min                 max                   mean                  sd
+       alderman       VARCHAR          90       90                    -                   -                      -                   -
+   applications        BIGINT          90       46                    1                 235     28.266666666666666   34.07750584321544
+stall_rate_away        DOUBLE          90       90 -0.07073730000007258 0.13989809614874169 -0.0034331970176199027 0.04317285877042956

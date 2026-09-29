@@ -1,0 +1,16 @@
+File: lame_duck_stall_rates.csv
+Rows: 24
+Columns: 6
+SHA-256 (saved bytes): b9663c17acc92fbb22c68f2abfb54baa75c88012fa4c0116f0da3b634ecbe382
+Key: term, months_left, leaving
+Types: DuckDB inference from the complete saved CSV.
+Distinct counts: exact (exact up to 100,000 rows).
+Row counts, non-missing counts, and declared-key checks: exact.
+
+      column inferred_type non_missing distinct                  min  max                mean                  sd
+        term       VARCHAR          24        3                    -    -                   -                   -
+ months_left       VARCHAR          24        4                    -    -                   -                   -
+     leaving       BOOLEAN          24        2                    -    -                   -                   -
+    aldermen        BIGINT          24       10                    9   36              21.875  11.353269975228933
+applications        BIGINT          24       24                   22  456  162.29166666666666  124.47331796034833
+  stall_rate        DOUBLE          24       24 0.013513513513513514 0.35 0.10683979584654223 0.07689406036781846

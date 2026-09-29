@@ -1,0 +1,16 @@
+File: refiling_summary.csv
+Rows: 3
+Columns: 6
+SHA-256 (saved bytes): bbed4c7ea99be6e6493d1a900457bd0e488aa1e40fd572cb34fd6de65a3fa81c
+Key: term
+Types: DuckDB inference from the complete saved CSV.
+Distinct counts: exact (exact up to 100,000 rows).
+Row counts, non-missing counts, and declared-key checks: exact.
+
+                             column inferred_type non_missing distinct   min    max               mean                 sd
+                               term       VARCHAR           3        3     -      -                  -                  -
+                             stalls        BIGINT           3        3    80    217 139.66666666666666   70.1878432018917
+                            refiled        BIGINT           3        3    13     43 29.333333333333332  15.17673658377628
+                   refilings_passed        BIGINT           3        3    12     41 27.333333333333332 14.571661996262929
+            median_days_to_refiling        BIGINT           3        3   434    994  779.3333333333334  302.0022074974508
+median_days_first_filing_to_passage        DOUBLE           3        3 483.0 1305.5  908.8333333333334  412.0249790162404

@@ -1,0 +1,20 @@
+File: boundary_side_counts.csv
+Rows: 588
+Columns: 10
+SHA-256 (saved bytes): 419cc89c70647df6f773dec7701eec2e33d0480251ce5e70a0a13de8efb08a1d
+Key: outcome, measure, within_ft, offset_ft
+Types: DuckDB inference from the complete saved CSV.
+Distinct counts: exact (exact up to 100,000 rows).
+Row counts, non-missing counts, and declared-key checks: exact.
+
+    column inferred_type non_missing distinct                   min                 max                 mean                   sd
+   outcome       VARCHAR         588        6                     -                   -                    -                    -
+   measure       VARCHAR         588        7                     -                   -                    -                    -
+ within_ft        BIGINT         588        2                   250                 500                375.0   125.10642828662773
+ offset_ft        BIGINT         588        7                 -1000                1000                  0.0     720.235623001629
+  estimate        DOUBLE         588      588  -0.35469867081603507 0.43925998458649046 0.006912443069100371  0.08805388726896685
+ std_error        DOUBLE         588      588   0.01657285953482263  0.3089051512344785  0.06520241348075469 0.038844790758992394
+   p_value        DOUBLE         588      588 8.948094139978607e-07  0.9973165541559007  0.42061335867318084  0.29366834938716335
+ward_pairs        BIGINT         588      149                    19                 264   111.08333333333333   49.905582346536775
+     cells        BIGINT         588      183                    20                 333   170.69557823129253    72.43972420644839
+     count        BIGINT         588      401                    30               37375   3892.9353741496598   7225.4159012760365

@@ -3,8 +3,11 @@
 # outcome, who filed it, the address and application number from its title, and the zoning districts before and
 # after the change, read from its legislation text (tasks/extract_zoning_legislation_text).
 # Matters not acted on lapse at the end of a council term; a matter never passed and introduced before the current
-# term began is coded stalled, one introduced during the current term and not yet decided is pending.
+# term began is coded stalled, one introduced during the current term and not yet decided is pending. Some matters
+# have two records (step 1b); each matter is one row.
 current_term_start <- as.Date("2023-05-15")
+# A matter with several records takes the outcome of the first record in this order.
+outcome_order <- c("passed", "withdrawn", "placed_on_file", "failed", "pending", "stalled")
 
 source("../../setup_environment/code/packages.R")
 source("../../shared/code/save_data.R")
@@ -43,10 +46,38 @@ amendments <- bind_rows(lapply(matters, function(m) {
       introduction_date < current_term_start ~ "stalled",
       TRUE ~ "pending"),
     days_to_passage = as.integer(passed_date - introduction_date),
-    application_number = str_match(title, regex("App(?:lication)?\\.?\\s*No\\.?\\s*([0-9]+)", ignore_case = TRUE))[, 2],
+    # Applicants' application numbers are numeric ("App No. 17212", "App 20897"); "A" numbers (A8496) name a series of
+    # aldermen's amendments and are shared by different ordinances.
+    application_number = str_match(title, regex("App(?:lication)?\\.?\\s*(?:No\\.?)?\\s*([0-9]{4,})",
+      ignore_case = TRUE))[, 2],
     map_number = str_match(title, regex("Map\\s*No\\.?\\s*([0-9]{1,2}-[A-Z])", ignore_case = TRUE))[, 2],
     address = str_trim(str_match(title, regex("\\bat\\s+(.+?)(?:\\s*-\\s*App.*)?$", ignore_case = TRUE))[, 2]))
 stopifnot(!anyDuplicated(amendments$matter_id), !anyNA(amendments$introduction_date))
+
+# 1b. Records of the same matter. When the City Clerk moved to its new system in 2023, matters still pending were
+# given a second record, with the original introduction date, on which later actions were recorded; a few ordinances
+# were also entered twice. Records introduced the same day with the same title or the same application number are one
+# matter. Groups are formed from the title and merged where records share an application number. The matter is
+# represented by the record on which it was resolved (by outcome_order, then the later final action); all its record
+# numbers are listed.
+same_title <- paste(amendments$introduction_date, str_to_lower(str_squish(amendments$title)))
+same_application <- if_else(is.na(amendments$application_number), amendments$matter_id,
+  paste(amendments$introduction_date, amendments$application_number))
+record_group <- match(same_title, same_title)
+repeat {
+  merged <- as.integer(ave(as.integer(ave(record_group, same_application, FUN = min)), same_title, FUN = min))
+  if (identical(merged, record_group)) break
+  record_group <- merged
+}
+records <- amendments |>
+  mutate(record_group = record_group) |>
+  arrange(record_group, match(outcome, outcome_order), desc(final_action_date), record_number) |>
+  mutate(kept_matter_id = dplyr::first(matter_id), record_numbers = paste(sort(record_number), collapse = ";"),
+    records = n(), .by = record_group)
+stopifnot(all(records$outcome %in% outcome_order))
+amendments <- records |>
+  filter(matter_id == kept_matter_id) |>
+  select(-record_group, -kept_matter_id)
 
 # 2. Districts before and after. Ordinances state each change as "changing all the <from> District symbols and
 # indications as shown on Map No. ... to those of a <to> District"; a change in steps (for example to a district and
@@ -89,10 +120,13 @@ file_districts <- bind_rows(lapply(seq_len(nrow(texts)), function(i) {
     form_to = paste(district_codes(form[["to"]]), collapse = ";"))
 }))
 
-# Each matter uses its substitute ordinance where one exists (the version passed), otherwise the introduced one. The
+# Each matter uses its substitute ordinance where one exists (the version passed), otherwise the introduced one, from
+# the files of all its records. The
 # district before is the application's present district, or else the first sentence's; the district after is the last
 # sentence's, or else the application's proposed district.
 matter_districts <- file_districts |>
+  inner_join(select(records, matter_id, kept_matter_id), by = "matter_id", relationship = "many-to-one") |>
+  mutate(matter_id = kept_matter_id) |>
   arrange(matter_id, desc(substitute)) |>
   summarise(
     sentence_from = dplyr::first(sentence_from[sentence_from != ""], default = ""),
@@ -113,7 +147,7 @@ matter_districts <- file_districts |>
     in_steps = change_sentences > 1,
     from_sources_disagree = sentence_from != "" & form_from != "" & sentence_from != form_from,
     to_sources_disagree = sentence_to != "" & form_to != "" & sentence_to != form_to)
-stopifnot(nrow(matter_districts) == n_distinct(file_districts$matter_id))
+stopifnot(!anyDuplicated(matter_districts$matter_id), all(matter_districts$matter_id %in% amendments$matter_id))
 
 # 3. Direction of the change, by the highest allowed floor-area ratio among the districts before and after.
 max_far <- function(codes) {

@@ -1,0 +1,17 @@
+File: teardown_redevelopment_by_side.csv
+Rows: 8
+Columns: 7
+SHA-256 (saved bytes): d5bd86e2692a6d033d10e28096b1598ac2b0568900076da68c634b9eab6dedb5
+Key: measure, within_ft
+Types: DuckDB inference from the complete saved CSV.
+Distinct counts: exact (exact up to 100,000 rows).
+Row counts, non-missing counts, and declared-key checks: exact.
+
+           column inferred_type non_missing distinct                   min                 max                 mean                   sd
+          measure       VARCHAR           8        4                     -                   -                    -                    -
+        within_ft        BIGINT           8        2                   250                 500                375.0    133.6306209562122
+         estimate        DOUBLE           8        8 -0.018799348692547273 0.05684330269363944 0.026933403700182545 0.023840528590302088
+        std_error        DOUBLE           8        8  0.029985899538401577 0.05162007268503943 0.041399910114413296 0.009649169232044747
+          p_value        DOUBLE           8        8   0.08654042007148563  0.8384729434457272  0.45245890236101133   0.2777679507174034
+        teardowns        BIGINT           8        6                   357                 697                526.0   179.34404287370606
+redeveloped_share        DOUBLE           8        6    0.6222222222222225  0.6333333333333337   0.6275927398180445 0.003340601781714153

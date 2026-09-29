@@ -1,0 +1,14 @@
+File: passage_curves.csv
+Rows: 147
+Columns: 4
+SHA-256 (saved bytes): 1ada69626b45ae69cf7ef335f439ef6326b0c4862ddbb20f2498285beebafc33
+Key: term, months
+Types: DuckDB inference from the complete saved CSV.
+Distinct counts: exact (exact up to 100,000 rows).
+Row counts, non-missing counts, and declared-key checks: exact.
+
+      column inferred_type non_missing distinct  min                max               mean                  sd
+        term       VARCHAR         147        3    -                  -                  -                   -
+      months        BIGINT         147       49    0                 48               24.0  14.190484946389201
+share_passed        DOUBLE         147       89  0.0 0.9267857142857143 0.8369160964908063 0.17840392426766083
+applications        BIGINT         147        3 1120               1602             1394.0  202.92558862929988

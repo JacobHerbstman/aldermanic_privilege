@@ -1,0 +1,20 @@
+File: alderman_stall_and_time.csv
+Rows: 57
+Columns: 10
+SHA-256 (saved bytes): cea0c8f714b1a5bf81bc498d990dc02239a484c582e4300f2c2f4854d58c4ad9
+Key: alderman
+Types: DuckDB inference from the complete saved CSV.
+Distinct counts: exact (exact up to 100,000 rows).
+Row counts, non-missing counts, and declared-key checks: exact.
+
+                       column inferred_type non_missing distinct                 min                max                mean                  sd
+                     alderman       VARCHAR          57       57                   -                  -                   -                   -
+                 applications        BIGINT          57       41                  20                393   66.78947368421052    70.8208849447739
+                       stalls        BIGINT          57       18                   0                 49   6.578947368421052   8.417556840193878
+                   stall_rate        DOUBLE          57       48                 0.0 0.2916666666666667 0.09422103261686182 0.06264540732304567
+stall_rate_refilings_excluded        DOUBLE          57       47                 0.0 0.2916666666666667  0.0768676979877141 0.05539670872681994
+                       passed        BIGINT          57       38                  17                342   59.96491228070175   63.05891941903016
+       median_days_to_passage        DOUBLE          57       20                30.0               91.0  51.771929824561404  11.920521836401724
+  share_passed_within_90_days        DOUBLE          57       52 0.44329896907216493 0.9772727272727273  0.7850197799729676 0.11184188574186772
+                   first_term       VARCHAR          57        3                   -                  -                   -                   -
+                    last_term       VARCHAR          57        3                   -                  -                   -                   -

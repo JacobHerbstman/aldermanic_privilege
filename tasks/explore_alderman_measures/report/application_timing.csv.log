@@ -1,0 +1,19 @@
+File: application_timing.csv
+Rows: 18
+Columns: 9
+SHA-256 (saved bytes): dabef8828f53a21cdd8074b167c5fd2826773db5a7eb2fe26b964f6f961d4cdf
+Key: term, direction
+Types: DuckDB inference from the complete saved CSV.
+Distinct counts: exact (exact up to 100,000 rows).
+Row counts, non-missing counts, and declared-key checks: exact.
+
+                     column inferred_type non_missing distinct               min               max               mean                 sd
+                       term       VARCHAR          18        3                 -                 -                  -                  -
+                  direction       VARCHAR          18        6                 -                 -                  -                  -
+                     passed        BIGINT          18       18                64              1468 416.44444444444446  429.7000625911633
+        with_recommendation        BIGINT          18       18                53              1195  360.3333333333333  370.5104586917891
+   median_days_to_committee        DOUBLE          18       10              34.0             149.5  58.19444444444444  39.83315899543439
+      p90_days_to_committee        DOUBLE          18       18 81.20000000000005 531.9999999999998  174.0388888888889  131.9525232752023
+median_committee_to_passage        DOUBLE          18        5               1.0               8.0  4.694444444444445 2.7607484539783393
+     median_days_to_passage        DOUBLE          18       11              35.0             161.0  66.91666666666667 37.557113370250946
+        p90_days_to_passage        DOUBLE          18       18              91.0             455.0  186.2888888888889 112.32538285706805

@@ -1,0 +1,19 @@
+File: zoning_refilings.csv
+Rows: 94
+Columns: 9
+SHA-256 (saved bytes): 555629fc007d892abecb8403992d0f86c9364dd6f493ff11182844fec35a8d9f
+Key: matter_id
+Types: DuckDB inference from the complete saved CSV.
+Distinct counts: exact (exact up to 100,000 rows).
+Row counts, non-missing counts, and declared-key checks: exact.
+
+                    column inferred_type non_missing distinct min  max              mean                 sd
+                 matter_id       VARCHAR          94       94   -    -                 -                  -
+             record_number       VARCHAR          94       94   -    -                 -                  -
+                   outcome       VARCHAR          94        2   -    -                 -                  -
+        refiling_matter_id       VARCHAR          94       94   -    -                 -                  -
+    refiling_record_number       VARCHAR          94       94   -    -                 -                  -
+refiling_introduction_date          DATE          94       64   -    -                 -                  -
+          days_to_refiling        BIGINT          94       76  28 1458 574.3829787234042 383.61142151650483
+          refiling_outcome       VARCHAR          94        5   -    -                 -                  -
+               match_basis       VARCHAR          94        2   -    -                 -                  -

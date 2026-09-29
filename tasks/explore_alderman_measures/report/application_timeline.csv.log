@@ -1,0 +1,28 @@
+File: application_timeline.csv
+Rows: 4182
+Columns: 18
+SHA-256 (saved bytes): 0a55e0870da33407cbed0308b7affca1b6bc7e9ffb9d73f7a48de9434b079972
+Key: matter_id
+Types: DuckDB inference from the complete saved CSV.
+Distinct counts: exact (exact up to 100,000 rows).
+Row counts, non-missing counts, and declared-key checks: exact.
+
+              column inferred_type non_missing distinct  min  max              mean                 sd
+           matter_id       VARCHAR        4182     4182    -    -                 -                  -
+       record_number       VARCHAR        4182     4182    -    -                 -                  -
+                term       VARCHAR        4182        3    -    -                 -                  -
+            alderman       VARCHAR        4057       82    -    -                 -                  -
+   introduction_date          DATE        4182      150    -    -                 -                  -
+         months_left       VARCHAR        4182        4    -    -                 -                  -
+           direction       VARCHAR        4182        5    -    -                 -                  -
+             outcome       VARCHAR        4182        4    -    -                 -                  -
+             stalled       BOOLEAN        4182        2    -    -                 -                  -
+    recommended_date          DATE        3250      203    -    -                 -                  -
+         passed_date          DATE        3751      147    -    -                 -                  -
+   days_to_committee        BIGINT        3250      254  -12 1427 75.67353846153846 106.52404856286951
+committee_to_passage        BIGINT        3246       52 -728  408 8.380160197165742 19.636926963245692
+     days_to_passage        BIGINT        3751      205 -547 1428 87.75179952012796 110.75826641878359
+             refiled       BOOLEAN        4182        2    -    -                 -                  -
+        refiled_date          DATE          88       56    -    -                 -                  -
+    refiling_outcome       VARCHAR          88        5    -    -                 -                  -
+     refiling_passed          DATE          82       51    -    -                 -                  -

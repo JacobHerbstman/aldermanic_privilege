@@ -12,6 +12,14 @@ Two scripts, run with `make` in `code/`:
   who filed and the kind of change, outcomes by ward demographics, outcomes by distance to the nearest other ward,
   and whether the serving alderman explains outcomes beyond the ward (ward-on-map fixed effects, with and without
   alderman fixed effects, identified by the 29–31 changes of alderman within a ward on one map).
+- `boundary_counts.R` asks whether building and filing sort toward the more lenient side of ward boundaries: for each
+  boundary and pair of aldermen serving on its two sides at once, it relates each side's count of new buildings,
+  dwelling units, zoning applications, upzoning applications and aldermen's own downzonings within 500 and 250 ft to
+  how much stricter that side's alderman is on each measure (Poisson with boundary-by-aldermen fixed effects). The
+  same comparison is made at placebo lines 500, 750 and 1,000 ft inside either ward, and with a stall rate estimated
+  only from applications more than 500 ft from any other ward (`stall_rate_away_from_boundaries.csv`).
+- `density_by_zoning_measures.R` runs the paper's density design with each boundary's more-stringent side decided by
+  the zoning and permit measures instead of the processing-time index.
 
 ## Findings (September 27, 2026)
 
@@ -37,3 +45,21 @@ Two scripts, run with `make` in `code/`:
   and upzoning share shift more than chance would allow (F = 1.9, p = 0.003 and 0.002), though the aldermen add only
   one percentage point of explained variance. Days to passage and floor-area increases do not shift (p = 0.18 and
   0.35).
+- **Upzoning applications sort away from aldermen who stall.** Within 500 ft of a boundary, the side whose alderman
+  stalls more (by one standard deviation) receives 12 percent fewer upzoning applications (−0.131 log points,
+  SE 0.046), and within 250 ft 21 percent fewer (−0.237, SE 0.062). Dropping any one boundary or alderman leaves
+  it between −0.10 and −0.26. At the six placebo lines the estimates run from −0.10 to +0.08 (500 ft) and −0.14 to
+  +0.13 (250 ft), so the real boundary gives the most negative in both. With the stall rate estimated only from
+  applications away from boundaries (Spearman 0.81 with the full measure) the estimates are about half as large
+  (−0.071 and −0.106, p < 0.1) and still the most negative against the placebos. Dwelling units built show the same
+  sign at the boundary (−0.14 and −0.18, p < 0.1), but the placebo lines give estimates as large, so that is noise.
+  The processing-time index shows no pattern for any count.
+- **Stall differences are concentrated near boundaries.** The variance of stall rates across aldermen beyond
+  sampling noise falls as applications near boundaries are left out (0.0083 with all, 0.0075 beyond 500 ft, 0.0044
+  beyond 750 ft, none beyond 1,000 ft).
+- **The density design does not work with the zoning measures.** Ordered by stall rates, days to passage or the
+  permit effects, the more-stringent side's multifamily buildings are no less dense, and by days to passage and the
+  stall rate away from boundaries they are denser (0.079 and 0.085, p < 0.05). These orderings agree with the
+  processing-time index for only 26 to 62 percent of buildings. Applications stall and take longer where
+  development is denser, and on the stricter side only projects worth the trouble may be built, so the measures
+  may follow density rather than cause it.

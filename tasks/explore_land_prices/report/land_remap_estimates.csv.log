@@ -1,0 +1,17 @@
+File: land_remap_estimates.csv
+Rows: 3
+Columns: 7
+SHA-256 (saved bytes): 80deaa64e2ceb54d74316a738eb6fb4bf99529adcbb65108aa7c877ff8866f5d
+Key: term
+Types: DuckDB inference from the complete saved CSV.
+Distinct counts: exact (exact up to 100,000 rows).
+Row counts, non-missing counts, and declared-key checks: exact.
+
+           column inferred_type non_missing distinct                  min                 max                  mean                   sd
+             term       VARCHAR           3        3                    -                   -                     -                    -
+         estimate        DOUBLE           3        3 -0.05034151001726031 0.06356511158238931 0.0004158382021803228  0.05795558185329524
+        std_error        DOUBLE           3        3  0.13950649140695498 0.20574396223348695   0.16466183918289418 0.035876137798833724
+          p_value        DOUBLE           3        3   0.7359590241745511  0.9318175304459086    0.8086636095567767  0.10723334467192626
+     observations        BIGINT           3        1                  979                 979                 979.0                  0.0
+moved_block_sales        BIGINT           3        1                  173                 173                 173.0                  0.0
+       ward_pairs        BIGINT           3        1                   76                  76                  76.0                  0.0

@@ -1,9 +1,10 @@
 # setwd("tasks/assign_zoning_amendment_wards/code")
 # The ward and alderman of each zoning map amendment: the geocoded title address placed on the ward map in force on
 # the amendment's introduction date (canonical_boundary_year_from_date: the 2003 map until May 18, 2015, the 2015 map
-# until May 15, 2023, then the 2023 map), and the alderman serving that ward that day (hand-built terms in
-# tasks/create_alderman_data, recorded through June 24, 2025). An amendment filed by an alderman without a geocoded
-# address takes the filing ward. For alderman-filed amendments with both, the two wards are compared.
+# until May 15, 2023, then the map drawn for the 2023 elections, in Wards_2024.geojson), and the alderman serving
+# that ward that day (hand-built terms in tasks/create_alderman_data, recorded through September 27, 2026). An
+# amendment filed by an alderman without a geocoded address takes the filing ward. For alderman-filed amendments
+# with both, the two wards are compared.
 source("../../setup_environment/code/packages.R")
 source("../../shared/code/save_data.R")
 source("../../shared/code/canonical_geometry_helpers.R")

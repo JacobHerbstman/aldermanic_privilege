@@ -1,0 +1,40 @@
+\clearpage
+\section*{Duplicate eLMS records made stalls look more common after 2019; most refiled stalls pass}
+\textit{September 28, 2026. Agent-drafted exploratory work on branch \texttt{explore-alderman-measures}, after Jacob
+asked how the stall rate was built and which choices behind it he had not seen.}
+
+\textit{Duplicate records.} When the City Clerk moved to its new legislative system in 2023, each zoning map
+amendment still pending was given a second record, numbered O2023-000xxxx and carrying the original introduction
+date, on which its later actions were recorded; the original record stayed at ``Council Introduction.'' Counted
+record by record, those originals looked like applications that lapsed without a vote. Jacob chose to fix this in
+the producer: records introduced the same day with the same title or the same numeric application number are now one
+amendment, represented by the record on which it was resolved. That leaves 6,568 amendments, of which 148 had two
+records (67 passed, 4 pending, 77 stalled). Among applications with an alderman decided before the current term
+(May 15, 2023), 15.2 percent of those introduced in 2019--2023 appear stalled when counted by record and 9.4 percent
+when counted by amendment, against 6.5 percent in 2015--2018 and 7.4 percent in 2010--2014. The apparent doubling of
+stalls after 2019 was mostly duplicates; a smaller rise remains. Re-geocoding the corrected amendments left all
+5,800 addresses, wards and aldermen unchanged.
+
+\textit{Refilings.} Many stalls are filed again. A later amendment is taken to refile an earlier one if the same
+kind of filer submits it within four years with the same application number or an overlapping street segment on the
+same side of the street; every chosen pair was read by hand, and 18 of 112 reviewed pairs were rejected as different
+projects (mostly a single site against a corridor rezoning around it). 94 amendments were refiled, a median of 553
+days later, and 85 of the refilings passed. Of the 318 stalls among the 4,102 decided applications, 78 were refiled
+and passed, 5 were refiled without passing and 235 were never refiled. The zoning measures now separate terminal
+stalls from delays by refiling, and, since Jacob asked for a minimum number of applications, report shrunk scores
+only for aldermen with at least 20 decided applications (57 aldermen). Shrunk stall rates spread by 3.3 percentage
+points across aldermen, but the earlier and later halves of an alderman's applications agree only at 0.23.
+
+\textit{Project size.} Walter Burnett, Jr.\ has the longest adjusted days to passage; Jacob reads this as a sign
+that the measures still reflect the projects a ward receives, since Burnett is broadly favorable to housing. To
+control for project size, the applications' forms are now read for lot size, dwelling units, parking, commercial
+space and height (\path{tasks/extract_zoning_application_forms}); against 60 forms read by hand, the parser reads
+the lot size correctly for 51 and dwelling units for 39 of the 45 that state them, and stops if it contradicts an
+unambiguous hand read. On 40 other forms, held out from its writing, it reads the lot size correctly for 34 of 37,
+dwelling units for 17 of 28 and parking for 22 of 34; 8 of its 20 differences are fixable errors. The size controls
+have not yet been added. Exploration outputs computed before the duplicate correction (boundary counts, placebo
+boundaries, stall trends) are stale until rerun.
+
+\textit{Reproduction.} Run \texttt{make} in \path{tasks/clean_zoning_map_amendments/code/},
+\path{tasks/link_zoning_refilings/code/} and \path{tasks/estimate_alderman_zoning_measures/code/}; the record-count
+comparison adds back one stalled record for each merged amendment that passed or stalled.

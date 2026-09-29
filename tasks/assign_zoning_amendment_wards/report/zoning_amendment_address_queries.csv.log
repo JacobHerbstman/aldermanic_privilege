@@ -1,14 +1,14 @@
 File: zoning_amendment_address_queries.csv
-Rows: 6716
+Rows: 6568
 Columns: 4
-SHA-256 (saved bytes): 30a36bf57574b06dd416af8af0091f0d3eb4d30c732789943b19e4354ca2db06
+SHA-256 (saved bytes): d2939a2ded550e9317fbf14257082b2fdcf5fc03bf13c977b94daf24f4c4f751
 Key: matter_id
 Types: DuckDB inference from the complete saved CSV.
 Distinct counts: exact (exact up to 100,000 rows).
 Row counts, non-missing counts, and declared-key checks: exact.
 
-       column inferred_type non_missing distinct min  max               mean                 sd
-    matter_id       VARCHAR        6716     6716   -    -                  -                  -
-title_address       VARCHAR        6673     6040   -    -                  -                  -
-address_query       VARCHAR        6527     5803   -    -                  -                  -
-   address_id        BIGINT        6527     5803   1 5803 2889.3264899647615 1673.2598740409935
+       column inferred_type non_missing distinct min  max               mean                sd
+    matter_id       VARCHAR        6568     6568   -    -                  -                 -
+title_address       VARCHAR        6527     6037   -    -                  -                 -
+address_query       VARCHAR        6384     5800   -    -                  -                 -
+   address_id        BIGINT        6384     5800   1 5800 2889.9757205513783 1674.167307021566

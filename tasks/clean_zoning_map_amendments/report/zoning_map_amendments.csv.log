@@ -1,44 +1,46 @@
 File: zoning_map_amendments.csv
-Rows: 6716
-Columns: 34
-SHA-256 (saved bytes): 846ea2950522ca9478a7deec093c958ad0e89bf4bc38f26ad255eed410aa1058
+Rows: 6568
+Columns: 36
+SHA-256 (saved bytes): 5c183e038ceb50d751ae4713d7c9cd0311a0bd77bc74e785e54e6a0bbab80ed6
 Key: matter_id
 Types: DuckDB inference from the complete saved CSV.
 Distinct counts: exact (exact up to 100,000 rows).
 Row counts, non-missing counts, and declared-key checks: exact.
 
                 column inferred_type non_missing distinct  min    max               mean                  sd
-             matter_id       VARCHAR        6716     6716    -      -                  -                   -
-         record_number       VARCHAR        6716     6716    -      -                  -                   -
-                 title       VARCHAR        6716     6557    -      -                  -                   -
-     introduction_date          DATE        6716      230    -      -                  -                   -
+             matter_id       VARCHAR        6568     6568    -      -                  -                   -
+         record_number       VARCHAR        6568     6568    -      -                  -                   -
+                 title       VARCHAR        6568     6547    -      -                  -                   -
+     introduction_date          DATE        6568      230    -      -                  -                   -
      final_action_date          DATE        5822      176    -      -                  -                   -
-            sub_status       VARCHAR        6716       10    -      -                  -                   -
-         filing_office       VARCHAR        6716       53    -      -                  -                   -
-        filing_sponsor       VARCHAR        6716      106    -      -                  -                   -
+            sub_status       VARCHAR        6568       10    -      -                  -                   -
+         filing_office       VARCHAR        6568       53    -      -                  -                   -
+        filing_sponsor       VARCHAR        6568      106    -      -                  -                   -
            passed_date          DATE        5784      187    -      -                  -                   -
-     held_in_committee       BOOLEAN        6716        2    -      -                  -                   -
-            roll_calls        BIGINT        6716        3    0      2 0.8458904109589042 0.37324851840536993
-     filed_by_alderman       BOOLEAN        6716        2    -      -                  -                   -
-           filing_ward        BIGINT        1345       50    1     50  23.38364312267658   14.07436774749017
-               outcome       VARCHAR        6716        5    -      -                  -                   -
+     held_in_committee       BOOLEAN        6568        2    -      -                  -                   -
+            roll_calls        BIGINT        6568        3    0      2 0.8649512789281364  0.3549154033959729
+     filed_by_alderman       BOOLEAN        6568        2    -      -                  -                   -
+           filing_ward        BIGINT        1318       50    1     50  23.44309559939302  14.078455517995389
+               outcome       VARCHAR        6568        5    -      -                  -                   -
        days_to_passage        BIGINT        5784      252 -673   1428  83.41320885200554  105.99591869346709
-    application_number        BIGINT        5318     5184 7731 222572 20019.900150432495   4351.248550051571
-            map_number       VARCHAR        6440      252    -      -                  -                   -
-               address       VARCHAR        6673     6102    -      -                  -                   -
-         sentence_from       VARCHAR        4844      322    -      -                  -                   -
-           sentence_to       VARCHAR        4504       62    -      -                  -                   -
-      change_sentences        BIGINT        6695        8    0     13 0.8391336818521284  0.5150479794896676
-to_planned_development       BOOLEAN        6695        2    -      -                  -                   -
-             form_from       VARCHAR        2696      197    -      -                  -                   -
-               form_to       VARCHAR        1575       71    -      -                  -                   -
-        from_districts       VARCHAR        5399      352    -      -                  -                   -
-          to_districts       VARCHAR        4929       68    -      -                  -                   -
-           from_source       VARCHAR        6716        4    -      -                  -                   -
-             to_source       VARCHAR        6716        4    -      -                  -                   -
-              in_steps       BOOLEAN        6695        2    -      -                  -                   -
- from_sources_disagree       BOOLEAN        6695        2    -      -                  -                   -
-   to_sources_disagree       BOOLEAN        6695        2    -      -                  -                   -
-              from_far        DOUBLE        5365       18  0.5   16.0 1.9134109972040811  1.4935926150867729
-                to_far        DOUBLE        4908       18  0.5   16.0 2.3085167074164934  1.4990237976632896
-             direction       VARCHAR        6716        5    -      -                  -                   -
+    application_number        BIGINT        5223     5206 7731 222572 19985.638139000574   4382.833780899345
+            map_number       VARCHAR        6295      252    -      -                  -                   -
+               address       VARCHAR        6527     6099    -      -                  -                   -
+        record_numbers       VARCHAR        6568     6568    -      -                  -                   -
+               records        BIGINT        6568        2    1      2  1.022533495736906 0.14842200412917594
+         sentence_from       VARCHAR        4759      321    -      -                  -                   -
+           sentence_to       VARCHAR        4432       62    -      -                  -                   -
+      change_sentences        BIGINT        6548        8    0     13 0.8411728772144166  0.5123821627696004
+to_planned_development       BOOLEAN        6548        2    -      -                  -                   -
+             form_from       VARCHAR        2636      197    -      -                  -                   -
+               form_to       VARCHAR        1534       71    -      -                  -                   -
+        from_districts       VARCHAR        5295      351    -      -                  -                   -
+          to_districts       VARCHAR        4843       68    -      -                  -                   -
+           from_source       VARCHAR        6568        4    -      -                  -                   -
+             to_source       VARCHAR        6568        4    -      -                  -                   -
+              in_steps       BOOLEAN        6548        2    -      -                  -                   -
+ from_sources_disagree       BOOLEAN        6548        2    -      -                  -                   -
+   to_sources_disagree       BOOLEAN        6548        2    -      -                  -                   -
+              from_far        DOUBLE        5261       18  0.5   16.0 1.9155103592472633   1.501612527085178
+                to_far        DOUBLE        4822       18  0.5   16.0  2.310296557445069  1.4989238534719247
+             direction       VARCHAR        6568        5    -      -                  -                   -

@@ -1,0 +1,25 @@
+File: application_form_fields.csv
+Rows: 4413
+Columns: 15
+SHA-256 (saved bytes): ed79f4fbe83ceb066411ceb8ffb278400a7515701bf6c8428938c3583217d3a9
+Key: record_number
+Types: DuckDB inference from the complete saved CSV.
+Distinct counts: exact (exact up to 100,000 rows).
+Row counts, non-missing counts, and declared-key checks: exact.
+
+         column inferred_type non_missing distinct               min       max               mean                 sd
+      matter_id       VARCHAR        4413     4413                 -         -                  -                  -
+  record_number       VARCHAR        4413     4413                 -         -                  -                  -
+         type_1       BOOLEAN        4413        2                 -         -                  -                  -
+       lot_sqft        DOUBLE        3719     2703 522.2420000000001 9378298.0  77277.51461325627 440259.42957154114
+     lot_source       VARCHAR        3763        3                 -         -                  -                  -
+ dwelling_units        BIGINT        2648      243                 0     10000   46.4916918429003 268.95151177234874
+   units_source       VARCHAR        2648        2                 -         -                  -                  -
+ parking_spaces        BIGINT        2753      259                 0      3300 39.561205957137666  140.0315863672261
+ parking_source       VARCHAR        2753        2                 -         -                  -                  -
+commercial_sqft        DOUBLE        1230      475               0.0 3514516.0  19754.09623577236 131621.26032719362
+      height_ft        BIGINT        2130      192                 0      1195 55.220657276995304  77.92370891473638
+  height_source       VARCHAR        2130        2                 -         -                  -                  -
+        stories        BIGINT        2261       51                 1        86  4.612118531623175  7.046709768603731
+       lot_text       VARCHAR        3970     3663                 -         -                  -                  -
+       use_text       VARCHAR        4101     3949                 -         -                  -                  -

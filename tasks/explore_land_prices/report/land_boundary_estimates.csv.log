@@ -1,0 +1,20 @@
+File: land_boundary_estimates.csv
+Rows: 840
+Columns: 10
+SHA-256 (saved bytes): 5d73a5ea29a2b007cad0a9d0af7257f1bfc984e959ee37580050792c6568af05
+Key: sample, measure, design, within_ft, offset_ft
+Types: DuckDB inference from the complete saved CSV.
+Distinct counts: exact (exact up to 100,000 rows).
+Row counts, non-missing counts, and declared-key checks: exact.
+
+    column inferred_type non_missing distinct                  min                 max                 mean                  sd
+    sample       VARCHAR         840        5                    -                   -                    -                   -
+   measure       VARCHAR         840        6                    -                   -                    -                   -
+    design       VARCHAR         840        2                    -                   -                    -                   -
+ within_ft        BIGINT         840        2                  250                 500                375.0  125.07447126070208
+ offset_ft        BIGINT         840        7                -1000                1000                  0.0   720.0516469358746
+  estimate        DOUBLE         840      840 -0.35180555960872084 0.49790496402088136 0.004865022495632149 0.06722391998240104
+ std_error        DOUBLE         840      840 0.006153296995265172 0.39817661937646265 0.052367729993542646 0.04239912338540845
+   p_value        DOUBLE         840      840 0.003919989299032455  0.9989890256813391  0.46063597741780177 0.28287146366750415
+     sales        BIGINT         840      230                   65                2629    657.6595238095238   570.3006929349722
+ward_pairs        BIGINT         840      112                   40                 195                105.4   43.32246800000485

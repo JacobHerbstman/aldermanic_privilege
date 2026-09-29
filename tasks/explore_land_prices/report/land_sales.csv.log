@@ -1,0 +1,29 @@
+File: land_sales.csv
+Rows: 8408
+Columns: 19
+SHA-256 (saved bytes): b80dfb99e4ada331dac6e91bcea787f1e35a7fad8c5372d16391caff3a2b9967
+Key: row_id
+Types: DuckDB inference from the complete saved CSV.
+Distinct counts: exact (exact up to 100,000 rows).
+Row counts, non-missing counts, and declared-key checks: exact.
+
+            column inferred_type non_missing distinct                 min                max               mean                 sd
+            row_id        BIGINT        8408     8408             7087528           98484208   82872365.2731922 33018315.827520687
+         sale_kind       VARCHAR        8408        2                   -                  -                  -                  -
+       redeveloped       BOOLEAN        2233        2                   -                  -                  -                  -
+             pin10       VARCHAR        8408     7304                   -                  -                  -                  -
+         sale_date          DATE        8408     2256                   -                  -                  -                  -
+              year        BIGINT        8408       17                2006               2022 2013.3930780209325  5.490087276310089
+             price        BIGINT        8408     1700               10250           96663359  427163.1693625119 1935278.2540983541
+         sale_type       VARCHAR        7062        2                   -                  -                  -                  -
+          lot_sqft        DOUBLE        8408     7301   1030.130006968975 1244497.9386962203  5677.832577144706 18979.751440516404
+log_price_per_sqft        DOUBLE        8408     8395 -1.5139687839672413  9.082053223322278 3.5240640728744843 1.4910105630545576
+        zone_group       VARCHAR        8408        8                   -                  -                  -                  -
+            x_3435        DOUBLE        8408     7302   1118228.461688932 1202998.7317442177 1163847.0098075205 13062.967650281102
+            y_3435        DOUBLE        8408     7302   1814206.675657846  1950236.706968362 1892703.3715992346 28656.554769232847
+          map_year        BIGINT        8408        2                2003               2015 2008.1607992388201  5.941375300201531
+              ward        BIGINT        8408       50                   1                 50  23.33813035204567 13.998911134605347
+     neighbor_ward        BIGINT        8408       50                   1                 50  21.49512369172217 14.409125909946214
+       distance_ft        DOUBLE        8408     7590  15.425275272991438 13129.336642380451 1258.7307538612943 1405.0792781106281
+          alderman       VARCHAR        8398      113                   -                  -                  -                  -
+ neighbor_alderman       VARCHAR        8396      111                   -                  -                  -                  -

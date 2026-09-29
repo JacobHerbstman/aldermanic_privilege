@@ -97,6 +97,7 @@ logbook.pdf: logbook.tex \
 	entries/2026-09-27-event-study-turnover.tex \
 	entries/2026-09-27-alderman-characteristics.tex \
 	entries/2026-09-27-measures-without-processing-times.tex \
+	entries/2026-09-28-zoning-record-duplicates-and-refilings.tex \
 	records/density_fixed_effects/density_fixed_effects.tex \
 	records/score_pair_reliability/split_agreement.pdf \
 	records/multifamily_score_uncertainty/multifamily_score_draws.pdf \

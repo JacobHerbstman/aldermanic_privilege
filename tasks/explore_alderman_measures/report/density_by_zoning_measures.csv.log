@@ -1,0 +1,19 @@
+File: density_by_zoning_measures.csv
+Rows: 30
+Columns: 9
+SHA-256 (saved bytes): c82042fe517ee18cfb81f76968c0ec1a46d8f39837938cf5686009d4f235b5ba
+Key: measure, sample, ordering
+Types: DuckDB inference from the complete saved CSV.
+Distinct counts: exact (exact up to 100,000 rows).
+Row counts, non-missing counts, and declared-key checks: exact.
+
+          column inferred_type non_missing distinct                 min                 max                  mean                   sd
+         measure       VARCHAR          30        5                   -                   -                     -                    -
+          sample       VARCHAR          30        3                   -                   -                     -                    -
+        ordering       VARCHAR          30        6                   -                   -                     -                    -
+        estimate        DOUBLE          30       27 -0.1416313179432064 0.20822126167887628 -0.009977271226853103  0.07834828897182713
+       std_error        DOUBLE          30       27 0.01986381094830436 0.09547642956096844   0.04524231843203262 0.022854120742137163
+         p_value        DOUBLE          30       27 0.00401789822180754  0.9704328847470557    0.3143250335837824   0.3253185073709959
+       buildings        BIGINT          30       12                 549                5025     2220.866666666667    1596.990482845421
+      ward_pairs        BIGINT          30       11                  63                 124     91.93333333333334   22.244617068085194
+share_same_order        DOUBLE          30        5  0.2583084577114428  0.6153439153439153   0.47728117631882655  0.12325539963083548
