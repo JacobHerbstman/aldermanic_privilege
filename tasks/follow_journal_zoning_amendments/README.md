@@ -21,33 +21,33 @@ Every refiling chosen has been read by hand in `adjudication/journal_refiling_re
 decision and a reason), and the build stops if one has not; a pair judged to be different projects is not a refiling,
 and the next candidate is considered. The 180 pairs of the first build were read by two readers independently, from
 both amendments' names, dates, maps, districts, boundaries and addresses; they agreed on 170. The 10 they disagreed
-on, one they agreed on that the addresses contradict, and the 13 pairs later builds added were decided in adjudication
+on, one they agreed on that the addresses contradict, and the 16 pairs later builds added were decided in adjudication
 from the same fields ("Adjudicated" in the reason). A later amendment covering none of the earlier site (an adjoining
 strip, the other side of the street), a much larger or smaller area by another applicant, or the opposite change is a
-different project. 157 of the 192 pairs reviewed are the same project (one reviewed pair ceased to be a candidate when
+different project. 160 of the 195 pairs reviewed are the same project (one reviewed pair ceased to be a candidate when
 a placement moved, and its row was removed). Reviewed September 29, 2026.
 
 ## Counts (September 29, 2026)
 
-Of 6,924 introductions, 1,643 were undecided in December 2011; eLMS gives 103 of them a later outcome (100 by record
-number, 3 by application number): 68 passed and 35 never did. All 95 still pending then match eLMS. Of the 1,594 that
-never passed, 150 were refiled (71 applications and 79 aldermen's amendments), a median of 462 days later for an
-application and 231 for an aldermen's amendment; 110 of the refilings passed. 138 refilings were found by boundary or
+Of 6,924 introductions, 1,617 were undecided in December 2011; eLMS gives 103 of them a later outcome (100 by record
+number, 3 by application number): 68 passed and 35 never did. All 95 still pending then match eLMS. Of the 1,568 that
+never passed, 153 were refiled (73 applications and 80 aldermen's amendments), a median of 462 days later for an
+application and 224 for an aldermen's amendment; 112 of the refilings passed. 141 refilings were found by boundary or
 place alone, 12 by address (9 of them also by boundary or place).
 
 | Introduced | Applications stalled | Net of refilings that passed | If refiled as often as in eLMS |
 | --- | ---: | ---: | ---: |
-| 2000 | 17.3% | 16.9% | 13.1% |
+| 2000 | 16.9% | 16.6% | 12.9% |
 | 2001 | 17.9% | 15.4% | 13.6% |
-| 2002 | 18.2% | 16.4% | 13.8% |
-| 2003 | 18.1% | 15.8% | 13.8% |
-| 2004 | 14.4% | 14.0% | 11.0% |
-| 2005 | 16.1% | 15.3% | 12.3% |
-| 2006 | 20.7% | 19.5% | 15.8% |
-| 2007 | 19.2% | 18.6% | 14.7% |
+| 2002 | 17.6% | 15.5% | 13.4% |
+| 2003 | 16.8% | 14.5% | 12.8% |
+| 2004 | 14.2% | 13.8% | 10.8% |
+| 2005 | 15.7% | 14.9% | 12.0% |
+| 2006 | 19.7% | 18.4% | 15.0% |
+| 2007 | 18.8% | 18.2% | 14.3% |
 | 2008 | 23.0% | 22.0% | 17.5% |
 | 2009 | 19.6% | 17.6% | 14.9% |
-| 2010 | 13.2% | 12.1% | 10.0% |
+| 2010 | 13.2% | 12.1% | 10.1% |
 | 2011 | 8.4% | 7.0% | 6.4% |
 
 A stalled application is one never passed, by December 2011 or, where eLMS follows it, since. The last column assumes

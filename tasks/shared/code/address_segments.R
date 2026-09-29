@@ -1,10 +1,15 @@
 # Street segments of Chicago addresses, for matching amendments of the same site (tasks/link_zoning_refilings,
-# tasks/follow_journal_zoning_amendments). Addresses list segments separated by commas, "and", slashes or semicolons
-# ("158-182 N Green St, 833-857 W Lake St"); an abbreviated upper number ("5689-93") takes the lower number's leading
-# digits, and a range written high to low is read as the same range. A segment whose end numbers are both odd or both
-# even lies on one side of the street (Chicago numbers the two sides odd and even); one with an odd and an even end
-# spans both. Requires normalize_address (normalize_chicago_address.R).
+# tasks/follow_journal_zoning_amendments) and placing them (tasks/place_journal_zoning_amendments). Addresses list
+# segments separated by commas, "and", slashes or semicolons ("158-182 N Green St, 833-857 W Lake St"); an abbreviated
+# upper number ("5689-93") takes the lower number's leading digits, and a range written high to low is read as the same
+# range. A segment whose end numbers are both odd or both even lies on one side of the street (Chicago numbers the two
+# sides odd and even); one with an odd and an even end spans both. Requires normalize_address
+# (normalize_chicago_address.R).
 segment_street_types <- "AVE|AV|ST|RD|BLVD|DR|PL|CT|PKWY|PKY|TER|HWY|LN|WAY|SQ|CIR|BROADWAY"
+# The Journals' common addresses as printed, made readable as above: spaced ranges closed up ("3201 - 3345"), and
+# OCR marks and ordinal suffixes after a street number dropped ("West 31° Street", "W 31st St").
+printed_address <- function(address) str_replace_all(address, c("(?<=[0-9])\\s*-\\s*\\.?(?=[0-9])" = "-",
+  "(?<=[0-9])[^A-Za-z0-9\\s,;/&-]+" = "", "(?i)(?<=[0-9])(?:st|nd|rd|th)\\b" = ""))
 address_segments <- function(id, address) {
   tibble(id, address) |>
     filter(!is.na(address)) |>

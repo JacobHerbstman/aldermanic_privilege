@@ -6,17 +6,19 @@
 # amendment filed by an alderman without a geocoded address takes the filing ward. For alderman-filed amendments
 # with both, the two wards are compared.
 # The Census geocoder sometimes returns the house number on the opposite side of the city from the one the title gives
-# ("5145 N CALIFORNIA AVE" as 5145 S California Ave) or in another city ("1601 W DIVISION ST" in Chicago Heights).
-# Such a match is rejected (geocode_rejected), and the title's address is placed instead on the City's 2013 street
-# centerlines (tasks/download_chicago_gis_layers): on the segment with the title's direction, street name and a
-# house-number range on the side of the number's parity, at the number's position along it, centerline_offset_feet
-# toward that side (location_source). A match that changes a direction the street cannot have ("11231 W WESTERN
-# AVE" as 11231 S Western Ave) or matches another address the title gives ("... AKA 1611 W IRVING PARK RD") is kept.
+# ("5145 N CALIFORNIA AVE" as 5145 S California Ave) or in another city ("1601 W DIVISION ST" in Chicago Heights). Such
+# a match is rejected (geocode_rejected), and the title's address is placed instead on the City's 2013 street
+# centerlines (tasks/download_chicago_gis_layers; tasks/shared/code/centerline_address.R): on the segment with the
+# title's direction, street name and a house-number range on the side of the number's parity, at the number's position
+# along it, centerline_offset_feet toward that side (location_source). A match that changes a direction the street
+# cannot have ("11231 W WESTERN AVE" as 11231 S Western Ave) or matches another address the title gives ("... AKA 1611 W
+# IRVING PARK RD") is kept.
 centerline_offset_feet <- 30
 street_types <- "AVE|AV|ST|RD|BLVD|DR|PL|CT|PKWY|PKY|TER|HWY|LN|WAY|SQ|CIR"
 source("../../setup_environment/code/packages.R")
 source("../../shared/code/save_data.R")
 source("../../shared/code/canonical_geometry_helpers.R")
+source("../../shared/code/centerline_address.R")
 sf_use_s2(FALSE)
 
 amendments <- read_csv("../input/zoning_map_amendments.csv", show_col_types = FALSE) |>
@@ -59,37 +61,16 @@ stopifnot(nrow(points) == nrow(amendments), !anyNA(points$map_year), all(points$
 
 # The rejected matches placed on the centerlines.
 centerlines <- st_read("/vsizip/../input/street_centerlines_2013.zip/Transportation.shp", quiet = TRUE) |>
-  st_transform(3435) |>
-  transmute(direction = PRE_DIR, street = compact(STREET_NAM), left_low = pmin(L_F_ADD, L_T_ADD),
-    left_high = pmax(L_F_ADD, L_T_ADD), right_low = pmin(R_F_ADD, R_T_ADD), right_high = pmax(R_F_ADD, R_T_ADD),
-    L_F_ADD, L_T_ADD, R_F_ADD, R_T_ADD)
+  st_transform(3435)
 rejected <- points |>
   filter(!is.na(geocode_rejected)) |>
   mutate(title = str_match(address_query, paste0("^([0-9]+)\\s+([NSEW])\\.?\\s+(.+?)\\s+(?:", street_types,
-    ")\\b")),
-    number = as.integer(title[, 2]), direction = title[, 3], street = compact(title[, 4])) |>
-  distinct(address_id, number, direction, street)
-segments <- bind_rows(lapply(seq_len(nrow(rejected)), function(i) {
-    filter(centerlines, direction == rejected$direction[i], street == rejected$street[i]) |>
-      mutate(address_id = rejected$address_id[i], number = rejected$number[i])
-  })) |>
-  mutate(side = case_when(number %% 2 == L_F_ADD %% 2 & number >= left_low & number <= left_high ~ "left",
-      number %% 2 == R_F_ADD %% 2 & number >= right_low & number <= right_high ~ "right")) |>
-  filter(!is.na(side)) |>
-  add_count(address_id)
-stopifnot(all(segments$n == 1))
-along <- with(segments, if_else(side == "left", (number - L_F_ADD) / (L_T_ADD - L_F_ADD),
-  (number - R_F_ADD) / (R_T_ADD - R_F_ADD)))
-along <- coalesce(if_else(is.finite(along), along, 0.5), 0.5)
-lines <- st_geometry(st_as_sf(segments))
-at <- st_coordinates(st_line_interpolate(lines, along, normalized = TRUE))
-ahead <- st_coordinates(st_line_interpolate(lines, pmin(along + 0.01, 1), normalized = TRUE)) -
-  st_coordinates(st_line_interpolate(lines, pmax(along - 0.01, 0), normalized = TRUE))
-toward <- if_else(segments$side == "left", 1, -1) * centerline_offset_feet / sqrt(rowSums(ahead^2))
-centerline_points <- st_as_sf(tibble(address_id = segments$address_id, x = at[, 1] - ahead[, 2] * toward,
-  y = at[, 2] + ahead[, 1] * toward), coords = c("x", "y"), crs = 3435) |>
+    ")\\b")), number = as.integer(title[, 2]), direction = title[, 3], street = title[, 4]) |>
+  distinct(id = address_id, number, direction, street)
+located_rejected <- centerline_address_points(centerlines, rejected, centerline_offset_feet)
+centerline_points <- st_as_sf(located_rejected, coords = c("x", "y"), crs = 3435) |>
   st_transform(4326)
-centerline_points <- tibble(address_id = centerline_points$address_id,
+centerline_points <- tibble(address_id = centerline_points$id,
   centerline_longitude = st_coordinates(centerline_points)[, 1],
   centerline_latitude = st_coordinates(centerline_points)[, 2])
 points <- points |>

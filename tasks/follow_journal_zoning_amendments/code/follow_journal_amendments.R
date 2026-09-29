@@ -7,24 +7,23 @@
 #      the outcome of the eLMS matter with its record number ("O2011-2263"; the Journals print proposed-ordinance
 #      numbers, "PO2011-2263", and substitutes, "SO2011-2263", keep the number), or else of the one eLMS matter with its
 #      application number. follow_up_source records which, and follow_up_outcome is the Journal's outcome otherwise.
-#   2. Refilings. An amendment that did not pass is refiled by the first later amendment of the same site, by the same
-#      kind of filer (an applicant or an alderman) and introduced within refiling_window_days (one council term, as for
-#      eLMS in tasks/link_zoning_refilings), whose districts before share a district with the earlier one's (the site's
-#      zoning is unchanged while the request waits; a district of the 1957 ordinance shares with those the 2004
-#      ordinance converted it to, data_raw/zoning_conversion_2004_crosswalk.csv; an unread list does not rule a pair
-#      out) and whose site is the same by its boundary or place: a later Journal introduction whose boundary shares at
-#      least same_site_similarity of its words with the earlier one's (as in tasks/link_journal_zoning_outcomes), or at
-#      least near_site_similarity with the two placed points (tasks/place_journal_zoning_amendments) within
-#      near_site_feet, or an eLMS matter introduced after the last Journal read whose located title address
-#      (tasks/assign_zoning_amendment_wards) lies within near_site_feet of the placed point. A later amendment also
-#      refiles one with the same application number, or one whose common address (printed from July 2008) shares a
-#      street segment with its own common address or eLMS title address (tasks/shared/code/address_segments.R, as for
-#      eLMS; the Journals' spaced ranges, "3201 - 3345", are closed up, and OCR marks and ordinal suffixes after a street
-#      number dropped, "West 31° Street" and "W 31st St"). An
-#      eLMS matter that is the introduction's own follow-up is not its refiling. Every refiling
-#      chosen has been read by hand (adjudication/journal_refiling_reviews.csv, one row per pair, with a decision and a
-#      reason), and the build stops if one has not; a pair judged to be different projects is not a refiling, and the
-#      next candidate is taken. The refiling's outcome is its own follow-up outcome.
+#   2. Refilings. An amendment that did not pass is refiled by the first later amendment of the same site, by the
+#      same kind of filer (an applicant or an alderman) and introduced within refiling_window_days (one council term,
+#      as for eLMS in tasks/link_zoning_refilings), whose districts before share a district with the earlier one's
+#      (the site's zoning is unchanged while the request waits; a district of the 1957 ordinance shares with those the
+#      2004 ordinance converted it to, data_raw/zoning_conversion_2004_crosswalk.csv; an unread list does not rule a
+#      pair out) and whose site is the same by its boundary or place: a later Journal introduction whose boundary
+#      shares at least same_site_similarity of its words with the earlier one's (as in
+#      tasks/link_journal_zoning_outcomes), or at least near_site_similarity with the two placed points
+#      (tasks/place_journal_zoning_amendments) within near_site_feet, or an eLMS matter introduced after the last
+#      Journal read whose located title address (tasks/assign_zoning_amendment_wards) lies within near_site_feet of
+#      the placed point. A later amendment also refiles one with the same application number, or one whose common
+#      address (printed from July 2008) shares a street segment with its own common address or eLMS title address
+#      (tasks/shared/code/address_segments.R, as for eLMS, with the Journals' spaced ranges closed up and OCR marks
+#      after a street number dropped). An eLMS matter that is the introduction's own follow-up is not its refiling.
+#      Every refiling chosen has been read by hand (adjudication/journal_refiling_reviews.csv, one row per pair, with
+#      a decision and a reason), and the build stops if one has not; a pair judged to be different projects is not a
+#      refiling, and the next candidate is taken. The refiling's outcome is its own follow-up outcome.
 refiling_window_days <- 1461
 same_site_similarity <- 0.7
 near_site_similarity <- 0.5
@@ -152,11 +151,9 @@ number_candidates <- not_passed |>
     relationship = "many-to-one") |>
   tidyr::unnest(laters) |>
   transmute(introduction, later, refiling_basis = "application_number")
-site_address <- function(address) str_replace_all(address, c("(?<=[0-9])\\s*-\\s*\\.?(?=[0-9])" = "-",
-  "(?<=[0-9])[^A-Za-z0-9\\s,;/&-]+" = "", "(?i)(?<=[0-9])(?:st|nd|rd|th)\\b" = ""))
 address_candidates <- overlapping_segments(
-  address_segments(not_passed$introduction, site_address(not_passed$common_address)),
-  address_segments(later_amendments$later, site_address(later_amendments$later_address))) |>
+  address_segments(not_passed$introduction, printed_address(not_passed$common_address)),
+  address_segments(later_amendments$later, printed_address(later_amendments$later_address))) |>
   transmute(introduction = id, later = later_id, refiling_basis = "address")
 candidates <- bind_rows(select(journal_candidates, introduction, later, refiling_basis), elms_candidates,
     number_candidates, address_candidates) |>
