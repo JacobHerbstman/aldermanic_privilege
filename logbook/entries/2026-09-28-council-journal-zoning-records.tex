@@ -130,6 +130,35 @@ filing ward is the 1998 map's for 30 of 33 amendments from September 2001 to Mar
 that year belongs to the sitting or the incoming alderman is a choice for the analysis, and the same question arises
 for the wards redrawn in 2012 and in force from 2015.
 
+\textit{Update, later on September 29, 2026: follow-up and refilings} (\path{tasks/follow_journal_zoning_amendments}).
+Two things could make the Journals' stall rates too high: amendments undecided in December 2011 that passed later,
+and applications that stalled but were filed again and passed. eLMS follows 103 of the 1,643 introductions undecided
+in December 2011 by record or application number; 68 later passed. With that follow-up, 18 of the Journals' 215
+applications of 2011 never passed, 8.4 percent, which is eLMS's own rate for 2011: where the two sources overlap,
+the Journals measure stalls as eLMS does. A stalled amendment is refiled by the first later amendment of the same
+site by the same kind of filer within a council term: a nearly identical boundary, a similar boundary placed within
+300 feet, the same application number, or, from July 2008, an overlapping common address. Each of 191 candidate pairs
+was read by hand (two readers, disagreements adjudicated). 150 of 1,594 amendments that never passed were refiled,
+110 of them successfully. Net of those, 14 to 22 percent of applications introduced in each year of 2000--2008 never
+passed, against 7 percent in 2011 and 4 to 8 percent a year in eLMS. Before July 2008 refilings of large sites can be
+missed, since only boundaries and placed points identify them; if stalled applications were refiled and passed as
+often as in eLMS (24 percent), the rates would still be 11 to 18 percent. That stalls were about twice as common in
+the 2000s as since 2011 appears to be a real change rather than a feature of the source.
+
+The follow-up also found that the Census geocoder, used for eLMS title addresses
+(\path{tasks/assign_zoning_amendment_wards}), sometimes returns the house number on the opposite side of the city
+(5145 N California Ave as 5145 S California Ave) or in Chicago Heights. Such matches are now rejected and the address
+placed on the City's street centerlines instead; 25 were rejected, and 22 amendments changed ward and alderman. The
+alderman zoning measures moved little (shrunk stall effects correlate at 0.998 with the earlier ones).
+
+\textit{Update: placing more amendments.} 7 percent of introductions had no place, many of them ordinary corner
+lots whose boundary names a street by a type it does not have at that corner: Diversey Avenue is Diversey Parkway at
+Lakewood, Fulton Street is Fulton Boulevard at Sacramento, and the Journals misprint types (``South Sangamon Avenue'').
+An amendment not placed with the printed types is now tried again with the through-street types taken as one, with
+drives, places and courts kept apart (South Peoria Drive is not Peoria Street). 131 more introductions are placed,
+leaving 5 percent unplaced: boundaries naming fewer than two streets (metes and bounds, railroad lines), and streets that do not meet as printed, some with a direction misprinted (``North Halsted Street'' at West 33rd). All 35 of the new placements the zoning map can check lie within 240 feet of their parcels, and their wards
+agree for all 31 in one ward.
+
 \textit{Reproduction.} Run \texttt{make} in \path{tasks/link_journal_zoning_outcomes/code/} and
 \path{tasks/place_journal_zoning_amendments/code/}, which read \path{tasks/parse_journal_zoning_amendments}, and that in
 turn \path{tasks/ocr_council_journal_zoning_pages} and \path{tasks/extract_council_journal_text}; the task READMEs give

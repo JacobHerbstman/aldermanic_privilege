@@ -123,12 +123,12 @@ left the other 12 unlinked; the rules were not changed after it.
 The City's zoning map, as in force now and in November 2012 (`tasks/download_chicago_gis_layers`), records for each
 district set since about 2002 the application number and passage date of the amendment that set it. A passed Journal
 ordinance whose number matches a district passed within 3 days of its meeting, in a class the ordinance creates, has
-that district as its parcel: 1,684 ordinances whose introductions are placed, 90 of them before 2005. The class must
+that district as its parcel: 1,719 ordinances whose introductions are placed, 91 of them before 2005. The class must
 agree because the map files the odd district under another amendment's number (map number 16849 of June 30, 2009 is a
 B3-5 district in the 5th Ward; the Journal's ordinance 16849 of that day rezones a parcel on map sheet 11-G to RT-4).
-The point placed from the boundary is inside the parcel for 1,205, within 100 feet for 1,563 and within 476 feet for
+The point placed from the boundary is inside the parcel for 1,232, within 100 feet for 1,593 and within 473 feet for
 99 percent; 3 are farther than 1,500 feet. The placed ward, on the ward map in force at introduction, is the parcel's
-for 1,444 of the 1,448 parcels in one ward and for 213 of the 232 that span two.
+for 1,474 of the 1,478 parcels in one ward and for 217 of the 236 that span two.
 
 While the placement was written, it was also compared with the common addresses the Journals print from July 2008,
 geocoded from the centerlines' address ranges: the median distance was 126 feet, but a geocoded address lies on the

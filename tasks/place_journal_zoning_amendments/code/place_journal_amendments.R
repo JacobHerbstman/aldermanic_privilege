@@ -4,11 +4,18 @@
 # address, so every amendment is placed from its boundary, the same way in every year:
 #   1. Streets. Each street the boundary names, as a side ("South Halsted Street") or as the street it measures from
 #      ("a line 131.20 feet north of and parallel to West Cermak Road"), is matched to the City's 2013 street
-#      centerlines (tasks/download_chicago_gis_layers) by direction, name and type, taking the longest run of words
-#      after the direction that names a centerline street ("South St. Louis Avenue", "South Dr. Martin Luther King,
-#      Jr. Drive"). An ordinal's OCR-garbled suffix is dropped ("West 35"" Street" is West 35th Street), and a name the
-#      centerlines lack is matched to the one street of the same direction and type whose name differs by one letter
-#      ("Westem" for Western).
+#      centerlines (tasks/download_chicago_gis_layers) by direction, name and kind of street, taking the longest run
+#      of words after the direction that names a centerline street ("South St. Louis Avenue", "South Dr. Martin Luther
+#      King, Jr. Drive"), first with the type printed. A street keeps its name as it changes type along its length
+#      (West Diversey Avenue becomes Diversey Parkway east of Western; West Fulton Street becomes Fulton Boulevard),
+#      and the Journals misprint types ("South Sangamon Avenue" for Sangamon Street), so an amendment not placed with
+#      the printed types is tried again with the through-street types (street_types_through: street, avenue,
+#      boulevard, parkway, road, highway, expressway) taken as one kind (street_kinds records which placed it). A
+#      drive, place, court, terrace, lane, way, square or plaza remains a street of its own (West 61st Place lies
+#      between 61st and 62nd Streets; South Peoria Drive is not Peoria Street). Spaces within a name are ignored
+#      ("LaSalle" for La Salle). An ordinal's OCR-garbled suffix is dropped ("West 35"" Street" is West 35th Street),
+#      and a name the centerlines lack is matched to the one street of the same direction and kind whose name differs
+#      by one letter ("Westem" for Western).
 #   2. Corners. The corners are the centerline nodes where two of the named streets meet, less any more than
 #      corner_cluster_feet from most of the others (a long street crossing another again elsewhere). An amendment with
 #      three or more corners bounds a block and is placed at their mean. If no group of corners stands out (South
@@ -38,6 +45,7 @@ ward_map_2003_end <- as.Date("2015-05-17")
 street_types <- c(Street = "ST", Avenue = "AVE", Road = "RD", Boulevard = "BLVD", Drive = "DR", Place = "PL",
   Court = "CT", Parkway = "PKWY", Terrace = "TER", Lane = "LN", Way = "WAY", Highway = "HWY", Plaza = "PLZ",
   Square = "SQ", Expressway = "EXPY")
+street_types_through <- c("ST", "AVE", "BLVD", "PKWY", "RD", "HWY", "EXPY")
 compass <- list(north = c(0, 1), south = c(0, -1), east = c(1, 0), west = c(-1, 0), northeast = c(1, 1) / sqrt(2),
   northwest = c(-1, 1) / sqrt(2), southeast = c(1, -1) / sqrt(2), southwest = c(-1, -1) / sqrt(2))
 
@@ -50,20 +58,28 @@ introductions <- bind_rows(lapply(journal_years, function(year) read_csv(
 stopifnot(!anyDuplicated(introductions[c("file", "position")]),
   all(introductions$introduction_date <= ward_map_2003_end))
 
+# A street is its direction, its name without spaces and its kind: its type, or, taking the through-street types as
+# one kind, blank for a through street.
+street_key <- function(direction, name, type, kinds) {
+  kind <- if_else(kinds == "through" & type %in% street_types_through, "", type)
+  str_squish(paste(direction, str_remove_all(name, " "), kind))
+}
+typed_street <- paste0("\\s(?:", paste(street_types, collapse = "|"), ")$")
 # Centerline streets, without ramps and without the suffix of a divided road's two roadways ("S LAKE SHORE DR NB").
 centerlines <- st_read("/vsizip/../input/street_centerlines_2013.zip/Transportation.shp", quiet = TRUE) |>
   st_transform(3435) |>
   filter(!STREET_TYP %in% c("ER", "XR", "SR", "RL")) |>
-  mutate(street = str_squish(paste(coalesce(PRE_DIR, ""), STREET_NAM, coalesce(STREET_TYP, ""))))
-centerline_streets <- unique(centerlines$street)
+  mutate(printed = street_key(coalesce(PRE_DIR, ""), STREET_NAM, coalesce(STREET_TYP, ""), "printed"),
+    through = street_key(coalesce(PRE_DIR, ""), STREET_NAM, coalesce(STREET_TYP, ""), "through"))
+centerline_streets <- list(printed = unique(centerlines$printed), through = unique(centerlines$through))
 segment_ends <- st_coordinates(centerlines) |>
   as_tibble() |>
   summarise(from_x = first(X), from_y = first(Y), to_x = last(X), to_y = last(Y), .by = L1)
 stopifnot(nrow(segment_ends) == nrow(centerlines))
-nodes <- bind_rows(
-  tibble(node = centerlines$FNODE_ID, street = centerlines$street, x = segment_ends$from_x, y = segment_ends$from_y),
-  tibble(node = centerlines$TNODE_ID, street = centerlines$street, x = segment_ends$to_x, y = segment_ends$to_y)) |>
-  distinct(node, street, .keep_all = TRUE)
+nodes <- lapply(c(printed = "printed", through = "through"), function(kinds) bind_rows(
+  tibble(node = centerlines$FNODE_ID, street = centerlines[[kinds]], x = segment_ends$from_x, y = segment_ends$from_y),
+  tibble(node = centerlines$TNODE_ID, street = centerlines[[kinds]], x = segment_ends$to_x, y = segment_ends$to_y)) |>
+  distinct(node, street, .keep_all = TRUE))
 
 # 1. Streets named in a text, as centerline streets, in order of first mention.
 ordinal <- function(n) {
@@ -74,7 +90,8 @@ name_word <- function(word) {
   number <- str_match(word, "^([0-9]{1,3})[^A-Z0-9]*(?:ST|ND|RD|TH)?[^A-Z0-9]*$")[, 2]
   if_else(is.na(number), word, ordinal(as.integer(number)))
 }
-street_names <- function(text) {
+street_names <- function(text, kinds) {
+  known <- centerline_streets[[kinds]]
   words <- str_split(str_squish(str_replace_all(text, "[;:()]", " ; ")), " ")[[1]]
   starts <- which(words %in% c("North", "South", "East", "West") & seq_along(words) < length(words))
   found <- vapply(starts, function(s) {
@@ -86,13 +103,14 @@ street_names <- function(text) {
       type <- if (last %in% names(street_types)) street_types[[last]] else ""
       name <- paste(name_word(following[seq_len(n - (type != ""))]), collapse = " ")
       if (name == "") next
-      street <- str_squish(paste(substr(words[s], 1, 1), name, type))
-      if (street %in% centerline_streets) return(street)
+      street <- street_key(substr(words[s], 1, 1), name, type, kinds)
+      if (street %in% known) return(street)
       if (type != "" && nchar(name) >= 5) {
-        near <- centerline_streets[str_starts(centerline_streets, paste0(substr(words[s], 1, 1), " ")) &
-          str_ends(centerline_streets, paste0(" ", type))]
-        near_names <- str_remove(str_remove(near, "^[NSEW] "), paste0(" ", type, "$"))
-        close <- near[utils::adist(name, near_names)[1, ] == 1]
+        kind <- if_else(kinds == "through" & type %in% street_types_through, "", type)
+        near <- known[str_starts(known, paste0(substr(words[s], 1, 1), " ")) &
+          (if (kind == "") !str_detect(known, typed_street) else str_ends(known, paste0(" ", kind)))]
+        near_names <- str_squish(str_remove(str_remove(near, "^[NSEW] "), paste0(" ", kind, "$")))
+        close <- near[utils::adist(str_remove_all(name, " "), near_names)[1, ] == 1]
         if (length(close) == 1) return(close)
       }
     }
@@ -102,7 +120,7 @@ street_names <- function(text) {
 }
 
 # 3. The side of each street the boundary measures from, and its distances.
-side_measures <- function(boundary, sides) {
+side_measures <- function(boundary, sides, kinds) {
   text <- str_replace_all(boundary, "(?<=[0-9]),(?=[0-9])", "")
   found <- str_match_all(text, regex(paste0(
     "(?:([0-9]+(?:\\.[0-9]+)?)\\s+feet\\s+|alley\\s+(?:next\\s+|immediately\\s+)?)",
@@ -111,7 +129,7 @@ side_measures <- function(boundary, sides) {
     "((?:North|South|East|West)\\s[^;()]{2,60})"),
     ignore_case = TRUE))[[1]]
   if (nrow(found) == 0) return(tibble(street = character(), direction = character(), offset = numeric()))
-  tibble(street = vapply(found[, 5], function(s) c(street_names(s), NA_character_)[1], character(1)),
+  tibble(street = vapply(found[, 5], function(s) c(street_names(s, kinds), NA_character_)[1], character(1)),
     direction = tolower(paste0(found[, 3], coalesce(found[, 4], ""))), feet = as.numeric(found[, 2])) |>
     filter(!is.na(street)) |>
     summarise(offset = half_street_feet + if (all(is.na(feet))) half_lot_feet else
@@ -119,12 +137,12 @@ side_measures <- function(boundary, sides) {
 }
 
 # 2. Corners and the placed point.
-place <- function(boundary) {
-  streets <- street_names(boundary)
+place <- function(boundary, kinds) {
+  streets <- street_names(boundary, kinds)
   empty <- tibble(streets = paste(streets, collapse = "; "), corners = 0L, x = NA_real_, y = NA_real_,
     place_source = NA_character_, unplaced = NA_character_)
   if (length(streets) < 2) return(mutate(empty, unplaced = "fewer_than_two_streets"))
-  corners <- nodes |> filter(street %in% streets) |> add_count(node) |> filter(n >= 2) |> distinct(node, x, y)
+  corners <- nodes[[kinds]] |> filter(street %in% streets) |> add_count(node) |> filter(n >= 2) |> distinct(node, x, y)
   if (nrow(corners) == 0) return(mutate(empty, unplaced = "streets_do_not_meet"))
   near <- rowSums(as.matrix(dist(corners[c("x", "y")])) < corner_cluster_feet)
   corners <- corners[near == max(near), ]
@@ -136,8 +154,8 @@ place <- function(boundary) {
   source <- "block"
   if (nrow(corners) < 3) {
     segments <- str_squish(str_remove(str_split(boundary, ";")[[1]], "^\\W*(?:and\\s+)?"))
-    sides <- unlist(lapply(segments[str_detect(segments, "^(?:North|South|East|West)\\s")], street_names))
-    measures <- side_measures(boundary, sides)
+    sides <- unlist(lapply(segments[str_detect(segments, "^(?:North|South|East|West)\\s")], street_names, kinds))
+    measures <- side_measures(boundary, sides, kinds)
     shift <- Reduce(`+`, Map(function(direction, offset) compass[[direction]] * offset, measures$direction,
       measures$offset), c(0, 0))
     x <- x + shift[1]
@@ -147,8 +165,14 @@ place <- function(boundary) {
   tibble(streets = paste(streets, collapse = "; "), corners = nrow(corners), x, y, place_source = source,
     unplaced = NA_character_)
 }
-places <- bind_cols(select(introductions, file, position, introduction_date, filer, filing_ward = ward),
-  bind_rows(lapply(coalesce(introductions$boundary, ""), place)))
+boundaries <- coalesce(introductions$boundary, "")
+located <- bind_rows(lapply(boundaries, place, kinds = "printed")) |>
+  mutate(street_kinds = if_else(is.na(unplaced), "printed", NA_character_))
+retried <- which(!is.na(located$unplaced))
+again <- bind_rows(lapply(boundaries[retried], place, kinds = "through")) |>
+  mutate(street_kinds = "through")
+located[retried[is.na(again$unplaced)], ] <- again[is.na(again$unplaced), ]
+places <- bind_cols(select(introductions, file, position, introduction_date, filer, filing_ward = ward), located)
 
 # Wards and aldermen.
 ward_maps <- bind_rows(
@@ -199,6 +223,6 @@ places <- places |>
   left_join(tibble(file = coordinates$file, position = coordinates$position,
     longitude = st_coordinates(coordinates)[, 1], latitude = st_coordinates(coordinates)[, 2]),
     by = c("file", "position"), relationship = "one-to-one") |>
-  select(file, position, introduction_date, filer, streets, corners, place_source, unplaced, longitude, latitude,
-    filing_ward, placed_ward, ward, ward_source, alderman, redrawn_ward, redrawn_alderman)
+  select(file, position, introduction_date, filer, streets, corners, place_source, street_kinds, unplaced, longitude,
+    latitude, filing_ward, placed_ward, ward, ward_source, alderman, redrawn_ward, redrawn_alderman)
 SaveData(places, c("file", "position"), "../output/journal_amendment_places.csv")
