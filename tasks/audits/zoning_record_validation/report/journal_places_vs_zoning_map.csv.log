@@ -1,0 +1,21 @@
+File: journal_places_vs_zoning_map.csv
+Rows: 1684
+Columns: 11
+SHA-256 (saved bytes): bc9ea9c872811fe20de5f9cf55650d8ee40d356c55cab0d4b8573cd8c41c5ad1
+Key: ordinance
+Types: DuckDB inference from the complete saved CSV.
+Distinct counts: exact (exact up to 100,000 rows).
+Row counts, non-missing counts, and declared-key checks: exact.
+
+            column inferred_type non_missing distinct  min    max               mean                  sd
+         ordinance       VARCHAR        1684     1684    -      -                  -                   -
+      introduction       VARCHAR        1684     1684    -      -                  -                   -
+application_number       VARCHAR        1684     1684    -      -                  -                   -
+               map        BIGINT        1684        2 1998   2003 2002.9228028503562  0.6166458880473229
+              maps       VARCHAR        1684        3    -      -                  -                   -
+      place_source       VARCHAR        1684        3    -      -                  -                   -
+     distance_feet        DOUBLE        1684      371  0.0 8268.6 32.341686460807566  244.10693427598991
+       parcel_ward        BIGINT        1682       50    1     50 25.351961950059454   14.51778204663433
+      parcel_wards        BIGINT        1684        3    1      3 1.1425178147268409 0.36302332230924067
+       placed_ward        BIGINT        1682       50    1     50 25.364447086801427  14.493215585186254
+       ward_agrees       BOOLEAN        1680        2    -      -                  -                   -

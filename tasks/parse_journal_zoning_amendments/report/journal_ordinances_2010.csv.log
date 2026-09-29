@@ -1,0 +1,32 @@
+File: journal_ordinances_2010.csv
+Rows: 217
+Columns: 22
+SHA-256 (saved bytes): ff406ef469d61bffd1149ef93846a1d3030aa262293c8b88b49cb544e40a08ba
+Key: file, position
+Types: DuckDB inference from the complete saved CSV.
+Distinct counts: exact (exact up to 100,000 rows).
+Row counts, non-missing counts, and declared-key checks: exact.
+
+            column inferred_type non_missing distinct     min     max               mean                  sd
+      meeting_date          DATE         217       10       -       -                  -                   -
+              file       VARCHAR         217       10       -       -                  -                   -
+          position        BIGINT         217      217 1035778 5904194 3584791.2073732717   987507.6983254445
+              page        BIGINT         217      122     416    2675  1617.884792626728   425.7523739076922
+      journal_page        BIGINT         217      126   83436  109973  96100.00921658987   8103.835700177439
+       text_source       VARCHAR         217        1       -       -                  -                   -
+            report        BIGINT         217       25       1      25 13.903225806451612   8.114050383136139
+      report_title       VARCHAR         217       18       -       -                  -                   -
+            action       VARCHAR         217        2       -       -                  -                   -
+       heading_map       VARCHAR         216      111       -       -                  -                   -
+        change_map       VARCHAR         210      110       -       -                  -                   -
+application_number       VARCHAR         217      216       -       -                  -                   -
+     record_number       VARCHAR         216      215       -       -                  -                   -
+        as_amended       BOOLEAN         217        2       -       -                  -                   -
+             steps        BIGINT         217        4       0       3  1.064516129032258 0.35418643208603434
+         from_text       VARCHAR         211      109       -       -                  -                   -
+           to_text       VARCHAR         211       85       -       -                  -                   -
+          boundary       VARCHAR         210      209       -       -                  -                   -
+    ordinance_text       VARCHAR         217      217       -       -                  -                   -
+        map_number       VARCHAR         216      111       -       -                  -                   -
+    from_districts       VARCHAR         210       57       -       -                  -                   -
+      to_districts       VARCHAR         211       36       -       -                  -                   -

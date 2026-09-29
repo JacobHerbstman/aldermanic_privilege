@@ -1,0 +1,136 @@
+\clearpage
+\section*{The City Council Journals complete the zoning record before November 2010}
+\textit{September 28, 2026. Agent-drafted work on branch \texttt{explore-alderman-measures}; Jacob asked to go back
+before 2010, starting with a 2008 pilot and eventually to 2000, and to OCR the Journals afresh.}
+
+eLMS records no zoning map amendment introduced before April 2010 and only 1 to 5 a month from April to October
+2010, while the Journals of the Proceedings list 11 to 57 a month. The stall and timing measures therefore rest on
+applications from November 2010 on, and the Journals are the only complete source before then. Each Journal lists
+the amendments introduced at a meeting, by applicant or alderman, with the map sheet, the districts before and after,
+the boundary and the common address, and prints each ordinance passed with its application number and change.
+Journals for 2008--2011 are downloaded and parsed into 1,339 introductions and 1,179 passages.
+
+The PDFs' text layers are the City Clerk's own OCR, which misreads district codes and words (``Cl-2,'' ``82-3,''
+``RMS,'' ``Applicafion''), so the 2,635 zoning pages of 2008--2011 were read again with tesseract. Tesseract makes
+fewer errors but different ones (``ail'' for ``all,'' ``|'' for the map letter I, ``Reciassification''), and the
+parser allows for both. On the 87 passages of 2008 where the two texts' parses disagreed, read from the page images,
+the fresh OCR's parse matched the printed page on 80 map sheets, 81 districts before and 83 districts after, against
+72, 67 and 63 for the text layer's. The parser stops if it contradicts any of 28 entries read from the printed pages.
+
+Where both sources exist, from November 2010 through 2011, the Journals and eLMS agree closely: 372 of the Journals'
+380 introductions match an eLMS amendment by record number, and 372 of eLMS's 399 amendments are found in the
+Journals. The application numbers agree for 248 of 249 matched introductions and the map sheets for 331 of 335; the
+districts before and after agree for about 89 percent, and most disagreements are differences between the sources
+rather than misreadings: a planned development recorded separately in eLMS, or a request changed between its
+introduction and the ordinance.
+
+The introductions print the Clerk's record number from December 17, 2008 and the application number from April 22,
+2009, so from mid-2009 each introduction can be followed to its passage by number. Earlier introductions must be
+matched to passages by map sheet and boundary, with hand review, which is the next step, followed by outcomes for
+the 2008 applications through the end of that term in May 2011. Going back to 2000 will need the district codes of
+the zoning ordinance before its 2004 rewrite.
+
+\textit{Update, September 28, 2026: four checks} (\path{tasks/audits/zoning_record_validation}). The gap is in
+eLMS itself, not in the download: eLMS holds 0 to 74 matters of any kind a month before November 2010 and none of the
+173 record numbers the Journals print for January--October 2010. On 32 randomly drawn pages of 2008 and 2009, read
+by hand, the parser finds all 54 introductions and 30 passages and no others, and reads the map and districts of
+53--54 introductions and 26--29 passages correctly. Against eLMS's passages of November 2010 through 2011 the
+Journal's dates, maps and districts agree for 263 of 267, 236 of 237, 170 of 175 and 179 of 191 matched ordinances,
+after correcting three Journals the City Clerk's listing dates wrongly. The main gap the checks found: an ordinance
+the Committee on Zoning reports on its own is printed under the committee's heading and not read, 10 to 15 a year
+from 2009, many of them planned developments; those reports also carry withdrawals. Completing the pre-2010 dataset
+also needs introductions linked to outcomes, wards, direction and refilings; it cannot have project-size controls,
+since the application forms exist only in eLMS.
+
+\textit{Update, later on September 28, 2026: the Council's actions.} Reading those committee reports showed that the
+parser had taken every printed ordinance for a passage, though a report can also defer an ordinance (to be taken up
+at a later meeting), withdraw it or re-refer it. The parser now reads the Committee on Zoning's reports themselves,
+including those it makes on a single ordinance, and records the Council's action on each ordinance and the
+withdrawals and deferrals a report notes without printing the ordinance. In 2008--2011 it finds 1,229 ordinances:
+1,210 passed, 5 deferred and 14 withdrawn. Against eLMS from November 2010 through 2011, 280 passed ordinances match
+an eLMS passage, with dates agreeing for 276 of them, and eLMS records all 7 matched withdrawals as withdrawn. The
+City Clerk's listing had dated three Journals wrongly; each Journal's date is now read from its own pages, and the
+introductions' dates agree with eLMS for all 372 matched. Linking each introduction to its outcome is the next step:
+applications carry their application numbers from April 2009, but the 355 earlier applications and all 432
+aldermen's amendments of 2008--2011 must be matched on map sheet, districts and boundary, with hand review.
+
+\textit{Update, evening of September 28, 2026: introductions linked to their outcomes}
+(\path{tasks/link_journal_zoning_outcomes}). Each ordinance is linked to the introduction it resolves by record number
+(from November 2010), by application number (from April 2009), by the words its boundary shares with an earlier
+introduction's, and, for an application still unlinked, by its number's place in the numbering: applications are
+numbered in order and each meeting's take the next run, so a number places an application between two meetings. The
+linking uses no hand decisions. It is checked three ways. With every printed number hidden, the boundary and
+numbering rules link 421 of the 433 applications whose introductions the numbers identify, all correctly. The numbers
+of all 696 linked applications, including 255 of 2008 and early 2009 linked by boundary alone, fall between those of
+the meetings before and after their introductions'. And for the 377 introductions of November 2010--2011 that eLMS
+also holds, the outcome as of December 2011 agrees for 375; one of the two disagreements is a wrong link, an
+alderman's amendment introduced directly in committee that is linked to an earlier introduction of the same site.
+
+Reading the unlinked ordinances found parser faults, since fixed: an ordinance heading without ``On,'' a curly quote
+inside ``to classify as,'' record numbers after a stray mark, and an aldermen's section whose opening has a stray
+period. The Journals now match every eLMS passage of November 2010--2011. It also found two facts that bear on the
+measures. Matters did not lapse at the term change of May 2011: 48 amendments introduced from January to May 2011 and
+5 from 2009 and 2010 passed after it, so ``stalled'' here means not decided at least a year after introduction,
+within the Journals read (through December 2011). And aldermen introduce some amendments directly in committee, to
+pass at the same meeting, so those ordinances have no introduction.
+
+Applications stalled far more often before 2011 than after: 23 percent of those introduced in 2008, 21 percent in
+2009 and 14 percent in 2010, against 6 to 8 percent a year in eLMS from 2010 to 2015. A year of follow-up overstates
+stalls: of 19 applications of November 2010 to May 2011 undecided in December 2011, 5 passed in 2012. That accounts
+for much of the 2010 figure but little of 2008 and 2009, which have two to four years of follow-up. Reading the
+ordinances of the 2012 and 2013 Journals would give every introduction of 2008--2010 at least two years of follow-up.
+The Journals of 1981--2011 are now downloaded (698 files; the Clerk's listing shows 25 a page, which the first
+download missed).
+
+\textit{Update, night of September 28, 2026: wards from boundaries}
+(\path{tasks/place_journal_zoning_amendments}). The Journals print no address with an amendment before July 9, 2008,
+and aldermen's amendments rarely one after, only the map sheet and the boundary. So every amendment is placed from its
+boundary, the same way in every year: the streets it names are matched to the City's 2013 street centerlines, the
+point is set at their corners, and, where a parcel has only one or two corners, moved to the side of each street
+that the boundary gives (``a line 131.20 feet north of \ldots\ West Cermak Road''), since streets are often ward
+boundaries. Of 1,341 introductions of 2008--2011, 1,246 are placed; 72 of 906 applications are not, mostly
+boundaries described by metes and bounds or with streets OCR misreads.
+
+The City's zoning map turned out to record, for each district set since about 2002, the application number and
+passage date of the amendment that set it (\path{tasks/download_chicago_gis_layers}, the map in force and that of
+November 2012). A district stays on the map only until amended again, and an application that stalled never reaches
+it, so the map can check the placement but not replace it. For 525 passed ordinances matched to districts by number,
+date and district class, the placed point is inside the parcel for 371 and within 237 feet for 99 percent, and the
+placed ward is the parcel's for all 449 parcels in one ward (\path{tasks/audits/zoning_record_validation}). The placed
+ward is also the filing ward of 402 of 411 aldermen's amendments. The map sometimes files a district under another
+amendment's number, so a match must also agree on the district's class.
+
+\textit{Update, September 29, 2026: the Journals of 2000--2007.} The parser, links and places now cover 2000--2011:
+6,924 introductions and 5,806 ordinances. Before November 1, 2004, the Journals rezone under the ordinance of 1957,
+whose codes overlap the 2004 ordinance's with different districts (B3-2 was General Retail and is Community Shopping);
+its codes are kept apart, marked ``1957:'', by date and by the district name printed with them. The degraded scans
+of 2002 print the section headings with stray marks, and letter-spaced text layers of 2001 hid zoning pages from the
+page selection; both are now read. A random sample of 64 pages of 2000--2007, read blind from the images, has 111
+introductions and 55 ordinances, and the parser finds every one and no others; it reads the districts of all but one
+(an illegible ``R\textcent'') and the map of all but one (an ambiguous ``5-]''). The first scoring of the sample found
+11 general faults, since fixed: a period after a lettered street (``South Avenue M.'') taken for an initial's, maps
+printed ``Map Number11-L'', articles run into codes (``aC1-1''), and four wordings of an ordinance's change. OCR also
+reads ``R5 General Residence'' as ``RS'' 533 times; it is repaired.
+
+With the introductions of 2007 read, the ordinances of early 2008 now link: 486 of 5,806 ordinances are unlinked,
+154 of them passed in 2000 on introductions of 1999, and 194 of the rest aldermen's amendments, many introduced
+directly in committee. Stall rates stay high: 14 to 23 percent of applications introduced in each year of 2000--2010
+and 26 to 46 percent of aldermen's amendments were not decided by December 2011. The applications that remain unlinked
+could lower the applications' rate by at most about 4 points a year, so the gap with eLMS's 6 to 8 percent is not a
+linking artifact. Where only boundaries link them (before 2009), a site introduced again after an earlier
+introduction stalled can be linked to the earlier one; among the 515 ordinances linked by number, the boundary rule
+does so for 3.
+
+Before May 5, 2003, amendments are placed in the wards of 1998. The zoning map matches 1,684 passed ordinances, and
+the placed ward is the parcel's for 1,444 of the 1,448 parcels in one ward. The filing wards of aldermen's
+amendments revealed a transition: the Council redrew the wards on December 19, 2001, for the term that began in May
+2003, and from May 2002 aldermen filed amendments in the wards they would represent. Where the two maps differ, the
+filing ward is the 1998 map's for 30 of 33 amendments from September 2001 to March 2002, and the 2003 map's for 36 of
+46 from May 2002 to April 2003. The ward and alderman are assigned by the map in force; whether an application of
+that year belongs to the sitting or the incoming alderman is a choice for the analysis, and the same question arises
+for the wards redrawn in 2012 and in force from 2015.
+
+\textit{Reproduction.} Run \texttt{make} in \path{tasks/link_journal_zoning_outcomes/code/} and
+\path{tasks/place_journal_zoning_amendments/code/}, which read \path{tasks/parse_journal_zoning_amendments}, and that in
+turn \path{tasks/ocr_council_journal_zoning_pages} and \path{tasks/extract_council_journal_text}; the task READMEs give
+the counts by year and the validation.

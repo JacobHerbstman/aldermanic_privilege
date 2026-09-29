@@ -1,0 +1,87 @@
+file,page,order,application_number,heading_map,change_map,as_amended,from_districts,to_districts,steps,note
+2008_02_06_VI_VII.pdf,1476,1,A-7277,7-K,7-K,FALSE,M2-2;B1-1,RS3,1,
+2008_02_06_VI_VII.pdf,1476,2,16435,7-N,7-N,FALSE,RS3,RT4,1,"finished via next page image p1477 (SECTION 2 boilerplate only, no added district change)"
+2008_05_14_VI_VII.pdf,2042,1,16557,11-G,11-G,FALSE,B1-5,C1-5,1,
+2008_05_14_VI_VII.pdf,2042,2,16555,12-L,12-L,FALSE,M2-1,B3-3,1,
+2008_06_11_VI_VII_VIII_0.pdf,68,1,16591,10-I,10-I,FALSE,B3-1,B3-1.5,1,
+2008_06_11_VI_VII_VIII_0.pdf,68,2,A-7282,11-G,11-G,TRUE,B2-3,B2-2,1,
+2008_07_09_VI_VII.pdf,1610,1,A-7369,11-G,11-G,FALSE,B3-3,RT4,1,
+2008_07_09_VI_VII.pdf,1610,2,A-7328,12-J,12-J,TRUE,MPD Number 545,PD,2,"Institutional Planned Development number left blank in ordinance text (""Institutional Planned Development Number ____.""); finished via next page image p1611"
+2008_07_09_VI_VII.pdf,1660,1,16552,14-J,14-J,FALSE,RM5,B1-1,1,
+2008_07_09_VI_VII.pdf,1660,2,16545,16-C,16-C,FALSE,C1-2;B1-1,C1-2,1,finished via next page image p1661 (SECTION 2 boilerplate only); mixed C1-2/B1-1 area reclassified entirely to C1-2
+2008_09_10_VI_VII.pdf,1431,1,A-7363,15-K,15-K,TRUE,M1-1,B1-1,1,"followed by attached exhibit maps on pages 37518-37521 of the Journal (Peterson Pulaski Industrial Corridor Map etc.), not read for changes"
+2008_09_10_VI_VII.pdf,1431,2,A-7364,15-K,NOT_SHOWN,TRUE,NOT_SHOWN,NOT_SHOWN,NOT_SHOWN,"only heading and ""(Continued on page 37522)"" printed on sampled page; ordinance body deferred beyond provided next-page image (p1432 is an unrelated map exhibit page), so change_map/from/to/steps cannot be read"
+2008_10_08_VI_VII_VII_IV_V.pdf,3136,1,16686,13-G,13-G,FALSE,B3-5,C1-5,1,"heading text misprinted ""shown no Map Number 13-G"" (should read ""shown on""); finished via next page image p3137 (SECTION 2 boilerplate only)"
+2008_11_05_VI_VII.pdf,2341,1,16722,1-G,1-G,FALSE,M1-3,M2-3,1,
+2008_11_05_VI_VII.pdf,2341,2,16580,2-G,2-G,TRUE,DS3,PD,2,Residential-Business Planned Development number left blank in ordinance text; finished via next page image p2342
+2009_01_13_VI_VII_VIII.pdf,2312,1,16759,1-F,1-F,FALSE,DX-7,DX-16,1,body completes on next page p2313
+2009_01_13_VI_VII_VIII.pdf,2313,1,16755,8-F,8-F,FALSE,RS3,C1-1,1,
+2009_01_13_VI_VII_VIII.pdf,2313,2,16701,10-F,10-F,TRUE,RT4,PD,1,unnumbered Residential Planned Development; ordinance text says only 'a Residential Planned Development' with no number (blank number appears only in the Plan of Development Statement heading below); body completes on next page p2314
+2009_04_22_VI_VII_VIII.pdf,2554,1,A-7466,1-K,1-K,FALSE,RS3,RT4,1,
+2009_04_22_VI_VII_VIII.pdf,2554,2,16766,3-G,3-G,FALSE,RS3,RM5,1,
+2009_05_13_VI_VII_VIII.pdf,2561,1,16818,3-G,3-G,FALSE,RS3,RM4.5,1,
+2009_05_13_VI_VII_VIII.pdf,2561,2,16808,3-H,3-H,FALSE,RT4,RM5,1,body completes on next page p2562
+2009_05_13_VI_VII_VIII.pdf,2569,1,A-7486,5-K,5-K,FALSE,B1-2,B1-1,1,
+2009_05_13_VI_VII_VIII.pdf,2569,2,A-7488,5-K,5-K,FALSE,B3-1,B1-1,1,
+2009_10_07_VI_VII.pdf,1765,1,A-7528,7-K,7-K,FALSE,C2-1,B1-1,1,
+2009_10_07_VI_VII.pdf,1765,2,A-7529,7-L,7-L,FALSE,C2-1,B1-1,1,body completes on next page p1766
+2009_11_18__VI_VII_VIII_IV.pdf,3705,1,A-7538,16-D,16-D,FALSE,RM5,RS2,1,
+2009_11_18__VI_VII_VIII_IV.pdf,3705,2,A-7539,16-D,16-D,TRUE,RM5,RS2,1,heading prints 'Map Number 16-D' instead of the usual 'Map No.'; parenthetical also prints 'Application Number A-7539' instead of 'Application No.'
+2009_12_02_VI_VII.pdf,2150,1,A-7553,24-B,24-B,FALSE,B3-2;M1-1,R2,1,single SECTION 1 change lists two from-districts (B3-2 Community Shopping and M1-1 Limited Manufacturing/Business Park) sharing one 'to those of an R2' clause
+2009_12_02_VI_VII.pdf,2150,2,A-7554,24-B,24-B,FALSE,M1-1,C1-1,1,single change describes two separate bounded areas joined by 'and in the area bounded by'; body completes on next page p2151
+110100.pdf,874,1,A-4489,5-N,5-N,FALSE,1957:B4-1,1957:M1-1,1,
+110100.pdf,874,2,A-4490,5-N,5-N,FALSE,1957:C2-1,1957:M1-1,1,
+2000_02_16_VI_VII.pdf,1423,1,12903,3-G,3-G,FALSE,1957:R3,1957:R4,1,
+2000_02_16_VI_VII.pdf,1423,2,12904,3-H,3-H,TRUE,1957:R4;1957:C1-2,1957:B1-3,1,"ordinance's SECTION 2 boilerplate falls on next page image; to_districts (B1-3) is already stated on the sampled page itself, not NOT_SHOWN"
+2000_08_30_VI_VII.pdf,1187,1,13054,4-H,4-H,FALSE,1957:R4,1957:B2-2,1,
+2000_08_30_VI_VII.pdf,1187,2,13071,5-G,5-G,FALSE,1957:M1-2,1957:C1-2,1,
+2000_12_13_VI_VII.pdf,1323,1,A-4458,9-K,NOT_SHOWN,FALSE,NOT_SHOWN,NOT_SHOWN,NOT_SHOWN,"only heading and 'Be It Ordained by the City Council of the City of Chicago:' printed, then '(Continued on page 48637)'; SECTION 1 text is not on the sampled page or the next page image (which is only an Existing Zoning Map exhibit, apparently for a different/preceding ordinance); a Plan of Development statement table above the heading also belongs to a prior ordinance, not this one"
+2001_02_07_VI_VII.pdf,1262,1,13223,7-G,7-G,FALSE,1957:B4-2,1957:R5,1,
+2001_02_07_VI_VII.pdf,1262,2,A-4534,8-H,8-H,FALSE,1957:C1-2,1957:R3,1,
+2001_03_07_VI_VII.pdf,1476,1,A-4554,11-G,11-G,FALSE,1957:B2-4,1957:B4-2,1,"text prints 'to those of a B4-2 General Service District'; under 1957 naming B4 is Restricted Service District and General Service District is B5 -- coded as printed (B4-2), flagging the code/name mismatch as possibly a misprint in the original"
+2001_03_07_VI_VII.pdf,1476,2,A-4559,12-M,12-M,TRUE,1957:R2,1957:R3,1,"ordinance runs onto next page image, where it concludes with 'to those of an R3 General Residence District...' before SECTION 2; to_districts read from that page, not NOT_SHOWN"
+2001_06_06_VI_VII.pdf,1874,1,A-4576,2-F,2-F,TRUE,1957:C1-4;1957:C3-5,1957:M1-4,1,
+2001_06_06_VI_VII.pdf,1874,2,13165,3-G,3-G,TRUE,1957:R4,1957:R5,1,
+2001_06_27_VI_VII.pdf,2444,1,A-4668,3-H,3-H,FALSE,1957:R6,1957:R4,1,"SECTION 1 reads 'changing all the R6 General Residence District and corresponding use district symbols and indications' -- read as a single from-district (R6); 'corresponding use district' refers to the existing use-district overlay, not a second base district"
+2001_06_27_VI_VII.pdf,2444,2,A-4658,5-K,5-K,FALSE,1957:B2-1,1957:B1-1,1,
+071002.pdf,1091,1,A-4922,1-I,1-I,FALSE,1957:R3,1957:R5,1,
+071002.pdf,1091,2,A-4923,1-I,1-I,FALSE,1957:M1-2,1957:R4,1,
+2002_03_27_VI_VII.pdf,1927,1,13570,32-A,32-A,FALSE,1957:R2,1957:R3,1,
+2002_09_04_VI_VII.pdf,1235,1,A-4957,28-H,28-H,FALSE,1957:R2,1957:R4,1,
+2002_12_04_VI_VII.pdf,2113,1,13700,2-F,2-F,TRUE,1957:C3-7,PD 598,2,
+090403.pdf,932,1,13907,1-H,1-H,FALSE,1957:R3,1957:R4,1,
+090403.pdf,932,2,13763,2-I,2-I,FALSE,1957:R4,1957:R5,1,
+2003_05_07_VI_VII.pdf,1422,0,,,,,,,,no ordinance heading
+2003_06_04_VI_VII.pdf,1095,1,A-5112,20-J,20-J,FALSE,1957:M1-1,1957:R4,1,
+2003_06_04_VI_VII.pdf,1095,2,A-5113,20-J,20-J,FALSE,1957:M1-1,1957:R4,1,
+2003_10_01_VI_VII.pdf,1433,1,A-5189,12-E,12-E,FALSE,1957:B3-3,1957:B4-3,1,
+2003_10_01_VI_VII.pdf,1433,2,A-5163,14-H,14-H,FALSE,1957:B4-1,1957:R3,1,
+2004_07_21_VI_VII.pdf,1332,1,A-5406,15-G,15-G,TRUE,1957:R4,1957:R3,1,
+2004_07_21_VI_VII.pdf,1332,2,A-5532,16-H,16-H,TRUE,1957:R3,PD,2,"two-step ordinance: Sec 1 changes 1957:R3 to 1957:R2, Sec 2 changes that R2 area to an unnumbered Institutional Planned Development (attached Plan of Development Statements print 'Institutional Planned Development Number ______' with the number left blank); to_districts reflects only the final PD change"
+2004_09_29_VI_VII.pdf,1131,1,A-5430,1-F,1-F,TRUE,1957:B4-5;1957:B7-5;1957:C1-5;1957:C2-5;1957:C3-5;1957:C3-6,DX-5,1,from-districts list six 1957 codes; to-district DX-5 is 2004-only code so written without prefix despite pre-Nov-2004 page date; finishes on next page image
+2004_11_03_VI_VII.pdf,1959,1,14554,2-G,2-G,FALSE,M1-3,1957:R5,1,"printed name 'M1-3 Restricted Manufacturing District' uses 1957 terminology, but M1 is coded as 2004 (M1-3) per the on/after-Nov-1-2004 exception; R5 has no 2004 equivalent so kept as 1957:R5"
+2004_11_03_VI_VII.pdf,1959,2,14344,2-I,2-I,FALSE,C1-2,C1-3,1,"printed name 'Restricted Commercial District' is 1957 terminology, but C1 is coded as 2004 (C1-2/C1-3) per the on/after-Nov-1-2004 exception"
+2004_11_03_VI_VII.pdf,1997,1,14556,1-H,1-H,FALSE,1957:R3,1957:R5,1,
+2004_11_03_VI_VII.pdf,1997,2,14520,2-M,2-M,FALSE,M2-2,C2-2,1,"printed names 'General Manufacturing' and 'General Commercial' are 1957 terminology, but M2 and C2 are coded as 2004 (M2-2/C2-2) per the on/after-Nov-1-2004 exception"
+011105.pdf,749,1,14697,2-K,2-K,FALSE,M1-2,1957:R4,1,"printed name 'Restricted Manufacturing District' is 1957 terminology, but M1 is coded as 2004 (M1-2) per the on/after-Nov-1-2004 exception; R4 has no 2004 equivalent so kept as 1957:R4"
+011105.pdf,749,2,A-5505,4-E,4-E,TRUE,DX-7;1957:B4-5,DX-3,1,"from-districts joined by 'or' rather than 'and' ('DX-7 Downtown Mixed-Use District or B4-5 Restricted Service District'); text reads 'symbol and indications on Map Number 4-E' (singular 'symbol', no 'as shown'); finishes on next page image"
+011105.pdf,758,1,14091,3-G,3-G,TRUE,PD 46,B3-2,1,"from-district is 'Residential Planned Development Number 46' (coded PD 46), not a standard zoning district code"
+011105.pdf,758,2,14575,5-H,5-H,FALSE,1957:R3,RT4,1,to-district printed only as generic 'RT4 Residential District' rather than the full 2004 name; finishes on next page image
+2005_06_29_VI_VII.pdf,1151,1,14189,1-H,1-H,FALSE,RS3,RM5,1,
+2005_06_29_VI_VII.pdf,1151,2,14953,1-H,1-H,FALSE,RS3,RT4,1,finishes on next page image
+2005_09_14_VI_VII.pdf,1552,1,15015,6-H,6-H,FALSE,B3-2,B2-2,1,text describes the from-district as the 'current B3-2 Community Shopping District'
+2005_09_14_VI_VII.pdf,1552,2,A-5756,7-G,7-G,TRUE,RT3.5,B3-1,1,from-district printed with decimal sub-designation 'RT3.5'; finishes on next page image
+2006_02_08_VI_VII.pdf,1797,1,15227,22-F,22-F,TRUE,M2-2,PD,2,"Business Planned Development number left blank in printed text (""Number ______."")"
+2006_07_26_VI_VII.pdf,2199,1,A-5836,10-I,10-I,FALSE,RS3,B3-2,1,
+2006_07_26_VI_VII.pdf,2199,2,A-5837,10-I,10-I,FALSE,RS3,B3-2,1,
+2006_11_01_VI_VII.pdf,1597,1,A-5966,10-I,10-I,FALSE,B1-1;B1-2;C1-2;B3-2;RS3,B3-1,1,five from-districts changed together to one to-district
+2006_11_01_VI_VII.pdf,1712,1,15841,19-O,19-O,FALSE,RS2,RS3,1,
+2006_11_01_VI_VII.pdf,1712,2,15825,22-F,22-F,FALSE,RS2,RS3,1,
+2007_05_23_VI_VII.pdf,1667,1,16151,8-F,8-F,FALSE,B1-3,B1-5,1,
+2007_05_23_VI_VII.pdf,1667,2,16130,9-M,9-M,FALSE,RS2,RT3.5,1,ordinance text finishes on the next page image
+2007_07_19_VI_VII.pdf,1848,1,A-7138,6-K,6-K,FALSE,RS3,C3-1,1,
+2007_07_19_VI_VII.pdf,1848,2,16096,7-H,7-H,FALSE,RS3;M1-3,C1-1,1,
+2007_09_05_VI_VII.pdf,1638,1,16153,15-H,15-H,TRUE,RS3,RT4,1,
+2007_09_05_VI_VII.pdf,1638,2,16212,16-I,16-I,FALSE,B1-2,C2-2,1,
+2007_09_27_VI_VII_VIII.pdf,2389,1,16284,2-G,2-G,FALSE,M1-3,B2-3,1,
+2007_09_27_VI_VII_VIII.pdf,2389,2,16199,4-E,4-E,TRUE,DX-5,PD,1,"Residential-Business Planned Development number left blank in printed text (""Number ______.""); ordinance text finishes on the next page image"

@@ -1,0 +1,27 @@
+File: outcomes_vs_elms.csv
+Rows: 381
+Columns: 17
+SHA-256 (saved bytes): fb1ff4dc7f36361cb432a7b15d555f8636ee33ebc7beb3d4ceeeb6879d4b36bb
+Key: introduction
+Types: DuckDB inference from the complete saved CSV.
+Distinct counts: exact (exact up to 100,000 rows).
+Row counts, non-missing counts, and declared-key checks: exact.
+
+                column inferred_type non_missing distinct   min     max               mean                 sd
+          introduction       VARCHAR         381      381     -       -                  -                  -
+                status       VARCHAR         381        2     -       -                  -                  -
+                  file       VARCHAR         381       19     -       -                  -                  -
+              position        BIGINT         381      381 29317 6746304 1140107.3963254592 1713892.8932111354
+     introduction_date          DATE         381       19     -       -                  -                  -
+                 filer       VARCHAR         381        2     -       -                  -                  -
+         record_number       VARCHAR         380      380     -       -                  -                  -
+             matter_id       VARCHAR         377      377     -       -                  -                  -
+           elms_record       VARCHAR         377      377     -       -                  -                  -
+elms_introduction_date          DATE         377       19     -       -                  -                  -
+       journal_outcome       VARCHAR         381        3     -       -                  -                  -
+          elms_outcome       VARCHAR         377        3     -       -                  -                  -
+          journal_date          DATE         279       14     -       -                  -                  -
+             elms_date          DATE         275       19     -       -                  -                  -
+            link_basis       VARCHAR         279        3     -       -                  -                  -
+        outcome_agrees       BOOLEAN         377        2     -       -                  -                  -
+           date_agrees       BOOLEAN         275        2     -       -                  -                  -

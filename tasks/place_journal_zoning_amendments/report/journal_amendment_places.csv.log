@@ -1,0 +1,25 @@
+File: journal_amendment_places.csv
+Rows: 6924
+Columns: 15
+SHA-256 (saved bytes): 4408bfef7dc1236ee4e5a660d9c110f50aee21c039171dbaec48929d306768d2
+Key: file, position
+Types: DuckDB inference from the complete saved CSV.
+Distinct counts: exact (exact up to 100,000 rows).
+Row counts, non-missing counts, and declared-key checks: exact.
+
+           column inferred_type non_missing distinct                min                max               mean                  sd
+             file       VARCHAR        6924      169                  -                  -                  -                   -
+         position        BIGINT        6924     6775              21242            9281444 1239766.8236568458  1705851.9288499083
+introduction_date          DATE        6924      169                  -                  -                  -                   -
+            filer       VARCHAR        6924        2                  -                  -                  -                   -
+          streets       VARCHAR        6836     5085                  -                  -                  -                   -
+          corners        BIGINT        6924       15                  0                 16  1.471259387637204  1.2150817277470272
+     place_source       VARCHAR        6434        3                  -                  -                  -                   -
+         unplaced       VARCHAR         490        3                  -                  -                  -                   -
+        longitude        DOUBLE        6434     6032 -87.86406751305014 -87.52550313545493 -87.68007522706574 0.04978443018167271
+         latitude        DOUBLE        6434     6032  41.64756879812582  42.02263722282271  41.87951471883869 0.08110202126956222
+      filing_ward        BIGINT        2439       50                  1                 50 27.367363673636735   15.01654600350828
+      placed_ward        BIGINT        6423       50                  1                 50 25.900669469095437  14.645954749359507
+             ward        BIGINT        6563       50                  1                 50  25.89897912539997  14.650058138740476
+      ward_source       VARCHAR        6924        6                  -                  -                  -                   -
+         alderman       VARCHAR        6560       87                  -                  -                  -                   -

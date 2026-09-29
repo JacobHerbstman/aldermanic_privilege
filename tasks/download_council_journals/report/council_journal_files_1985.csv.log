@@ -1,0 +1,18 @@
+File: council_journal_files_1985.csv
+Rows: 38
+Columns: 8
+SHA-256 (saved bytes): ca477fc4c1217e2ba46b6eed20188ee84892db83d48e9e13a63a16f261e179cb
+Key: url
+Types: DuckDB inference from the complete saved CSV.
+Distinct counts: exact (exact up to 100,000 rows).
+Row counts, non-missing counts, and declared-key checks: exact.
+
+         column inferred_type non_missing distinct   min      max              mean                sd
+            url       VARCHAR          38       38     -        -                 -                 -
+          label       VARCHAR          38       38     -        -                 -                 -
+   meeting_date          DATE          38       38     -        -                 -                 -
+special_meeting       BOOLEAN          38        2     -        -                 -                 -
+     local_file       VARCHAR          38       38     -        -                 -                 -
+          bytes        BIGINT          38       38 72169 21872439 6519123.447368421 5505866.400049553
+         sha256       VARCHAR          38       38     -        -                 -                 -
+   retrieved_on          DATE          38        1     -        -                 -                 -

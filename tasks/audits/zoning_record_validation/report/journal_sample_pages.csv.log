@@ -1,0 +1,15 @@
+File: journal_sample_pages.csv
+Rows: 96
+Columns: 5
+SHA-256 (saved bytes): ae42b16c4de0408b999529e7f9e0d28fe210ba45051969aa36dbbf66feeeb2e4
+Key: file, page
+Types: DuckDB inference from the complete saved CSV.
+Distinct counts: exact (exact up to 100,000 rows).
+Row counts, non-missing counts, and declared-key checks: exact.
+
+      column inferred_type non_missing distinct  min  max               mean                 sd
+        year        BIGINT          96       10 2000 2009 2005.1666666666667 3.0389287124413262
+        kind       VARCHAR          96        2    -    -                  -                  -
+meeting_date          DATE          96       69    -    -                  -                  -
+        file       VARCHAR          96       69    -    -                  -                  -
+        page        BIGINT          96       84   20 3882 1165.7083333333333  1023.280965858214

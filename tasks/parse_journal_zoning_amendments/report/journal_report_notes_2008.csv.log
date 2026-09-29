@@ -1,0 +1,15 @@
+File: journal_report_notes_2008.csv
+Rows: 9
+Columns: 5
+SHA-256 (saved bytes): 7ce950132aa1854ba7ab751261d52bc1b1f3f9846a806e886ab46b412b7e470c
+Key: file, application_number, note
+Types: DuckDB inference from the complete saved CSV.
+Distinct counts: exact (exact up to 100,000 rows).
+Row counts, non-missing counts, and declared-key checks: exact.
+
+            column inferred_type non_missing distinct min max mean sd
+      meeting_date          DATE           9        5   -   -    -  -
+              file       VARCHAR           9        5   -   -    -  -
+application_number       VARCHAR           9        9   -   -    -  -
+              note       VARCHAR           9        3   -   -    -  -
+         note_text       VARCHAR           9        7   -   -    -  -

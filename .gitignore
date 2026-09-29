@@ -138,3 +138,9 @@ tasks/audits/construction_hand_checks/input/
 tasks/audits/construction_hand_checks/output/
 tasks/audits/construction_hand_checks/temp/
 !tasks/audits/construction_hand_checks/report/*.log
+# Validation of the Journal and application-form parsers.
+!tasks/audits/zoning_record_validation/
+tasks/audits/zoning_record_validation/input/
+tasks/audits/zoning_record_validation/output/
+tasks/audits/zoning_record_validation/temp/
+!tasks/audits/zoning_record_validation/report/*.log

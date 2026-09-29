@@ -1,0 +1,15 @@
+File: elms_coverage_by_month.csv
+Rows: 22
+Columns: 5
+SHA-256 (saved bytes): 8b9a92818519cdcc80a9c9523856092c180df18bf0afa7cd5e83d6633891ebb6
+Key: month
+Types: DuckDB inference from the complete saved CSV.
+Distinct counts: exact (exact up to 100,000 rows).
+Row counts, non-missing counts, and declared-key checks: exact.
+
+               column inferred_type non_missing distinct min  max               mean                 sd
+                month       VARCHAR          22       22   -    -                  -                  -
+         elms_matters        BIGINT          22       20   0 2513  830.3181818181819  768.5399507144413
+journal_introductions        BIGINT          22       15  13   55 26.136363636363637  9.745794964009836
+   with_record_number        BIGINT          22       16  13   55 25.681818181818183  9.819253989878707
+record_number_in_elms        BIGINT          22       12   0   55 17.136363636363637 16.591149259958872

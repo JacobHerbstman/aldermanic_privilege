@@ -1,0 +1,28 @@
+File: journal_ordinance_links.csv
+Rows: 5806
+Columns: 18
+SHA-256 (saved bytes): 143b85b26f57c5b36ec646e49936bffbd36a5cd0177a56329a1c1f0c51d42d76
+Key: ordinance
+Types: DuckDB inference from the complete saved CSV.
+Distinct counts: exact (exact up to 100,000 rows).
+Row counts, non-missing counts, and declared-key checks: exact.
+
+                  column inferred_type non_missing distinct   min     max               mean                  sd
+               ordinance       VARCHAR        5806     5806     -       -                  -                   -
+            meeting_date          DATE        5806      147     -       -                  -                   -
+                    file       VARCHAR        5806      147     -       -                  -                   -
+                position        BIGINT        5806     5800 27775 8582678 3099048.9583189804  1136571.6474084589
+                    page        BIGINT        5806     1632    16    3706 1595.5399586634517   524.9051417079938
+            journal_page        BIGINT        5806     3419  1413  118499  55294.60403031347   31271.31581999131
+                  action       VARCHAR        5806        5     -       -                  -                   -
+      application_number       VARCHAR        5787     5739     -       -                  -                   -
+           record_number       VARCHAR         810      808     -       -                  -                   -
+              map_number       VARCHAR        5739      241     -       -                  -                   -
+          from_districts       VARCHAR        5661      477     -       -                  -                   -
+            to_districts       VARCHAR        5670      137     -       -                  -                   -
+            introduction       VARCHAR        5320     5292     -       -                  -                   -
+     record_introduction       VARCHAR         273      273     -       -                  -                   -
+application_introduction       VARCHAR         433      432     -       -                  -                   -
+   boundary_introduction       VARCHAR        5291     5202     -       -                  -                   -
+     boundary_similarity        DOUBLE        5291      139   0.4     1.0 0.9508584618634343 0.11811812533689472
+              link_basis       VARCHAR        5806        5     -       -                  -                   -

@@ -1,0 +1,55 @@
+table,file,page,key,map_number,from_districts,to_districts,common_address,action,note
+introductions,2008_01_09_VI_VII.pdf,1695,LEVAR,11-L,C1-1,B2-1,,,Filed by Alderman Zalewski for Alderman Levar (45th Ward). First reading gave map 11-I: the map-sheet repair turned the letter L into I.
+introductions,2008_06_11_VI_VII_VIII_0.pdf,171,Mr. Rudy Medina,1-I,M1-2,M2-2,,,
+introductions,2008_09_10_VI_VII.pdf,58,Mr. Jose A. Ochoa,8-J,RS-3,RT-3.5,3206 - 3208 South Millard Avenue,,
+introductions,2008_07_30_VI_VII.pdf,36,Chicago Title Land Trust Co.,5-I,B3-1,B3-2,2745 West Armitage Avenue,,
+introductions,2008_11_12_VI_VII.pdf,1752,Harris,18-D,M1-2,C3-1,7744 - 7746 South Anthony Avenue,,Alderman Harris (8th Ward).
+introductions,2008_02_06_VI_VII.pdf,44,Mr. Tadeusz Sandrzyk,12-K,RS-2,RT-3.5,,,
+introductions,2008_01_09_VI_VII.pdf,47,Mr. Roy Appukuttan,2-K,M1-1,RT-3.5,,,
+introductions,2008_09_10_VI_VII.pdf,57,Noble Network of Charter Schools,1-J,RT-4;B3-2,PD,3635 - 3659 West Chicago Avenue; 723 - 757 North Lawndale Avenue,,The text layer drops the hyphen in 723 - 757.
+introductions,2008_11_05_VI_VII.pdf,2608,RUGAI,26-I,B3-1,B1-1,,,"One of a series of Alderman Rugai's (19th Ward) amendments on the page; the map number picks it, so it is not itself checked here."
+introductions,2008_04_09_VI_VII.pdf,2176,TUNNEY,7-F,B1-3,B3-3,,,Alderman Tunney (44th Ward).
+introductions,2008_11_05_VI_VII.pdf,34,Firm Real Estate Group,5-I,B3-1,PD,2047 - 2049 North Milwaukee Avenue,,"First reading merged the preceding application (Mr. Julio Cortes) into this name: the text layer letter-spaces ""t o classify"". Now repaired, and the Cortes application is its own entry."
+introductions,2008_02_06_VI_VII.pdf,42,Andrea Lieu,19-H,B3-2,C1-2,,,
+ordinances,2008_04_09_VI_VII.pdf,1855,16532,12-K,M2-1,C1-1,,passed,"First reading missed the application number and change: the text layer reads ""Applicafion"" and ""ofthe""."
+ordinances,2008_11_19_VI_VII_VIII.pdf,3211,16690,7-I,B3-3,B2-3,,passed,First reading placed the heading on page 3210 (a drawing): the heading pattern began in the previous page's blank lines.
+ordinances,2008_11_05_VI_VII.pdf,2369,A-7425,16-K,POS-1,PD,,passed,As amended; POS-1 to RT4 to an institutional planned development.
+ordinances,2008_02_06_VI_VII.pdf,1341,16381,3-G,C3-5,PD,,passed,As amended; to a commercial planned development.
+ordinances,2008_09_10_VI_VII.pdf,1371,16474,1-J,C1-1,RM-5,,passed,"The text layer reads the district after as ""RMS""."
+ordinances,2008_09_10_VI_VII.pdf,1419,16526,12-K,M1-1,C2-3,,passed,As amended.
+ordinances,2008_07_09_VI_VII.pdf,1594,A-7355,10-E,,B3-2,,passed,"The ordinance itself prints the district before as ""B7-6"", which is not a district; left uncoded."
+ordinances,2008_01_09_VI_VII.pdf,1536,16312,5-H,M1-2,B2-3,,passed,
+ordinances,2008_07_30_VI_VII.pdf,2050,16573,1-F,DC-16,PD,,passed,As amended; to a waterway residential-business planned development. First reading took M2-2 from the planned development's statements.
+ordinances,2008_03_12_VI_VII.pdf,1732,A-7285,5-H,RS-3,RT-3.5,,passed,
+ordinances,2008_03_12_VI_VII.pdf,1689,A-7315,28-F,M1-1,C1-1,,passed,
+ordinances,2008_01_09_VI_VII.pdf,1561,16421,11-J,B3-1,B2-5,,passed,"The district after is on the next page, printed ""82-5""."
+ordinances,2008_10_08_VI_VII_VII_IV_V.pdf,3078,A-7428,5-G,B3-2,B3-3,,passed,"As amended. The fresh OCR reads ""(Application Number. A-7428)""."
+ordinances,2008_10_08_VI_VII_VII_IV_V.pdf,3078,16460,7-I,C1-1,B2-3,,passed,The fresh OCR reads a colon before the heading; a first reading merged this ordinance into the one above it.
+ordinances,2008_10_08_VI_VII_VII_IV_V.pdf,3079,16585,7-G,B1-2,PD,,passed,"As amended; B1-2 to B3-5, then to a business planned development in a second change that names no map."
+ordinances,2008_11_19_VI_VII_VIII.pdf,3213,16739,9-J,B3-1;RS-3,B3-5,,passed,"Two districts before, each ""all of the current ... symbols and indications""; a first reading kept only the first."
+ordinances,2008_07_30_VI_VII.pdf,2083,16639,8-H,M1-2,RM-5,,deferred,"Deferred and ordered published; not taken up again in the 2008--2011 Journals."
+ordinances,2008_07_30_VI_VII.pdf,2085,16646,13-G,C2-2,C2-5,,deferred,"Deferred and ordered published. The title prints ""(Application 16646)"" and the change ""Map Number 13 -- G""; first readings missed the number and the map."
+ordinances,2009_05_13_VI_VII_VIII.pdf,2614,16231,9-G,C1-2,C1-3,,deferred,Deferred and ordered published; taken up and passed on September 9, 2009.
+ordinances,2009_09_09_VI_VII.pdf,2200,16231,9-G,C1-2,C1-3,,passed,"Taken up under Unfinished Business, deferred from May 13, 2009."
+ordinances,021109_E.pdf,657,16776,1-G,RM-4.5,RS-3,,passed,"The report breaks off at ""(Continued on page 55345)"" and resumes after a boundary map of another item."
+ordinances,2010_01_13_VI_VII.pdf,1211,A-7568,32-F,M1-3,RS-1,,withdrawn,"Title ""Withdrawn --""; the committee's recommendation was concurred in and the ordinance withdrawn."
+ordinances,020911.pdf,978,17174,2-F,DX-12,PD,,withdrawn,The ordinance is printed as "said withdrawn ordinance".
+ordinances,2011_04_13_VI_VII.pdf,1572,17071,5-F,PD,PD,,deferred,"Deferred and ordered published; from Residential Planned Development 84 to Residential-Business Planned Development 84, as amended."
+ordinances,2011_05_04_VI_VII.pdf,2237,17071,5-F,PD,PD,,passed,"Taken up under Unfinished Business, deferred from April 13, 2011."
+ordinances,2011_05_04_VI_VII.pdf,1977,17222,3-G,B1-3,B3-3,,passed,"The report is printed without ""The Committee on Zoning submitted the following report"" and opens with ""Reporting for your Committee on Zoning""."
+report_notes,2008_07_30_VI_VII.pdf,2084,A-7371,,,,,withdrawn,"""Please let the record reflect that Application Number A-7371 was withdrawn by the applicant."""
+report_notes,2008_07_30_VI_VII.pdf,2084,16646,,,,,deferred,"""Also, Application Number 16646 has been deferred and ordered published per Alderman Shiller and Alderman Banks."""
+report_notes,2010_01_13_VI_VII.pdf,1211,A-7568,,,,,withdrawn,"""Please let the record reflect that Application Number A-7568 was withdrawn."""
+report_notes,020911.pdf,979,17174,,,,,withdrawn,"""Please be advised that Application Number 17174 was withdrawn by the applicant."""
+report_notes,2011_05_04_VI_VII.pdf,1976,A-7692,,,,,withdrawn,"""Application Numbers TAD-451 and A-7692 were withdrawn by Alderman Pat Levar""; the text amendment is left out."
+introductions,2000_03_15_VI_VII.pdf,1825,CHANDLER,4-J,1957:R4,1957:R5,,,Random sample of 2000--2007 pages; an alderman's amendment under the 1957 ordinance.
+introductions,2001_02_07_VI_VII.pdf,41,Chicago Food Corporation,15-K,1957:M2-1,PD,,,"Random sample of 2000--2007 pages. First reading gave the name ""and South Avenue M. Chicago Food Corporation"": the period after the lettered street was taken for an initial's."
+introductions,020602.pdf,39,"740 Fulton, L.L.C.",1-F,1957:C3-5;PD,PD,,,"Random sample of 2000--2007 pages. First reading gave the name ""and South Avenue L. 740 Fulton, L.L.C."", as for Chicago Food Corporation."
+introductions,2002_12_04_VI_VII.pdf,2391,GRANATO,3-H,1957:R3,1957:R4,,,"Random sample of 2000--2007 pages; Granato's second amendment, under the heading on page 2390."
+introductions,2006_04_26_VI_VII.pdf,1414,LEVAR,11-L,B1-2,RS-2,,,"Random sample of 2000--2007 pages. First reading gave no map: ""Map Number11-L"" is printed without a space, and OCR reads the district before ""Bl1-2""."
+introductions,2007_03_14_VI_VII_VIII.pdf,45,Elston Avenue Properties,7-H,RS-3;M1-3,C1-1,,,"Random sample of 2000--2007 pages. First reading gave no district after: ""aC1-1"" runs the article into the code."
+ordinances,2004_07_21_VI_VII.pdf,1332,A-5532,16-H,1957:R3,PD,,passed,"Random sample of 2000--2007 pages. First reading gave R2: the second step, ""... symbols in the area described in Section 1 to an Institutional Planned Development"", was not read."
+ordinances,2004_11_03_VI_VII.pdf,1959,14554,2-G,M1-3,1957:R5,,passed,"Random sample of 2000--2007 pages; after the 2004 ordinance took effect, an ""M1-3 Restricted Manufacturing District"" is a 2004 code and an ""R5 General Residence District"" the 1957 ordinance's."
+ordinances,011105.pdf,749,A-5505,4-E,DX-7;1957:B4-5,DX-3,,passed,"Random sample of 2000--2007 pages. First reading gave no change: ""... District symbol and indications on Map Number 4-E"" leaves out ""as shown""."
+ordinances,2006_11_01_VI_VII.pdf,1712,15825,22-F,RS-2,RS-3,,passed,"Random sample of 2000--2007 pages. First reading gave no change: the change ends ""District, SECTION 2"" with a comma."
+ordinances,2007_09_27_VI_VII_VIII.pdf,2389,16199,4-E,DX-5,PD,,passed,"Random sample of 2000--2007 pages. First reading gave no change: ""... symbols and indications shown on Map Number 4-E"" leaves out ""as"", and the planned development's number is left blank."

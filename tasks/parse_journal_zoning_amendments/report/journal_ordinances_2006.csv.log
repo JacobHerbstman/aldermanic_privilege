@@ -1,0 +1,32 @@
+File: journal_ordinances_2006.csv
+Rows: 729
+Columns: 22
+SHA-256 (saved bytes): f6e1bed46bda37fe442fa602c2b866b911f64228c0382386d398963d1631e898
+Key: file, position
+Types: DuckDB inference from the complete saved CSV.
+Distinct counts: exact (exact up to 100,000 rows).
+Row counts, non-missing counts, and declared-key checks: exact.
+
+            column inferred_type non_missing distinct     min     max               mean                  sd
+      meeting_date          DATE         729       13       -       -                  -                   -
+              file       VARCHAR         729       13       -       -                  -                   -
+          position        BIGINT         729      729 1722828 5660460 3373946.1742112483    655739.115366015
+              page        BIGINT         729      344     874    2841 1740.0137174211247    342.377879613939
+      journal_page        BIGINT         729      418   68325   95584  80841.93004115226   7929.607210855462
+       text_source       VARCHAR         729        1       -       -                  -                   -
+            report        BIGINT         729       69       1      70  36.04938271604938  20.910071125681863
+      report_title       VARCHAR         729       69       -       -                  -                   -
+            action       VARCHAR         729        4       -       -                  -                   -
+       heading_map       VARCHAR         728      167       -       -                  -                   -
+        change_map       VARCHAR         707      161       -       -                  -                   -
+application_number       VARCHAR         729      726       -       -                  -                   -
+     record_number       VARCHAR           0        0       -       -                  -                   -
+        as_amended       BOOLEAN         729        2       -       -                  -                   -
+             steps        BIGINT         729        4       0       3   1.01920438957476 0.21525329618653158
+         from_text       VARCHAR         721      256       -       -                  -                   -
+           to_text       VARCHAR         721      148       -       -                  -                   -
+          boundary       VARCHAR         722      721       -       -                  -                   -
+    ordinance_text       VARCHAR         729      729       -       -                  -                   -
+        map_number       VARCHAR         719      160       -       -                  -                   -
+    from_districts       VARCHAR         714       90       -       -                  -                   -
+      to_districts       VARCHAR         715       50       -       -                  -                   -

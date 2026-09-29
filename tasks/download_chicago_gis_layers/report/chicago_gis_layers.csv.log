@@ -1,0 +1,18 @@
+File: chicago_gis_layers.csv
+Rows: 3
+Columns: 8
+SHA-256 (saved bytes): ee7cd44df262b27bad8b96d8c81ce3a122489fd10282e80c3f962b23c70ee13d
+Key: layer
+Types: DuckDB inference from the complete saved CSV.
+Distinct counts: exact (exact up to 100,000 rows).
+Row counts, non-missing counts, and declared-key checks: exact.
+
+      column inferred_type non_missing distinct     min      max               mean                sd
+       layer       VARCHAR           3        3       -        -                  -                 -
+     dataset       VARCHAR           3        3       -        -                  -                 -
+         url       VARCHAR           3        3       -        -                  -                 -
+        file       VARCHAR           3        3       -        -                  -                 -
+   shapefile       VARCHAR           2        2       -        -                  -                 -
+       bytes        BIGINT           3        3 6813258 37643195 18561835.666666668 16671788.11898245
+      sha256       VARCHAR           3        3       -        -                  -                 -
+retrieved_on          DATE           3        1       -        -                  -                 -

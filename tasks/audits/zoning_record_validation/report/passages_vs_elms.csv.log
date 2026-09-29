@@ -1,0 +1,32 @@
+File: passages_vs_elms.csv
+Rows: 340
+Columns: 22
+SHA-256 (saved bytes): 67a7f2018244df427760b98795f7effda6e478bee2fdb6a4a198780c97c0d49d
+Key: ordinance
+Types: DuckDB inference from the complete saved CSV.
+Distinct counts: exact (exact up to 100,000 rows).
+Row counts, non-missing counts, and declared-key checks: exact.
+
+            column inferred_type non_missing distinct     min     max               mean                sd
+         ordinance       VARCHAR         340      340       -       -                  -                 -
+            status       VARCHAR         340        3       -       -                  -                 -
+        match_rule       VARCHAR         301        3       -       -                  -                 -
+              file       VARCHAR         338       15       -       -                  -                 -
+          position        BIGINT         338      338 1981269 7634075 3953580.4852071004 1362757.323572928
+      journal_page        BIGINT         338      186     901    3360 1747.3698224852071 563.7463568074019
+         matter_id       VARCHAR         303      303       -       -                  -                 -
+     record_number       VARCHAR         303      303       -       -                  -                 -
+      meeting_date          DATE         338       15       -       -                  -                 -
+       passed_date          DATE         303       19       -       -                  -                 -
+application_number       VARCHAR         338      338       -       -                  -                 -
+  elms_application        BIGINT         217      217    7731   17379 17136.188940092165 926.5915018812739
+       journal_map       VARCHAR         336      136       -       -                  -                 -
+          elms_map       VARCHAR         273      120       -       -                  -                 -
+      journal_from       VARCHAR         333       68       -       -                  -                 -
+         elms_from       VARCHAR         197       47       -       -                  -                 -
+        journal_to       VARCHAR         334       45       -       -                  -                 -
+           elms_to       VARCHAR         216       37       -       -                  -                 -
+       date_agrees       BOOLEAN         301        2       -       -                  -                 -
+        map_agrees       BOOLEAN         269        2       -       -                  -                 -
+       from_agrees       BOOLEAN         194        2       -       -                  -                 -
+         to_agrees       BOOLEAN         215        2       -       -                  -                 -

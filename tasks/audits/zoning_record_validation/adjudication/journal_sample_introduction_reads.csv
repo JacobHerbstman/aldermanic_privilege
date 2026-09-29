@@ -1,0 +1,166 @@
+file,page,order,filer,name,ward,application_number,map_number,from_districts,to_districts,common_address,record_number,continues,note
+112509_E.pdf,1329,1,alderman,Alderman Daley,43,,5-G,RM5,RT4,,PO2009-8164,FALSE,"to-district text printed as 'RT4 Residential Two-Flat, Townhouse and Mult-Unit District' (missing 'i' in Multi-Unit); no common address printed"
+2008_01_09_VI_VII.pdf,48,1,applicant,"Boyce II, L.L.C.",,,1-F,DX7,PD,,,FALSE,"to district printed as ""Business Planned Development"" with no PD number"
+2008_01_09_VI_VII.pdf,48,2,applicant,Mr. Michael Clarke,,,16-D,RT4,RM5,,,FALSE,
+2008_01_09_VI_VII.pdf,48,3,applicant,"Compass Rose Boat Club South Branch Chicago River, L.L.C",,,6-G,Planned Manufacturing District Number 11,PD,,,FALSE,"PD number left blank in original (""Business Planned Development Number ______""); name printed as ""L.L.C"" with no trailing period"
+2008_01_09_VI_VII.pdf,48,4,applicant,"Mr. Curt Alan Conklin, in care of Law Offices of Samuel V.P. Banks",,,5-H,RS3,RT3.5,,,FALSE,
+2008_01_09_VI_VII.pdf,48,5,applicant,Mr. Raymond Lindt and Mr. Robert Groebner,,,7-H,RS3,RT4,,,FALSE,"from-district printed as ""an RS3 Single-Unit (Detached House) District"" (word ""Residential"" omitted, unlike other entries)"
+2008_03_12_VI_VII.pdf,1934,1,alderman,Alderman Dowell,3,,10-E,B7-6,B3-2,,,FALSE,
+2008_03_12_VI_VII.pdf,1934,2,alderman,Alderman Dowell,3,,4-F,M1-1,DS5,,,FALSE,
+2008_03_12_VI_VII.pdf,1934,3,alderman,Alderman Hairston,5,,"12-C, 14-C and 14-D",RM6,RM5,,,TRUE,"amendment includes an ""excluding the RM6.5 and POS-2 District areas bounded by"" clause; the bounded-by list for that exclusion runs onto the next page (p1935) before the entry finishes"
+2008_04_09_VI_VII.pdf,46,1,applicant,Mr. James Wilson,,,1-I,M1-2,RM4.5,,,FALSE,
+2008_04_09_VI_VII.pdf,46,2,applicant,"969 Land, L.L.C., in care of Lexington Homes",,,8-G,M2-3,RS3,,,FALSE,
+2008_04_09_VI_VII.pdf,46,3,applicant,1216 West Belmont L.L.C.,,,9-G,M1-2,B2-3,,,FALSE,"from-district printed as ""an M1-2 Limited Manufacturing Business Park District"" (missing slash before ""Business"", unlike other entries' ""Limited Manufacturing/Business Park District""); note a partial entry finishing at the top of this page (ending ""...and South Langley Avenue."") began on an earlier page and is not recorded"
+2008_04_09_VI_VII.pdf,2175,1,alderman,Alderman Pope,10,,28-A,RS2,B3-1,,,FALSE,
+2008_04_09_VI_VII.pdf,2175,2,alderman,Alderman Burke,14,,12-J,PD 545,"PD 545, as amended",,,FALSE,"reclassifies Manufacturing Planned Development Number 545 ""as amended"" instead of itself (no underlying district change, only a PD amendment)"
+2008_04_09_VI_VII.pdf,2175,3,alderman,Alderman Lane,18,,20-J,RS2,RS3,,,FALSE,"a partial entry finishing at the top of this page (ending ""...and South Langley Avenue."") began on an earlier page and is not recorded"
+2008_05_14_VI_VII.pdf,45,1,applicant,Mr. James J. Andersen,,,8-I,M1-2,M2-1,,,FALSE,
+2008_05_14_VI_VII.pdf,45,2,applicant,Richard L. Bayless and Deann G. Bayless,,,5-H,M1-1,RS3,,,FALSE,
+2008_05_14_VI_VII.pdf,45,3,applicant,Berman Auto Group,,,11-K,C1-1,C3-1,,,FALSE,
+2008_07_30_VI_VII.pdf,37,1,applicant,"Mr. Ziad Farhan, in care of Mr. James J. Banks",,,5-L,B2-1,B3-1,5027 West Fullerton Avenue,,FALSE,
+2008_07_30_VI_VII.pdf,37,2,applicant,"Margarita and Rene Garcia, in care of Law Offices of Samuel V.P. Banks",,,3-I,B1-1,B3-1,1211 -- 1213 North California Avenue,,FALSE,
+2008_07_30_VI_VII.pdf,37,3,applicant,Ms. Felicia Howard,,,4-K,RS3,RT3.5,4142 West Cullerton Street,,FALSE,"a partial entry at the top of this page (ending ""...(common address: 7421 South Halsted Street)."") began on an earlier page and is not recorded, including its ""also, to classify as a Residential Development..."" clause"
+2008_10_08_VI_VII_VII_IV_V.pdf,36,1,applicant,"Buckingham/Wabash, L.L.C.",,,2-E,DX-16,PD,51 -- 67 East Van Buren Street and 401 -- 419 South Wabash Avenue,,FALSE,"to-district printed as ""Residential-Institutional Planned Development"" with no PD number"
+2008_10_08_VI_VII_VII_IV_V.pdf,36,2,applicant,Church of Scientology of Illinois,,,2-F,DX-12,DR-10,650 South Clark Street,,FALSE,
+2008_10_08_VI_VII_VII_IV_V.pdf,36,3,applicant,"GMB Partners L.L.C., doing business as Half Acre Beer Company",,,11-H,B1-2,C1-1,4253 -- 4257 North Lincoln Avenue,,FALSE,
+2008_10_08_VI_VII_VII_IV_V.pdf,36,4,applicant,Mr. Patrick A. Hulne,,,15-H,RT4,C2-1,6107 North Ravenswood Avenue,,FALSE,
+2008_12_17_VI_VII.pdf,37,1,applicant,"CFRI/New City L.L.C., in care of Law Offices of Samuel V.P. Banks",,,9-H,PD 1075,"PD 1075, as amended","1482 -- 1560 North Clybourn Avenue, 1431 -- 1539 North Halsted Street and 710 West Schiller Street",PO2008-10177,FALSE,"reclassifies Residential-Business Planned Development Number 1075 ""as amended"" instead of itself"
+2008_12_17_VI_VII.pdf,37,2,applicant,Chicago Gear D.O. James Corporation,,,1-I,M1-2;RT4,M1-2,2845 -- 2859 West Fulton Street/253 -- 277 North Francisco Avenue,PO2008-10183,FALSE,"area is part M1-2/part RT4, entirely reclassified to M1-2; a partial entry at the top of this page (ending ""...(common address: 4235 South Archer Avenue). [PO2008-10172]"") began on an earlier page and is not recorded"
+2009_01_13_VI_VII_VIII.pdf,29,1,applicant,2354 -- 2358 South Oakley L.L.C.,,,6-H,B3-1,B2-3,2354 -- 2358 South Oakley Avenue,PO2009-7,FALSE,no Application Number printed for this entry
+2009_01_13_VI_VII_VIII.pdf,29,2,applicant,"3912 N. Lincoln, L.L.C. by Frederick J. Proesel, its sole member",,,9-H,B1-2,B3-3,1948 West Byron Street / 3912 North Lincoln Avenue,PO2009-8,FALSE,no Application Number printed for this entry
+2009_03_18_VI_VII.pdf,1304,1,alderman,Alderman Colón,35,,5-J,B3-1,B3-3,3431 -- 3435 West Armitage Avenue,PO2009-1397,FALSE,
+2009_03_18_VI_VII.pdf,1304,2,alderman,Alderman Colón,35,,5-J,B3-1,B2-3,3228 -- 3234 West Armitage Avenue,PO2009-1398,FALSE,"second separate amendment under same Colón heading (different area/record number, not a multi-clause continuation of order 1)"
+2009_03_18_VI_VII.pdf,1304,3,alderman,Alderman O'Connor,40,,15-G,RS3,B3-1,1541 -- 1545 West Rosemont Avenue,PO2009-1271,FALSE,
+2009_03_18_VI_VII.pdf,1304,4,alderman,Alderman Schulter,47,,13-I,B3-3,B3-2,4800 North Western Avenue/2400 West Lawrence Avenue,PO2009-1401,TRUE,entry finishes on next page (p1305)
+2009_04_22_VI_VII_VIII.pdf,49,1,applicant,Clampett Corporation,,16848,13-H,RS3,C1-1,5453 -- 5455 North Ravenswood Avenue,PO2009-2090,FALSE,
+2009_04_22_VI_VII_VIII.pdf,49,2,applicant,Daniel Croakley,,16861,8-K,RS3,B3-1,3116 South Pulaski Road,PO2009-2102,FALSE,
+2009_04_22_VI_VII_VIII.pdf,49,3,applicant,"Del Prado, L.L.C.",,16859,12-C,B1-5,B3-5,5301 South Hyde Park Boulevard/1703 East 53rd Street,PO2009-2104,FALSE,
+2009_04_22_VI_VII_VIII.pdf,49,4,applicant,"Eirpol, L.L.C.",,16854,7-G,RT3.5,RT4,1430 West Diversey Avenue,PO2009-2097,FALSE,
+2009_04_22_VI_VII_VIII.pdf,49,5,applicant,"Evergreen Real Estate Services, L.L.C.",,16851,10-L,C2-1;B1-1,PD,5120 and 5134 -- 5152 West 47th Street,PO2009-2109,FALSE,"two-clause amendment; intermediate RM5.5 (created by clause 1, then reclassified by clause 2) omitted per instructions; final to-district printed as 'Residential Planned Development' with no number given"
+2009_04_22_VI_VII_VIII.pdf,50,1,applicant,Mark Gizynki (a.k.a. Marek Gizynski) in care of Marino & Associates P.C.,,16869,9-L,C1-1,C1-2,4938 -- 4944 West Belmont Avenue,PO2009-2119,FALSE,
+2009_04_22_VI_VII_VIII.pdf,50,2,applicant,Vince Kalamaras,,16871,1-H,RS3,B1-2,1959 West Erie Street,PO2009-2117,FALSE,
+2009_04_22_VI_VII_VIII.pdf,50,3,applicant,Roberto Maldonado,,16870,5-J,M1-1,RM4.5,1755 -- 1757 North Monticello Avenue/1754 -- 1758 North Central Park Avenue,PO2009-2118,FALSE,
+2009_04_22_VI_VII_VIII.pdf,50,4,applicant,John Puskarz,,16847,5-M,RS3,RT4,2307 North Austin Avenue,PO2009-2091,FALSE,
+2009_04_22_VI_VII_VIII.pdf,50,5,applicant,"Roslea Builders, Inc.",,16864,11-J,RT4,RS3,3348 and 3352 West Warner Avenue,PO2009-2107,FALSE,
+2009_05_13_VI_VII_VIII.pdf,42,1,applicant,"Toyoko Inn Chicago, L.L.C., in care of Toyoko Inn Development Co. Ltd.",,16882,2-F,DX7,PD,320 South Clinton Street,PO2009-3488,FALSE,"two-clause amendment; intermediate DX12 (created by clause 1, then reclassified by clause 2) omitted per instructions; final to-district printed as 'Business Planned Development' with no number given"
+2009_05_13_VI_VII_VIII.pdf,42,2,applicant,"WMS Gaming, Inc.",,16891,9-I,M2-2,PD,3401 North California Avenue,PO2009-3480,FALSE,to-district printed as 'Industrial Planned Development Number _____' with a blank/underscore where a number would appear; map letter read as I (not 1 or L)
+2009_05_13_VI_VII_VIII.pdf,42,3,applicant,1311 -- 1313 North Wood Street Condominium Association,,16890,3-H,C1-2,RM4.5,1311 -- 1313 North Wood Street,PO2009-3479,FALSE,
+2009_05_13_VI_VII_VIII.pdf,42,4,applicant,"2101 West Pershing, L.L.C.",,16889,10-H,PD 934,"PD 934, as amended",2055 -- 2101 West Pershing Road,PO2009-3476,TRUE,"entry finishes on next page (p43); two clauses form a round trip: from PD 934 to B2-3 (clause 1), then that same B2-3 back to PD 934 as amended (clause 2, 'also, to classify as...'); intermediate B2-3 omitted per instructions"
+2009_10_07_VI_VII.pdf,38,1,applicant,Beth Eden Baptist Church,,16969,28-G,RS2;B1-1,RM5,"11121 South Loomis Street, 1345 -- 1353 West 111th Street and 1348 West 111th Place",PO2009-6656,FALSE,from-district printed as 'RS2 Residential Single-Unit (Detached House)/B1-1 Neighborhood Shopping District'
+2009_10_07_VI_VII.pdf,38,2,applicant,"Domnick and Kathleen Boyle, in care of Law Offices of Samuel V.P. Banks",,16961,9-J,RS3,RM5,3441 West Waveland Avenue,PO2009-6652,FALSE,
+2009_10_07_VI_VII.pdf,38,3,applicant,E.R. Ambulance Inc.,,16959,18-B,C1-2,C2-2,7355 South Exchange Avenue,PO2009-6650,FALSE,
+2009_11_18__VI_VII_VIII_IV.pdf,3882,1,alderman,Alderman O'Connor,40,,13-H,RS3,RT4,,PO2009-7835,FALSE,no common address printed
+2009_11_18__VI_VII_VIII_IV.pdf,3882,2,alderman,Alderman Daley,43,,5-F,B1-3,RM4.5,,PO2009-7834,FALSE,no common address printed
+2009_11_18__VI_VII_VIII_IV.pdf,3882,3,alderman,Alderman Shiller,46,,11-G,C1-2;C2-2,B3-2,,PO2009-7192,FALSE,no common address printed
+2009_11_18__VI_VII_VIII_IV.pdf,3882,4,alderman,Alderman Shiller,46,,13-G,C1-2,B3-2,,PO2009-7193,FALSE,"no common address printed; from-district text reads 'C1-2 Restricted Retail District', a different subtype label than the 'C1-2 Neighborhood Commercial District' used in order 3 above, though both coded C1-2"
+110800.pdf,20,1,applicant,"Gateway Park, L.L.C., by its attorneys Polsky & Associates, Ltd.",,,18-I,1957:M1-1;1957:M2-2,PD;1957:M2-5,,,FALSE,Manufacturing Planned Development with underlying M2-5 zoning; no PD number printed
+110800.pdf,20,2,applicant,"T & G Inc., in care of Mr. James J. Banks",,,2-L,1957:M1-2,1957:C2-2,,,TRUE,
+2000_02_16_VI_VII.pdf,58,1,applicant,"Mr. Victor Jakoljevic, in care of Gordon and Pikarski",,,5-N,1957:B2-1,1957:C1-3,,,FALSE,
+2000_02_16_VI_VII.pdf,58,2,applicant,Lincoln Park Savings Bank,,,9-H,1957:B2-1,1957:B4-1,,,FALSE,
+2000_02_16_VI_VII.pdf,58,3,applicant,Mr. Madjid Bahary,,,6-K,1957:C1-2,1957:C2-2,,,FALSE,
+2000_03_15_VI_VII.pdf,1825,1,alderman,Chandler,24,,4-J,1957:R4,1957:R5,,,FALSE,
+2000_03_15_VI_VII.pdf,1825,2,alderman,Ocasio,26,,3-J,1957:R4,1957:C1-2,,,FALSE,first of two separate Ocasio amendments on this page
+2000_03_15_VI_VII.pdf,1825,3,alderman,Ocasio,26,,5-I,1957:R3,1957:R4,,,FALSE,second Ocasio amendment on this page
+2000_03_15_VI_VII.pdf,1825,4,alderman,Burnett,27,,3-F,1957:B4-4,1957:B4-2,,,FALSE,
+2000_05_17_VI_VII_VIII.pdf,3623,1,alderman,Ocasio,26,,3-J,1957:R5,1957:R4,,,FALSE,"first of three separate Ocasio amendments on this page, all Map 3-J"
+2000_05_17_VI_VII_VIII.pdf,3623,2,alderman,Ocasio,26,,3-J,1957:R4;1957:R5,1957:R3,,,FALSE,second Ocasio amendment on this page
+2000_05_17_VI_VII_VIII.pdf,3623,3,alderman,Ocasio,26,,3-J,1957:R5,1957:R4,,,FALSE,third Ocasio amendment on this page; distinct boundary from order 1
+090501.pdf,56,1,applicant,Dubin Residential,,,13-J,1957:B4-2,1957:R4,,,FALSE,
+090501.pdf,56,2,applicant,F. T. Motors Partnership,,,14-G,1957:C1-2,1957:C2-2,,,FALSE,
+090501.pdf,56,3,applicant,Mr. Taisir Farhan,,,1-I,1957:R4,1957:C1-2,,,FALSE,dash before 'to classify' printed as a single en dash (–) rather than --
+090501.pdf,56,4,applicant,Mr. Cyril Forde,,,3-G,1957:B4-2,1957:B4-3,,,FALSE,
+090501.pdf,56,5,applicant,"Illinois Department of Transportation and Home Depot U.S.A., Inc.",,,11-N,1957:R2,PD,,,TRUE,Institutional-Business Planned Development number left blank in original; metes-and-bounds description entirely on next page
+2001_02_07_VI_VII.pdf,41,1,applicant,"Mr. David Chavez, in care of Mr. James J. Banks",,,24-A,1957:C1-1;1957:R3,1957:C2-1,,,FALSE,
+2001_02_07_VI_VII.pdf,41,2,applicant,Chicago Food Corporation,,,15-K,1957:M2-1,PD,,,FALSE,Commercial Planned Development; no PD number printed
+2001_02_07_VI_VII.pdf,41,3,applicant,Chicago Park District,,,4-E,1957:R7,PD,,,TRUE,Institutional Planned Development number left blank in original
+2001_06_27_VI_VII.pdf,50,1,applicant,"Ballox Construction, L.L.C., in care of Mr. James J. Banks",,,7-J,1957:B3-3,1957:R5,,,FALSE,
+2001_06_27_VI_VII.pdf,50,2,applicant,"Mr. Chester Borsuk, in care of Mr. James J. Banks",,,22-B,1957:B4-1,1957:C2-1,,,FALSE,
+2001_06_27_VI_VII.pdf,50,3,applicant,Mr. Renato J. Casali,,,7-N,1957:B4-1,1957:R4,,,FALSE,
+2001_06_27_VI_VII.pdf,50,4,applicant,"Mr. Victor Dziekiewicz, in care of Mr. James J. Banks",,,1-G,1957:M1-2,1957:B2-2,,,FALSE,
+2001_10_31_VI_VII.pdf,2826,1,alderman,Tillman,3,,10-E,1957:B4-2,1957:R5,,,TRUE,
+020602.pdf,39,1,applicant,Mr. Edward Novak,,,1-J,1957:B4-3;1957:R5;1957:R4;1957:C1-2,PD,,,FALSE,"second clause says ""instead of a B4-1 General Residence District"" though the first clause created B4-1 as a Restricted Service District, not a Residence district -- apparent inconsistency in the original text"
+020602.pdf,39,2,applicant,"Ms. Lisa Scott, in care of Gordon & Pikarski",,,5-G,1957:R4,1957:B2-2,,,FALSE,
+020602.pdf,39,3,applicant,"Mr. Ronald Zavesky, Jr.",,,32-A,1957:R2,1957:R3,,,FALSE,
+020602.pdf,39,4,applicant,"740 Fulton, L.L.C.",,,1-F; 1-G,PD 643;1957:C3-5,PD 643,,,TRUE,PD 643 as amended supersedes both the original PD 643 and the C3-5 parcel; bounded-by text runs onto next page
+022702.pdf,48,1,applicant,KFC of America,,,18-H,1957:B2-1,1957:B4-1,,,FALSE,
+022702.pdf,48,2,applicant,Mr. Paul Kulas,,,9-I,1957:C1-1,1957:C1-2,,,FALSE,
+022702.pdf,48,3,applicant,Ms. Elvira Mancuso and Mr. Fernando Pineda,,,12-M,1957:R2,1957:R3,,,FALSE,
+022702.pdf,48,4,applicant,"Ms. Angel Marquez, in care of Mr. James J. Banks",,,7-H,1957:R3,1957:R5,,,FALSE,
+022702.pdf,48,5,applicant,"New Chicago Partners, L.L.C",,,5-H,1957:B3-3,1957:B2-3,,,FALSE,
+2002_06_19_VI_VII.pdf,51,1,applicant,Pasta Acquisition Corporation,,,3-H,1957:R3;1957:C1-2,1957:B4-3,,,FALSE,
+2002_06_19_VI_VII.pdf,51,2,applicant,"Mr. Enrico Plati, in care of Mr. James J. Banks",,,5-I,1957:B4-1,1957:R6,,,FALSE,
+2002_06_19_VI_VII.pdf,51,3,applicant,"Saint Anthony's Hospital, in care of Mr. James J. Banks",,,4-I,1957:M1-2;PD 189,PD 189,,,FALSE,"second clause reclassifies the area back to Institutional Planned Development Number 189 only, dropping the R5 created by the first clause; PD 189 itself is unchanged from start to finish"
+2002_06_19_VI_VII.pdf,51,4,applicant,Senior Lifestyle Corporation,,,1-J,1957:R4,PD,,,TRUE,second clause converts the R5 created by the first clause into an unnumbered Residential Planned Development; bounded-by text runs onto next page
+2002_12_04_VI_VII.pdf,2391,1,alderman,Alderman Granato,1,,3-H,1957:R3,1957:R4,,,FALSE,"Granato's second amendment; heading on the preceding page (BY ALDERMAN GRANATO (1st Ward)), read in adjudication from p2390"
+2002_12_04_VI_VII.pdf,2391,2,alderman,Alderman Preckwinkle,4,,10-D,PD 838,PD 838,,,FALSE,one amendment covering three parcels; PD 838 reclassified to its own amended version
+2002_12_04_VI_VII.pdf,2391,3,alderman,Alderman Beavers,7,,20-B,1957:B4-2,1957:B1-1,,,FALSE,
+2003_05_07_VI_VII.pdf,74,1,applicant,Mr. Ray Anderson,,,18-I,1957:R2,1957:B2-1,,,FALSE,
+2003_05_07_VI_VII.pdf,76,1,applicant,"Grand Street Gardens, L.L.C.",,,1-H,1957:B2-2,1957:C2-2,,,FALSE,
+2003_05_07_VI_VII.pdf,76,2,applicant,Mr. Douglas Greer,,,14-E,1957:B2-2,1957:C1-2,,,FALSE,
+2003_05_07_VI_VII.pdf,76,3,applicant,Mr. Jim Jann,,,7-G,1957:M1-2,1957:R4,,,FALSE,
+2003_05_07_VI_VII.pdf,76,4,applicant,"Joey Buona's Pizzeria Grille-Chicago, L.L.C.",,,1-E,1957:B6-7,1957:B7-6,,,FALSE,
+2003_05_07_VI_VII.pdf,76,5,applicant,Mr. Yong W. Kim,,,15-I,1957:B4-2,1957:B4-3,,,FALSE,
+2003_06_04_VI_VII.pdf,65,1,applicant,"Mr. Ernest Diaz, in care of Gordon & Pikarski",,,7-N,1957:R3,1957:B4-2,,,FALSE,
+2003_06_04_VI_VII.pdf,65,2,applicant,Mr. Thomas M. Fencl,,,11-H,1957:B2-2,1957:B5-2,,,FALSE,
+2003_06_04_VI_VII.pdf,65,3,applicant,"Ms. Anita Goyal, in care of Gordon & Pikarski",,,7-G,1957:B4-1,1957:B4-2,,,FALSE,
+2003_06_04_VI_VII.pdf,65,4,applicant,"Kerlow Residential Development, Inc.",,,9-G,1957:M1-2,1957:R4,,,FALSE,
+2003_06_04_VI_VII.pdf,65,5,applicant,Mr. Julio Jimenez,,,6-J,1957:R3,1957:B4-1,,,FALSE,
+2003_06_04_VI_VII.pdf,1401,1,alderman,Alderman Murphy,18,,16-I,1957:R1,PD,,,FALSE,"Institutional Planned Development is unnumbered in the printed text; content on the following page (p1402) belongs to a new alderman heading, so this entry does not continue"
+021104.pdf,48,1,applicant,"Mr. Thomas Romano, in care of Mr. James J. Banks",,,7-G,1957:B4-2,1957:R6,,,FALSE,
+021104.pdf,48,2,applicant,Mr. Steven J. Scesnewicz,,,12-L,1957:R3,1957:R4,,,FALSE,
+021104.pdf,48,3,applicant,Reverend Raymond Tillrock,,,24-H,1957:R1,1957:R4,,,FALSE,
+021104.pdf,48,4,applicant,"Mr. Noel Torres, in care of the law office of Samuel V.P. Banks",,,3-J,1957:R3;1957:B4-1,1957:B4-2,,,FALSE,
+021104.pdf,48,5,applicant,"Mr. Peter Vitogiannis, in care of Mr. James J. Banks",,,28-H,1957:R2,1957:R3,,,TRUE,
+2004_05_26_VI_VII_ADD.pdf,54,1,applicant,Rogers Park Montessori School,,,13-H,1957:M1-1,PD,,,FALSE,"two clauses: first to 1957:C1-2, then that area to an Institutional Planned Development (PD, no number printed)"
+2004_05_26_VI_VII_ADD.pdf,54,2,applicant,"Senco Properties, Inc., in care of Mr. James J. Banks",,,5-I,1957:B4-1;1957:C1-1,1957:R4,,,FALSE,
+2004_05_26_VI_VII_ADD.pdf,54,3,applicant,"Solo Development Group III, L.L.C.",,,8-H,1957:R3,1957:R4,,,FALSE,
+2004_05_26_VI_VII_ADD.pdf,54,4,applicant,"V-Land Chicago Canal, L.L.C.",,,2-F,1957:M2-5,1957:B4-2,,,FALSE,
+2004_06_23_VI_VII.pdf,40,1,applicant,"Bilent and Saden Amedoski, in care of the Law Office of Samuel V.P. Banks",,,5-N,1957:B3-1,1957:B4-1,,,FALSE,
+2004_06_23_VI_VII.pdf,40,2,applicant,"Mr. Jimmy Banys, in care of Gordon & Pikarski",,,3-G,1957:R4,1957:R5,,,FALSE,
+2004_06_23_VI_VII.pdf,40,3,applicant,"Mr. Cameron Benninghoven/Benninghoven Interests, L.L.C.",,,5-G,1957:R4,1957:B2-4,,,TRUE,
+2004_09_01_VI_VII.pdf,49,1,applicant,Mr. Richard Harris and 2058 Cleveland L.L.C.,,,5-F,1957:B4-2,1957:B4-3,,,FALSE,"printed as ""Restricted Business District"" for B4, not the usual ""Restricted Service District"" name; coded as 1957 B4 since B4 only exists in the 1957 ordinance"
+2004_09_01_VI_VII.pdf,49,2,applicant,The Holy Order of Cherubim and Seraphim Church Movement of America,,,18-G,1957:M1-2,1957:R4,,,FALSE,
+2005_03_09_VI_VII.pdf,53,1,applicant,"Mr. Peter Svoboda, in care of Marino & Associates",,,9-N,RS2,RT3.5,,,FALSE,
+2005_03_09_VI_VII.pdf,53,2,applicant,Mr. Joseph Swiatek,,,15-N,B1-1,B2-2,,,FALSE,
+2005_03_09_VI_VII.pdf,53,3,applicant,Mr. Antonis Vassilou,,,16-L,B1-1,C2-1,,,FALSE,"a second, separate Vassilou application for the same Map Number 16-L (RT4 from C2-1) begins on the next page and is not recorded here"
+2005_10_06_VI_VII.pdf,46,1,applicant,Alef Park Property L.L.C.,,,17-G,B3-3,B2-5,,,FALSE,
+2005_10_06_VI_VII.pdf,46,2,applicant,"Angela Enterprises, Incorporated, in care of Commercial Partners Realty, Inc.",,,11-I,B3-1,B3-3,,,FALSE,
+2005_10_06_VI_VII.pdf,46,3,applicant,Belmont 2003 L.L.C. and Belmont 2005 L.L.C.,,,9-H,C1-1,C1-3,,,FALSE,
+2005_10_06_VI_VII.pdf,46,4,applicant,"Berkshire-West 87th Street, L.L.C.",,,22-F,M2-2,PD,,,FALSE,"two clauses: first to B3-1, then that area to a Business Planned Development (PD, no number printed); printed names (""Business District"" for B3, ""Medium Density Light Industrial District"" for M2) differ from the standard 2004 names but M2/B3 codes are always written as 2004 codes after 11/1/2004"
+2005_10_06_VI_VII.pdf,46,5,applicant,"Mr. Joseph Betancourt, in care of Mr. James J. Banks",,,8-H,RT4,RM4.5,,,FALSE,
+2005_10_06_VI_VII.pdf,2280,1,alderman,Alderman Stone,50,,15-I,RS3,RT4,,,FALSE,
+2005_12_07_VI_VII_VIII.pdf,25,1,applicant,"Mr. Dale Mark, in care of Gordon & Pikarski",,,13-P,M1-2,RS3,,,FALSE,
+2005_12_07_VI_VII_VIII.pdf,25,2,applicant,"Paul Moor, L.L.C.",,,3-H,B3-2,B2-3,,,FALSE,
+2005_12_07_VI_VII_VIII.pdf,25,3,applicant,Lezly Reeves-Rivers,,,28-F,RS3,RT3.5,,,FALSE,
+2005_12_07_VI_VII_VIII.pdf,25,4,applicant,The Lyric Opera House of Chicago,,,22-G,M1-1,M2-1,,,FALSE,
+2006_04_26_VI_VII.pdf,1414,1,alderman,Alderman Tunney,44,,7-F,B3-2,RM5,,,FALSE,
+2006_04_26_VI_VII.pdf,1414,2,alderman,Alderman Levar,45,,11-L,B1-2,RS2,,,FALSE,
+2006_04_26_VI_VII.pdf,1414,3,alderman,Alderman Shiller,46,,11-G,B3-3,POS-2,,,FALSE,POS-2 'Parks and Open Space' district name is not in the given 1957/2004 naming key; coded as printed (no prefix) based on the post-2004 page date.
+2006_04_26_VI_VII.pdf,1414,4,alderman,Alderman Moore,49,,17-H,RS3,RS2,,,TRUE,"Boundary description runs onto next page image p1415 and ends there (period) before a new unheaded 'To classify' paragraph begins, which is out of scope for this page."
+2006_05_24_VI_VII.pdf,53,1,applicant,"Allpoints Security and Detective, Inc.",,,16-E,RS3,B3-3,,,FALSE,
+2006_07_26_VI_VII.pdf,70,1,applicant,"2425 West Homer, L.L.C., in care of Mr. Frederick E. Agustin",,,5-I,RS3,RT4,,,FALSE,
+2006_07_26_VI_VII.pdf,70,2,applicant,"2444 West Diversey, L.L.C., in care of Mr. Samuel V.P. Banks",,,7-I,RS3,B2-3,,,FALSE,
+2006_07_26_VI_VII.pdf,70,3,applicant,2639 -- 2641 North Ashland L.L.C.,,,7-G,M1-2,B2-3,,,FALSE,"Printed name for the from-district is the generic 'M1-2 Manufacturing District', not an exact match to either ordinance's official name; M1 is a code shared by both ordinances, so per the post-2004 shared-code rule it is coded as 2004 M1-2 regardless of the name."
+2006_07_26_VI_VII.pdf,70,4,applicant,"4343 South Pulaski II L.L.C., in care of Ms. Sylvia C. Michas, Law Offices of Mr. Samuel V.P. Banks",,,10-J,M2-2,C2-3,,,FALSE,
+2006_10_04_VI_VII_VIII.pdf,42,1,applicant,"Mr. Cesar Munoz, in care of Law Offices of Mr. Samuel V.P. Banks",,,5-I,RS3,RT3.5,,,FALSE,
+2006_10_04_VI_VII_VIII.pdf,42,2,applicant,Mr. Rusty Payton,,,15-G,RT3.5,RT4,,,FALSE,
+2006_10_04_VI_VII_VIII.pdf,42,3,applicant,Poothakallil Garbriel,,,5-I,B3-2,B3-3,,,FALSE,"Name printed exactly as 'Garbriel' (unusual spelling, possibly meant to be Gabriel)."
+2006_10_04_VI_VII_VIII.pdf,42,4,applicant,Mr. Joseph Pusateri and Mr. William Houlihan,,,6-G,RS3,RT4,,,FALSE,
+2006_10_04_VI_VII_VIII.pdf,42,5,applicant,Mr. Joel Raedeke,,,11-G,RS3,RT4,,,FALSE,
+2007_03_14_VI_VII_VIII.pdf,45,1,applicant,"Elston Avenue Properties L.L.C., in care of Ms. Sylvia C. Michas",,,7-H,RS3;M1-3,C1-1,,,FALSE,
+2007_03_14_VI_VII_VIII.pdf,45,2,applicant,F.B.G. Corporation,,,1-M,C1-2,B2-2,,,FALSE,
+2007_03_14_VI_VII_VIII.pdf,45,3,applicant,"Felicitas Bonilla, in care of Mr. Mark J. Kupiec",,,8-K,RS3,B3-1,,,FALSE,
+2007_03_14_VI_VII_VIII.pdf,45,4,applicant,"Mr. Alan Gold, in care of Mr. Mark J. Kupiec",,,3-G,RS3,B2-2,,,FALSE,
+2007_03_14_VI_VII_VIII.pdf,45,5,applicant,"Homes of Monticello, L.L.C.",,,7-J,RS3,RT4,,,TRUE,"Boundary description runs onto next page image p46 and ends there (period) before the 'K.C. Custom Builders, Inc.' entry begins."
+2007_03_14_VI_VII_VIII.pdf,50,1,applicant,"Natchez-Galewood, L.L.C., in care of the Law Offices of Mr. Samuel V. P. Banks",,,5-N,M2-2,PD,,,FALSE,"Two clauses: first to RT4 (from M2-2), second to a Residential Planned Development (number left blank/printed as a blank line) from RT4. Per instructions, RT4 is created by the first clause and changed again by the second, so it is omitted from both from_districts and to_districts; to_districts is PD with no number since none is printed. Printed from-district name 'Limited Manufacturing' does not match either ordinance's official name for M2; M2 is a shared code, so per the post-2004 rule it is coded as 2004 M2-2 regardless of the name."
+2007_03_14_VI_VII_VIII.pdf,50,2,applicant,"Province, L.L.C., in care of Law Offices of Mr. Samuel V. P. Banks",,,3-H,B1-2,B2-3,,,FALSE,
+2007_03_14_VI_VII_VIII.pdf,56,1,applicant,2323 Janssen L.L.C.,,,5-G,RS3,RT4,,,FALSE,
+2007_03_14_VI_VII_VIII.pdf,56,2,applicant,"2508 -- 2512 West Diversey, L.L.C.",,,7-I,RS3,B2-3,,,FALSE,
+2007_03_14_VI_VII_VIII.pdf,56,3,applicant,2720 West Van Buren GP,,,2-I,M1-3,RM5,,,FALSE,
+2007_03_14_VI_VII_VIII.pdf,56,4,applicant,"4410 North Whipple, L.L.C., in care of Ms. Sylvia C. Michas, Law Offices of Mr. Samuel V. P. Banks",,,11-I,B3-2,B2-3,,,FALSE,
+2007_03_14_VI_VII_VIII.pdf,56,5,applicant,"4504 Irving Park, L.L.C.",,,11-K,C1-1,C1-2,,,FALSE,
+2007_10_31_VI_VII.pdf,1578,1,alderman,Alderman Waguespack,32,,7-G,M1-2,RT4,,,FALSE,"heading on the preceding page (BY ALDERMAN WAGUESPACK (32nd Ward)), read in adjudication from p1577"
+2007_10_31_VI_VII.pdf,1578,2,alderman,Alderman Waguespack,32,,5-H,RS3,RT3.5,,,FALSE,"heading on the preceding page (BY ALDERMAN WAGUESPACK (32nd Ward)), read in adjudication from p1577"
+2007_10_31_VI_VII.pdf,1578,3,alderman,Alderman Waguespack,32,,5-H,RT3.5,RS3,,,FALSE,"heading on the preceding page (BY ALDERMAN WAGUESPACK (32nd Ward)), read in adjudication from p1577"
+2007_10_31_VI_VII.pdf,1578,4,alderman,Alderman Banks,36,,1-F,PD 445,DC-16,,,FALSE,
+2007_10_31_VI_VII.pdf,1578,5,alderman,Alderman Banks,36,,7-G,PD 445,DX-16,,,TRUE,Boundary description runs onto next page image p1579 and ends there (period) before the 'By Alderman Shiller' heading begins.

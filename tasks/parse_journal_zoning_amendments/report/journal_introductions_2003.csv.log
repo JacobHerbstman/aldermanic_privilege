@@ -1,0 +1,31 @@
+File: journal_introductions_2003.csv
+Rows: 650
+Columns: 21
+SHA-256 (saved bytes): 191ee52821771d92a520cc76a8949376e35cd1542ee88ac6cdf79a8244c4a340
+Key: file, position
+Types: DuckDB inference from the complete saved CSV.
+Distinct counts: exact (exact up to 100,000 rows).
+Row counts, non-missing counts, and declared-key checks: exact.
+
+            column inferred_type non_missing distinct   min     max               mean                 sd
+      meeting_date          DATE         650       14     -       -                  -                  -
+              file       VARCHAR         650       14     -       -                  -                  -
+          position        BIGINT         650      650 23761 3774839 1516817.6723076922  1397444.181263767
+              page        BIGINT         650      134    17    1931  847.3846153846154  764.2765755224865
+      journal_page        BIGINT         650      175   101  107244  34675.57692307692  43904.46045639457
+       text_source       VARCHAR         650        1     -       -                  -                  -
+             filer       VARCHAR         650        2     -       -                  -                  -
+              name       VARCHAR         641      322     -       -                  -                  -
+              ward        BIGINT         341       45     1      50 27.686217008797655   14.5948646508386
+application_number       VARCHAR           0        0     -       -                  -                  -
+    entry_complete       BOOLEAN         650        2     -       -                  -                  -
+             steps        BIGINT         650        4     1       7  1.083076923076923 0.4218855725105104
+         from_text       VARCHAR         646      192     -       -                  -                  -
+           to_text       VARCHAR         646      132     -       -                  -                  -
+        map_number       VARCHAR         637      159     -       -                  -                  -
+          boundary       VARCHAR         645      643     -       -                  -                  -
+    common_address       VARCHAR           0        0     -       -                  -                  -
+     record_number       VARCHAR           0        0     -       -                  -                  -
+    from_districts       VARCHAR         643      103     -       -                  -                  -
+      to_districts       VARCHAR         643       49     -       -                  -                  -
+        entry_text       VARCHAR         650      649     -       -                  -                  -

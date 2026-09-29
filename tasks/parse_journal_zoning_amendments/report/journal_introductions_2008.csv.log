@@ -1,0 +1,31 @@
+File: journal_introductions_2008.csv
+Rows: 443
+Columns: 21
+SHA-256 (saved bytes): 99d452ee9dd2dfcc23d99b61db915c248c1682999eaf6fff8eb57066c8e0ecea
+Key: file, position
+Types: DuckDB inference from the complete saved CSV.
+Distinct counts: exact (exact up to 100,000 rows).
+Row counts, non-missing counts, and declared-key checks: exact.
+
+            column inferred_type non_missing distinct   min     max               mean                 sd
+      meeting_date          DATE         443       14     -       -                  -                  -
+              file       VARCHAR         443       14     -       -                  -                  -
+          position        BIGINT         443      443 25891 9281444 1299583.2257336343 1898706.2066063662
+              page        BIGINT         443       77    15    4617  717.1670428893905  1035.920909338442
+      journal_page        BIGINT         443      119 18148   51983 30494.995485327312  9234.650868611014
+       text_source       VARCHAR         443        1     -       -                  -                  -
+             filer       VARCHAR         443        2     -       -                  -                  -
+              name       VARCHAR         443      336     -       -                  -                  -
+              ward        BIGINT         138       39     1      50  24.28985507246377 15.028538738719025
+application_number       VARCHAR           0        0     -       -                  -                  -
+    entry_complete       BOOLEAN         443        2     -       -                  -                  -
+             steps        BIGINT         443        3     1       3 1.0835214446952597 0.2928627098945458
+         from_text       VARCHAR         443      171     -       -                  -                  -
+           to_text       VARCHAR         443      144     -       -                  -                  -
+        map_number       VARCHAR         441      139     -       -                  -                  -
+          boundary       VARCHAR         440      439     -       -                  -                  -
+    common_address       VARCHAR         159      158     -       -                  -                  -
+     record_number       VARCHAR          23       23     -       -                  -                  -
+    from_districts       VARCHAR         440       77     -       -                  -                  -
+      to_districts       VARCHAR         437       48     -       -                  -                  -
+        entry_text       VARCHAR         443      443     -       -                  -                  -
