@@ -193,7 +193,10 @@ page_at <- function(file_name, position) {
 # every clause not changed by a later one. OCR misreads "instead of" as "instead ef" and "shown" as "shewn" or "showri",
 # and sets stray marks inside "to classify as" ("to 'classify as", "to classify. as").
 # Address ranges are written with a hyphen ("3206 - 3208"), which OCR also reads as two. The boundary is the first
-# clause's, up to its common address, record number or the next clause.
+# clause's, from "bounded by:" (also printed "bound by", "bounded", "bounded:" or "bounded © by:"; failing any, from
+# "as follows:" or "described as:") up to its common address, record number or the next clause.
+boundary_end <- paste0("(.*?)(?:", common_address_label, "|also,|", record_label,
+  "|[,;]?\\s*(?:and\\s+)?(?:further,?\\s*)?", classify_clause, "|$)")
 clause_fields <- function(entry, meeting_date) {
   entry <- str_squish(entry)
   clauses <- str_split(entry, regex(classify_clause, ignore_case = TRUE))[[1]][-1]
@@ -210,8 +213,10 @@ clause_fields <- function(entry, meeting_date) {
     from_text = paste(from_text, collapse = " | "),
     to_text = paste(to_text, collapse = " | "),
     map_number = map_sheet(str_match(entry, regex(map_label, ignore_case = TRUE))[, 2]),
-    boundary = str_match(entry, regex(paste0("bounded by:?(.*?)(?:", common_address_label, "|also,|", record_label,
-      "|[,;]?\\s*(?:and\\s+)?(?:further,?\\s*)?", classify_clause, "|$)"), ignore_case = TRUE))[, 2],
+    boundary = coalesce(
+      str_match(entry, regex(paste0("\\bbound(?:ed)?\\b[^A-Za-z0-9]{0,4}(?:by\\b)?\\s*:?", boundary_end),
+        ignore_case = TRUE))[, 2],
+      str_match(entry, regex(paste0("\\b(?:as follows|described as)\\s*:", boundary_end), ignore_case = TRUE))[, 2]),
     common_address = str_replace_all(str_match(entry, regex(paste0(common_address_label,
       "\\s*(.*?)(?:\\)[^\\[{)]{0,16}(?:[\\[{]|$)|\\.?\\s*[\\[{])"), ignore_case = TRUE))[, 2],
       "\\s*(?:-{2,}|[\u2013\u2014])\\s*|\\s+-\\s+", " - "),

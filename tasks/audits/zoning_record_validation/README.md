@@ -99,20 +99,20 @@ eLMS itself lacks the City's zoning amendments before November 2010.
 ## 5. Links between ordinances and introductions (`check_journal_links.R`, `check_outcomes_against_elms.R`)
 
 The links of `tasks/link_journal_zoning_outcomes`, checked three ways. Of 515 ordinances linked by record or
-application number (all from 2009 on), the best boundary candidate is the same introduction for 489 and another for 7:
+application number (all from 2009 on), the best boundary candidate is the same introduction for 490 and another for 7:
 two where the Journal printed the record numbers of two aldermen's amendments of one meeting the other way round, two
 where one amendment was introduced twice and the boundary rule takes the later introduction, and three where the same
 site had been introduced years before (in 2001, 2005 and 2006) and the boundary rule takes the earlier introduction;
-19 have no boundary candidate. Applications are numbered at filing, and each meeting's take the next run of numbers,
+18 have no boundary candidate. Applications are numbered at filing, and each meeting's take the next run of numbers,
 so a linked application's number should lie between the median numbers of the meetings before and after its
-introduction's: 3,610 of 3,646 do. 16 of the other 36 lie around the meeting of November 12, 2003, which introduced a
+introduction's: 3,630 of 3,666 do. 16 of the other 36 lie around the meeting of November 12, 2003, which introduced a
 single numbered application, and most others are sites introduced twice and linked to the earlier introduction or
-misread numbers. Aldermen's "A-" numbers are less strictly ordered; 54 of 1,632 lie out of order. Against eLMS, the
+misread numbers. Aldermen's "A-" numbers are less strictly ordered; 56 of 1,638 lie out of order. Against eLMS, the
 outcomes as of December 14, 2011 of the 377 introductions of November 2010 through 2011 matched by record number agree
 for 375, and the dates for 268 of 275 decided (eLMS dates five substitutes a day later and two withdrawals at the
-committee); the two disagreements are an aldermen's amendment introduced directly in November 2011 (A-7742) and
-linked to an introduction of the same site in May 2011, and an application that passed under a new record number,
-which eLMS keeps as a separate matter.
+committee); the two disagreements are an aldermen's amendment introduced directly in November 2011 (A-7742) and linked
+to an introduction of the same site in May 2011, and an application that passed under a new record number, which eLMS
+keeps as a separate matter.
 
 While the linking rules were written, a run with every introduction's printed application and record number hidden
 linked 421 of the 433 applicants' ordinances whose introductions the printed numbers identify, all correctly, and
@@ -123,12 +123,12 @@ left the other 12 unlinked; the rules were not changed after it.
 The City's zoning map, as in force now and in November 2012 (`tasks/download_chicago_gis_layers`), records for each
 district set since about 2002 the application number and passage date of the amendment that set it. A passed Journal
 ordinance whose number matches a district passed within 3 days of its meeting, in a class the ordinance creates, has
-that district as its parcel: 1,719 ordinances whose introductions are placed, 91 of them before 2005. The class must
+that district as its parcel: 1,763 ordinances whose introductions are placed, 92 of them before 2005. The class must
 agree because the map files the odd district under another amendment's number (map number 16849 of June 30, 2009 is a
 B3-5 district in the 5th Ward; the Journal's ordinance 16849 of that day rezones a parcel on map sheet 11-G to RT-4).
-The point placed from the boundary is inside the parcel for 1,232, within 100 feet for 1,593 and within 473 feet for
-99 percent; 3 are farther than 1,500 feet. The placed ward, on the ward map in force at introduction, is the parcel's
-for 1,474 of the 1,478 parcels in one ward and for 217 of the 236 that span two.
+The placed point is inside the parcel for 1,261, within 100 feet for 1,633 and within 469 feet for 99 percent; 3 are
+farther than 1,500 feet. The placed ward, on the ward map in force at introduction, is the parcel's for 1,516 of the
+1,520 parcels in one ward and for 218 of the 237 that span two.
 
 While the placement was written, it was also compared with the common addresses the Journals print from July 2008,
 geocoded from the centerlines' address ranges: the median distance was 126 feet, but a geocoded address lies on the

@@ -1,7 +1,7 @@
 File: journal_link_checks.csv
 Rows: 5806
 Columns: 14
-SHA-256 (saved bytes): 1c9663dbd53010884093ffcc5d61e0d26fec23483a25f0d4882f0d49c28f6ba9
+SHA-256 (saved bytes): 192692e19f8c114de58231a96565881de9c5a4e9d888329f605acc4b5152278e
 Key: ordinance
 Types: DuckDB inference from the complete saved CSV.
 Distinct counts: exact (exact up to 100,000 rows).
@@ -13,12 +13,12 @@ Row counts, non-missing counts, and declared-key checks: exact.
                action       VARCHAR        5806        5      -       -                  -                   -
            link_basis       VARCHAR        5806        5      -       -                  -                   -
    application_number       VARCHAR        5787     5739      -       -                  -                   -
-         introduction       VARCHAR        5320     5292      -       -                  -                   -
-    introduction_date          DATE        5320      167      -       -                  -                   -
+         introduction       VARCHAR        5346     5318      -       -                  -                   -
+    introduction_date          DATE        5346      167      -       -                  -                   -
   number_introduction       VARCHAR         515      514      -       -                  -                   -
-boundary_introduction       VARCHAR        5291     5202      -       -                  -                   -
-  boundary_similarity        DOUBLE        5291      139    0.4     1.0 0.9508584618634343 0.11811812533689472
-      boundary_agrees       BOOLEAN         496        2      -       -                  -                   -
-      previous_median        DOUBLE        5280      319 4309.5 17368.0 12225.067613636364   4471.240981837871
-          next_median        DOUBLE        5305      320 4325.0 17389.5  12288.80970782281   4470.881109838709
-      number_in_order       BOOLEAN        5278        2      -       -                  -                   -
+boundary_introduction       VARCHAR        5315     5228      -       -                  -                   -
+  boundary_similarity        DOUBLE        5315      144    0.4     1.0 0.9507541103334699 0.11810820053206716
+      boundary_agrees       BOOLEAN         497        2      -       -                  -                   -
+      previous_median        DOUBLE        5306      319 4309.5 17368.0 12227.134658876743   4470.475615865955
+          next_median        DOUBLE        5331      320 4325.0 17389.5 12290.851622584882   4470.182525457657
+      number_in_order       BOOLEAN        5304        2      -       -                  -                   -

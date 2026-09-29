@@ -15,7 +15,7 @@
 #      between 61st and 62nd Streets; South Peoria Drive is not Peoria Street). Spaces within a name are ignored
 #      ("LaSalle" for La Salle). An ordinal's OCR-garbled suffix is dropped ("West 35"" Street" is West 35th Street),
 #      and a name the centerlines lack is matched to the one street of the same direction and kind whose name differs
-#      by one letter ("Westem" for Western).
+#      by one letter ("Westem" for Western). OCR marks after a number are dropped ("West 22™ Street").
 #   2. Corners. The corners are the centerline nodes where two of the named streets meet, less any more than
 #      corner_cluster_feet from most of the others (a long street crossing another again elsewhere). An amendment with
 #      three or more corners bounds a block and is placed at their mean. If no group of corners stands out (South
@@ -26,7 +26,13 @@
 #      west of ... South Halsted Street") and distances, and the point moves to that side by half a street's width
 #      (half_street_feet) plus the mean of the distances (with 0 where the street is itself a side), or plus half a lot
 #      (half_lot_feet) where it gives only an alley.
-# An amendment is also not placed if its boundary names fewer than two centerline streets or streets that do not meet.
+#   4. Amendments not placed so. One with a common address (printed from July 2008) is placed at it on the
+#      centerlines, by house-number range (place_source common_address; tasks/shared/code/centerline_address.R). Else
+#      one street's printed direction is taken as each of the other three ("North Halsted Street" at West 33rd Street
+#      is South Halsted), all its mentions at once, and the amendment is placed if exactly one such repair places it
+#      (street_kinds direction_repaired; direction_repair records it).
+# An amendment is not placed if its boundary names fewer than two centerline streets or streets that do not meet, or if
+# its corners lie apart, after these steps.
 # The ward is the one containing the point on the ward map in force at introduction (the wards redrawn in 1998, until
 # the council term that began on May 5, 2003, then the 2003 map, until May 17, 2015), unless the point lies where two
 # of the map's ward polygons overlap; an alderman's amendment that is not placed in a ward takes the filing ward of its
@@ -51,6 +57,9 @@ compass <- list(north = c(0, 1), south = c(0, -1), east = c(1, 0), west = c(-1, 
 
 source("../../setup_environment/code/packages.R")
 source("../../shared/code/save_data.R")
+source("../../shared/code/normalize_chicago_address.R")
+source("../../shared/code/address_segments.R")
+source("../../shared/code/centerline_address.R")
 
 introductions <- bind_rows(lapply(journal_years, function(year) read_csv(
   sprintf("../input/journal_introductions_%d.csv", year), col_types = cols(.default = col_character())))) |>
@@ -86,7 +95,7 @@ ordinal <- function(n) {
   paste0(n, if_else(n %% 100 %in% 11:13, "TH", c("TH", "ST", "ND", "RD", rep("TH", 6))[n %% 10 + 1]))
 }
 name_word <- function(word) {
-  word <- toupper(str_remove_all(word, "[.,]"))
+  word <- toupper(str_remove_all(word, "[.,]|[^\\x01-\\x7F]"))
   number <- str_match(word, "^([0-9]{1,3})[^A-Z0-9]*(?:ST|ND|RD|TH)?[^A-Z0-9]*$")[, 2]
   if_else(is.na(number), word, ordinal(as.integer(number)))
 }
@@ -172,6 +181,37 @@ retried <- which(!is.na(located$unplaced))
 again <- bind_rows(lapply(boundaries[retried], place, kinds = "through")) |>
   mutate(street_kinds = "through")
 located[retried[is.na(again$unplaced)], ] <- again[is.na(again$unplaced), ]
+located$direction_repair <- NA_character_
+
+# 4. Amendments still not placed: at the common address the Journals print from July 2008, on the centerlines
+# (tasks/shared/code/centerline_address.R), else with one street's direction repaired.
+first_addresses <- address_segments(seq_along(boundaries), printed_address(introductions$common_address)) |>
+  slice_head(n = 1, by = id) |>
+  filter(id %in% which(!is.na(located$unplaced)), !is.na(direction)) |>
+  transmute(id, number = low, direction,
+    street = if_else(str_detect(street, "^[0-9]+$"), ordinal(as.integer(str_extract(street, "^[0-9]+$"))), street))
+at_address <- centerline_address_points(centerlines, first_addresses, half_street_feet)
+located[at_address$id, c("x", "y")] <- at_address[c("x", "y")]
+located[at_address$id, c("place_source", "street_kinds", "unplaced")] <- list("common_address", NA_character_,
+  NA_character_)
+repaired_place <- function(boundary) {
+  mentions <- str_match_all(boundary, "\\b(North|South|East|West)\\s+([A-Z0-9][A-Za-z0-9'-]*)")[[1]]
+  tries <- bind_rows(lapply(unique(mentions[, 3]), function(word) {
+    printed <- unique(mentions[mentions[, 3] == word, 2])
+    if (length(printed) != 1) return(NULL)
+    bind_rows(lapply(setdiff(c("North", "South", "East", "West"), printed), function(direction) {
+      variant <- str_replace_all(boundary, paste0("\\b", printed, "(?=\\s+", str_escape(word), "\\b)"), direction)
+      mutate(place(variant, "through"), direction_repair = paste(printed, word, "as", direction))
+    }))
+  }))
+  if (nrow(tries) == 0) return(NULL)
+  placed <- filter(tries, is.na(unplaced))
+  if (nrow(placed) == 1) mutate(placed, street_kinds = "direction_repaired") else NULL
+}
+unrepaired <- which(!is.na(located$unplaced) & boundaries != "")
+repairs <- lapply(boundaries[unrepaired], repaired_place)
+repaired <- unrepaired[!vapply(repairs, is.null, logical(1))]
+located[repaired, ] <- bind_rows(repairs)[names(located)]
 places <- bind_cols(select(introductions, file, position, introduction_date, filer, filing_ward = ward), located)
 
 # Wards and aldermen.
@@ -223,6 +263,7 @@ places <- places |>
   left_join(tibble(file = coordinates$file, position = coordinates$position,
     longitude = st_coordinates(coordinates)[, 1], latitude = st_coordinates(coordinates)[, 2]),
     by = c("file", "position"), relationship = "one-to-one") |>
-  select(file, position, introduction_date, filer, streets, corners, place_source, street_kinds, unplaced, longitude,
-    latitude, filing_ward, placed_ward, ward, ward_source, alderman, redrawn_ward, redrawn_alderman)
+  select(file, position, introduction_date, filer, streets, corners, place_source, street_kinds, direction_repair,
+    unplaced, longitude, latitude, filing_ward, placed_ward, ward, ward_source, alderman, redrawn_ward,
+    redrawn_alderman)
 SaveData(places, c("file", "position"), "../output/journal_amendment_places.csv")

@@ -1,28 +1,29 @@
 File: journal_amendment_places.csv
 Rows: 6924
-Columns: 18
-SHA-256 (saved bytes): 2a45434fb02979b9db07b1947787a294b7bc0069b5ccf100f297e0745f0c6ed6
+Columns: 19
+SHA-256 (saved bytes): 935983005ed45d131045565b2d3d401fbae6485ae1b1e960c56019067dcf690c
 Key: file, position
 Types: DuckDB inference from the complete saved CSV.
 Distinct counts: exact (exact up to 100,000 rows).
 Row counts, non-missing counts, and declared-key checks: exact.
 
-           column inferred_type non_missing distinct                min                max               mean                   sd
-             file       VARCHAR        6924      169                  -                  -                  -                    -
-         position        BIGINT        6924     6775              21242            9281444 1239766.8236568458   1705851.9288499083
-introduction_date          DATE        6924      169                  -                  -                  -                    -
-            filer       VARCHAR        6924        2                  -                  -                  -                    -
-          streets       VARCHAR        6836     5090                  -                  -                  -                    -
-          corners        BIGINT        6924       15                  0                 16 1.4946562680531486   1.2007029022497748
-     place_source       VARCHAR        6565        3                  -                  -                  -                    -
-     street_kinds       VARCHAR        6565        2                  -                  -                  -                    -
-         unplaced       VARCHAR         359        3                  -                  -                  -                    -
-        longitude        DOUBLE        6565     6152 -87.86406751305014 -87.52550313545493 -87.67999715605158 0.049767763819690135
-         latitude        DOUBLE        6565     6152  41.64756879812582  42.02263722282271  41.87956899608256   0.0810051104218482
-      filing_ward        BIGINT        2439       50                  1                 50 27.367363673636735    15.01654600350828
-      placed_ward        BIGINT        6552       50                  1                 50 25.838064713064714   14.665762705535904
-             ward        BIGINT        6661       50                  1                 50 25.838913076114697   14.665121508137938
-      ward_source       VARCHAR        6924        6                  -                  -                  -                    -
-         alderman       VARCHAR        6658       87                  -                  -                  -                    -
-     redrawn_ward        BIGINT        6660       50                  1                 50   25.6509009009009   14.826894955631087
- redrawn_alderman       VARCHAR        6657       87                  -                  -                  -                    -
+           column inferred_type non_missing distinct                min                max               mean                  sd
+             file       VARCHAR        6924      169                  -                  -                  -                   -
+         position        BIGINT        6924     6775              21242            9281444 1239766.8236568458  1705851.9288499083
+introduction_date          DATE        6924      169                  -                  -                  -                   -
+            filer       VARCHAR        6924        2                  -                  -                  -                   -
+          streets       VARCHAR        6867     5114                  -                  -                  -                   -
+          corners        BIGINT        6924       15                  0                 16  1.509532062391681  1.1939209304623868
+     place_source       VARCHAR        6687        4                  -                  -                  -                   -
+     street_kinds       VARCHAR        6640        3                  -                  -                  -                   -
+ direction_repair       VARCHAR          50       43                  -                  -                  -                   -
+         unplaced       VARCHAR         237        3                  -                  -                  -                   -
+        longitude        DOUBLE        6687     6267 -87.86406751305014 -87.52550313545493 -87.67992178935945 0.04993517055489151
+         latitude        DOUBLE        6687     6267  41.64756879812582  42.02263722282271  41.87934059602184  0.0809403255973029
+      filing_ward        BIGINT        2439       50                  1                 50 27.367363673636735   15.01654600350828
+      placed_ward        BIGINT        6674       50                  1                 50 25.764309259814205  14.680616277945152
+             ward        BIGINT        6761       50                  1                 50  25.77947049253069  14.675041155473698
+      ward_source       VARCHAR        6924        6                  -                  -                  -                   -
+         alderman       VARCHAR        6758       87                  -                  -                  -                   -
+     redrawn_ward        BIGINT        6760       50                  1                 50  25.59423076923077  14.833603756817228
+ redrawn_alderman       VARCHAR        6757       87                  -                  -                  -                   -

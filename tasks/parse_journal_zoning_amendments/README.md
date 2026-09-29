@@ -30,15 +30,17 @@ A report runs to the next report's title or the next section of the Journal, and
 its ordinances ("The following is said withdrawn ordinance") or its title ("Withdrawn --"); the parse stops if a
 report has none of them. Text amendments, appointments and other business of the committee are left out.
 
-Page headers are removed before pages are joined. The anchors of each entry allow for the misreadings of both OCRs,
-listed in the script ("ZONING -RECLASSIFICATIONS _ OF PARTICULAR AREAS" on the degraded scans of 2002). District codes
-are read as in the zoning ordinance with OCR confusions repaired (l or I for 1 or a doubled 1, 8 for B, S for 5, "RS
-General Residence" for R5, 7 for T); a planned development is coded PD. Journals before November 1, 2004 use the
-zoning ordinance of 1957, and its codes are marked "1957:" (1957:R4, 1957:B4-2); Journals of 2004 and 2005 mix the two
-ordinances, and the script's header gives the rule that tells them apart by date and printed district name. Map sheets
-are numbered 1 to 20 and 22 to 32 in even numbers, with further sheets in column B numbered past 100 (153-B), so
-another reading is not a sheet. Where an amendment has several clauses, the districts before are those not produced by
-an earlier clause and the districts after those not changed by a later one.
+Page headers are removed before pages are joined. An introduction's boundary follows "bounded by:" or its printed
+variants ("bounded", "bounded:", "bound by", "bounded © by:"), or failing those "as follows:" or "described as:"; 21
+of 6,924 print none. The anchors of each entry allow for the misreadings of both OCRs, listed in the script ("ZONING
+-RECLASSIFICATIONS _ OF PARTICULAR AREAS" on the degraded scans of 2002). District codes are read as in the zoning
+ordinance with OCR confusions repaired (l or I for 1 or a doubled 1, 8 for B, S for 5, "RS General Residence" for R5,
+7 for T); a planned development is coded PD. Journals before November 1, 2004 use the zoning ordinance of 1957, and
+its codes are marked "1957:" (1957:R4, 1957:B4-2); Journals of 2004 and 2005 mix the two ordinances, and the script's
+header gives the rule that tells them apart by date and printed district name. Map sheets are numbered 1 to 20 and 22
+to 32 in even numbers, with further sheets in column B numbered past 100 (153-B), so another reading is not a sheet.
+Where an amendment has several clauses, the districts before are those not produced by an earlier clause and the
+districts after those not changed by a later one.
 
 ## Hand checks
 
@@ -57,9 +59,9 @@ entries the first reading of those years got wrong, each for a general cause sin
 - A random sample of 32 pages of 2008 and 2009, read by hand: the parser finds all 54 introductions and 30
   ordinances that begin on them and no others. It reads the map and districts of 53 to 54 introductions, the map of
   29 of the 30 ordinances (the other's two readings conflict) and the districts of all 29 whose districts show.
-- A second random sample, of 64 pages of 2000--2007 (4 introduction and 4 ordinance pages a year): the parser finds all
-  111 introductions and 55 ordinances that begin on them and no others. It reads the filer, ward and districts of all
-  111 introductions, the map of 110 (OCR reads the other's J as "]") and the name of 107 (four with a misread
+- A second random sample, of 64 pages of 2000--2007 (4 introduction and 4 ordinance pages a year): the parser finds
+  all 111 introductions and 55 ordinances that begin on them and no others. It reads the filer, ward and districts of
+  all 111 introductions, the map of 110 (OCR reads the other's J as "]") and the name of 107 (four with a misread
   letter); the map of all 55 ordinances, the district after of all 54 whose district shows and the district before of
   53 (OCR reads the other's "R4" as "R¢").
 - eLMS, the City's legislative database, holds few matters of any kind before November 2010 and none of the

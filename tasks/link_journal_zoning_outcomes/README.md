@@ -33,23 +33,23 @@ applications that pass take longer than a year.
 
 ## Counts (September 29, 2026)
 
-Of 5,806 ordinances, 273 are linked by record number, 242 by application number, 4,759 by boundary and 46 by
-application number range; 486 are not linked. Of those, 154 were passed in 2000, most of them on introductions of
-1999, before the Journals read. Of the other 332, 194 are aldermen's amendments, many introduced directly in committee
+Of 5,806 ordinances, 273 are linked by record number, 242 by application number, 4,784 by boundary and 47 by
+application number range; 460 are not linked. Of those, 151 were passed in 2000, most of them on introductions of
+1999, before the Journals read. Of the other 309, 190 are aldermen's amendments, many introduced directly in committee
 and passed at the same meeting (the Journal's index marks them "Direct Introduction"), which have no introduction to
-link; from 2001 to 2011, 1 to 22 applications a year are not linked. 15 of 35 report notes link; the 11 notes of
+link; from 2001 to 2011, 1 to 19 applications a year are not linked. 15 of 35 report notes link; the 11 notes of
 withdrawals of 2004 and 2007 name applications whose numbers the Journals did not yet print with introductions.
 
 | Introduced | Applications: passed, stalled, withdrawn or failed, pending | Aldermen's: passed, stalled, withdrawn, pending |
 | --- | --- | --- |
-| 2000 | 259, 54, 0, 0 | 169, 82, 0, 0 |
+| 2000 | 260, 53, 0, 0 | 171, 80, 0, 0 |
 | 2001 | 262, 57, 0, 0 | 210, 74, 0, 0 |
-| 2002 | 274, 61, 1, 0 | 175, 68, 0, 0 |
-| 2003 | 248, 55, 1, 0 | 236, 110, 0, 0 |
-| 2004 | 462, 78, 2, 0 | 119, 100, 0, 0 |
-| 2005 | 525, 101, 0, 0 | 136, 66, 0, 0 |
-| 2006 | 514, 135, 2, 0 | 149, 101, 0, 0 |
-| 2007 | 386, 92, 0, 0 | 150, 69, 0, 0 |
+| 2002 | 276, 59, 1, 0 | 177, 66, 0, 0 |
+| 2003 | 252, 51, 1, 0 | 237, 109, 0, 0 |
+| 2004 | 463, 77, 2, 0 | 119, 100, 0, 0 |
+| 2005 | 528, 98, 0, 0 | 135, 67, 0, 0 |
+| 2006 | 521, 128, 2, 0 | 151, 99, 0, 0 |
+| 2007 | 388, 90, 0, 0 | 150, 69, 0, 0 |
 | 2008 | 235, 70, 0, 0 | 88, 50, 0, 0 |
 | 2009 | 161, 43, 0, 0 | 83, 32, 4, 0 |
 | 2010 | 155, 25, 2, 0 | 42, 25, 1, 0 |
@@ -60,16 +60,16 @@ applications not linked could lower the applications' share by at most about 4 p
 
 ## Validation (`tasks/audits/zoning_record_validation`)
 
-- Of 515 ordinances linked by number, the best boundary candidate is the same introduction for 489 and another for 7:
+- Of 515 ordinances linked by number, the best boundary candidate is the same introduction for 490 and another for 7:
   two where the Journal printed the record numbers of two aldermen's amendments of one meeting the other way round,
-  two where one amendment was introduced twice and the boundary rule takes the later introduction, and three where
-  the same site had been introduced years before (in 2001, 2005 and 2006) and the boundary rule takes the earlier
-  introduction, whose districts before match the ordinance's. The other 19 have no boundary candidate.
-- Of the 3,646 linked applications with a number, 36 lie outside the numbers of the meetings before and after their
-  introductions'; applications are numbered at filing, and 16 of the 36 lie around the meeting of November 12,
-  2003, which introduced a single numbered application. Most others are sites introduced twice, linked to the earlier
+  two where one amendment was introduced twice and the boundary rule takes the later introduction, and three where the
+  same site had been introduced years before (in 2001, 2005 and 2006) and the boundary rule takes the earlier
+  introduction, whose districts before match the ordinance's. The other 18 have no boundary candidate.
+- Of the 3,666 linked applications with a number, 36 lie outside the numbers of the meetings before and after their
+  introductions'; applications are numbered at filing, and 16 of the 36 lie around the meeting of November 12, 2003,
+  which introduced a single numbered application. Most others are sites introduced twice, linked to the earlier
   introduction (16426, passed in July 2008, to an introduction of March 2005), or misread numbers (1341 for 13411).
-  Aldermen's "A-" numbers are less strictly ordered; 54 of 1,632 linked ones lie out of order.
+  Aldermen's "A-" numbers are less strictly ordered; 56 of 1,638 linked ones lie out of order.
 - Against eLMS, for the 377 introductions of November 2010 through 2011 that match an eLMS amendment by record number,
   the outcome as of December 14, 2011 agrees for 375, and the date for 268 of 275 decided (eLMS dates five substitutes
   a day later and two withdrawals at the committee). Of the two disagreements, one application passed under a new

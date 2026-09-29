@@ -1,7 +1,7 @@
 File: journal_introductions_2009.csv
 Rows: 323
 Columns: 21
-SHA-256 (saved bytes): c896f6cbe15dc8aedaedd7539e3d0235e2f51b62c3101b0370fa89492866fd3d
+SHA-256 (saved bytes): 85a4c78c671f9fe3c455c0309cfea4234d677b6c97d6d12f3914958bc86d51a3
 Key: file, position
 Types: DuckDB inference from the complete saved CSV.
 Distinct counts: exact (exact up to 100,000 rows).
@@ -23,7 +23,7 @@ application_number        BIGINT         156      155 16792  168786 17894.141025
          from_text       VARCHAR         322      136     -       -                  -                  -
            to_text       VARCHAR         322      111     -       -                  -                  -
         map_number       VARCHAR         318      135     -       -                  -                  -
-          boundary       VARCHAR         322      321     -       -                  -                  -
+          boundary       VARCHAR         323      322     -       -                  -                  -
     common_address       VARCHAR         251      250     -       -                  -                  -
      record_number       VARCHAR         318      318     -       -                  -                  -
     from_districts       VARCHAR         319       70     -       -                  -                  -

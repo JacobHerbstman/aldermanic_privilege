@@ -159,6 +159,19 @@ drives, places and courts kept apart (South Peoria Drive is not Peoria Street). 
 leaving 5 percent unplaced: boundaries naming fewer than two streets (metes and bounds, railroad lines), and streets that do not meet as printed, some with a direction misprinted (``North Halsted Street'' at West 33rd). All 35 of the new placements the zoning map can check lie within 240 feet of their parcels, and their wards
 agree for all 31 in one ward.
 
+\textit{Update: missing boundaries, addresses and directions.} The introductions left unplaced were not a random
+5 percent: 44 percent of the applications naming fewer than two streets stalled, against 17 percent of those placed,
+and more were planned developments, so leaving them out would favor aldermen whose wards receive large irregular
+sites. Three general repairs followed. The parser now reads a boundary printed after ``bounded'' without ``by:'', ``bound
+by'', ``bounded \copyright\ by:'' or, failing those, ``as follows:''; 58 introductions had none, 21 still do. With those
+boundaries, 26 more ordinances link to their introductions, and 27 applications counted as stalled in fact passed,
+lowering the stall rates of 2000--2007 by up to a point and a half a year. The placement now uses an introduction's
+common address (from July 2008) when its streets fail, and tries each other direction for one street when the
+printed streets do not meet, accepting only a unique repair. 3.4 percent of introductions remain unplaced (mostly lot
+descriptions and metes and bounds) and 4 percent of applications have no ward; all 37 of the new placements the
+zoning map can check lie within 330 feet of their parcels. Net of refilings that passed, 14 to 22 percent of
+applications introduced in 2000--2008 never passed.
+
 \textit{Reproduction.} Run \texttt{make} in \path{tasks/link_journal_zoning_outcomes/code/} and
 \path{tasks/place_journal_zoning_amendments/code/}, which read \path{tasks/parse_journal_zoning_amendments}, and that in
 turn \path{tasks/ocr_council_journal_zoning_pages} and \path{tasks/extract_council_journal_text}; the task READMEs give
