@@ -20,7 +20,13 @@ takes the filing ward of its heading. The alderman is the one serving the ward t
 Columns: the streets matched, the number of corners, how the amendment was placed (`block`, `corner_and_side`, or
 `corner` where the boundary gives no side) or why not (`unplaced`: `fewer_than_two_streets`, `streets_do_not_meet`,
 `corners_apart`), longitude and latitude, the filing ward (aldermen's amendments), the placed ward, the ward and its
-source, and the alderman.
+source, and the alderman. `redrawn_ward` and `redrawn_alderman` assign the introductions of December 19, 2001, when
+the Council adopted the 2003 map, to May 4, 2003, before it took effect, by the 2003 map instead (the ward containing
+the point, or an alderman's filing ward, and the alderman then serving that ward's number), since aldermen filed
+amendments in their new wards from about May 2002 (see Validation); for all other introductions they are the ward and
+alderman. In that window 105 of 411 applications and 63 of 349 aldermen's amendments have a different ward by the 2003
+map, 23 of the applications moving from Alderman Ocasio to Alderman Granato; 19 percent of the applications that move
+stalled, and 18 percent of those that do not.
 
 ## Counts (September 29, 2026)
 

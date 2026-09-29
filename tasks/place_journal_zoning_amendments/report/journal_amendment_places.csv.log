@@ -1,7 +1,7 @@
 File: journal_amendment_places.csv
 Rows: 6924
-Columns: 15
-SHA-256 (saved bytes): 4408bfef7dc1236ee4e5a660d9c110f50aee21c039171dbaec48929d306768d2
+Columns: 17
+SHA-256 (saved bytes): 4a38e3b83b268a1ae6577883727b7b984cff7b8d8d80dbd82f91fd22c796f235
 Key: file, position
 Types: DuckDB inference from the complete saved CSV.
 Distinct counts: exact (exact up to 100,000 rows).
@@ -23,3 +23,5 @@ introduction_date          DATE        6924      169                  -         
              ward        BIGINT        6563       50                  1                 50  25.89897912539997  14.650058138740476
       ward_source       VARCHAR        6924        6                  -                  -                  -                   -
          alderman       VARCHAR        6560       87                  -                  -                  -                   -
+     redrawn_ward        BIGINT        6562       50                  1                 50 25.707406278573604  14.810648694333704
+ redrawn_alderman       VARCHAR        6559       87                  -                  -                  -                   -

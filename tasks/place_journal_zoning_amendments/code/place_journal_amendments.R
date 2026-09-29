@@ -24,11 +24,15 @@
 # the council term that began on May 5, 2003, then the 2003 map, until May 17, 2015), unless the point lies where two
 # of the map's ward polygons overlap; an alderman's amendment that is not placed in a ward takes the filing ward of its
 # heading ("BY ALDERMAN BURNETT (27th Ward)"). The alderman is the one serving the ward that day
-# (tasks/create_alderman_data).
+# (tasks/create_alderman_data). The Council adopted the 2003 map on December 19, 2001 (wards_redrawn), and from about
+# May 2002 aldermen filed amendments in the wards they would represent, so for introductions between its adoption and
+# its taking effect, redrawn_ward and redrawn_alderman give the ward on the 2003 map, found the same way, and the
+# alderman then serving that ward's number; otherwise they are the ward and alderman.
 journal_years <- 2000:2011
 corner_cluster_feet <- 1500
 half_street_feet <- 33
 half_lot_feet <- 62
+wards_redrawn <- as.Date("2001-12-19")
 ward_map_2003_start <- as.Date("2003-05-05")
 ward_map_2003_end <- as.Date("2015-05-17")
 street_types <- c(Street = "ST", Avenue = "AVE", Road = "RD", Boulevard = "BLVD", Drive = "DR", Place = "PL",
@@ -163,28 +167,38 @@ placed <- bind_rows(lapply(c("1998", "2003"), function(m) {
   st_drop_geometry() |>
   add_count(file, position, name = "wards") |>
   filter(wards == 1)
+redrawn <- places |>
+  filter(!is.na(x), introduction_date >= wards_redrawn, introduction_date < ward_map_2003_start) |>
+  st_as_sf(coords = c("x", "y"), crs = 3435, remove = FALSE) |>
+  st_join(filter(ward_maps, map == "2003") |> select(redrawn_placed_ward = placed_ward), join = st_within) |>
+  st_drop_geometry() |>
+  add_count(file, position, name = "wards") |>
+  filter(wards == 1)
 terms <- read_csv("../input/alderman_terms.csv", show_col_types = FALSE)
+alderman_serving <- function(ward, date) {
+  tibble(ward, date) |>
+    left_join(terms, by = join_by(ward, between(date, start_date, end_date)), relationship = "many-to-one") |>
+    pull(alderman)
+}
 places <- places |>
   left_join(select(placed, file, position, placed_ward), by = c("file", "position"), relationship = "one-to-one") |>
+  left_join(select(redrawn, file, position, redrawn_placed_ward), by = c("file", "position"),
+    relationship = "one-to-one") |>
   mutate(filing_ward = as.integer(filing_ward), ward = coalesce(placed_ward, filing_ward),
     ward_source = case_when(!is.na(placed_ward) ~ "boundary", !is.na(filing_ward) ~ "filing_ward",
-      !is.na(x) ~ "placed_on_ward_overlap_or_outside", TRUE ~ unplaced))
-serving <- places |>
-  filter(!is.na(ward)) |>
-  select(file, position, ward, introduction_date) |>
-  inner_join(terms, by = join_by(ward, between(introduction_date, start_date, end_date)),
-    relationship = "many-to-one") |>
-  select(file, position, alderman)
-stopifnot(!anyDuplicated(serving[c("file", "position")]))
+      !is.na(x) ~ "placed_on_ward_overlap_or_outside", TRUE ~ unplaced),
+    redrawn_ward = if_else(introduction_date >= wards_redrawn & introduction_date < ward_map_2003_start,
+      coalesce(redrawn_placed_ward, filing_ward), ward),
+    alderman = alderman_serving(ward, introduction_date),
+    redrawn_alderman = alderman_serving(redrawn_ward, introduction_date))
 coordinates <- places |>
   filter(!is.na(x)) |>
   st_as_sf(coords = c("x", "y"), crs = 3435) |>
   st_transform(4326)
 places <- places |>
-  left_join(serving, by = c("file", "position"), relationship = "one-to-one") |>
   left_join(tibble(file = coordinates$file, position = coordinates$position,
     longitude = st_coordinates(coordinates)[, 1], latitude = st_coordinates(coordinates)[, 2]),
     by = c("file", "position"), relationship = "one-to-one") |>
   select(file, position, introduction_date, filer, streets, corners, place_source, unplaced, longitude, latitude,
-    filing_ward, placed_ward, ward, ward_source, alderman)
+    filing_ward, placed_ward, ward, ward_source, alderman, redrawn_ward, redrawn_alderman)
 SaveData(places, c("file", "position"), "../output/journal_amendment_places.csv")
