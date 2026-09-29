@@ -1,7 +1,7 @@
 File: zoning_amendment_wards.csv
 Rows: 6568
-Columns: 13
-SHA-256 (saved bytes): 634e182541d4d1ff669d38092264ee8dc741895b66be73d5d2ab23c8661a1496
+Columns: 15
+SHA-256 (saved bytes): 785cd7215f8ea8b114ac2b1686907a841db8613488bacc628cd9c829d502b5a9
 Key: matter_id
 Types: DuckDB inference from the complete saved CSV.
 Distinct counts: exact (exact up to 100,000 rows).
@@ -14,10 +14,12 @@ Row counts, non-missing counts, and declared-key checks: exact.
      geocode_match       VARCHAR        6384        3                -                -                  -                   -
 geocode_match_type       VARCHAR        6264        2                -                -                  -                   -
    matched_address       VARCHAR        6264     5629                -                -                  -                   -
-         longitude        DOUBLE        6264     5627 -87.867138665863 -87.524687713971 -87.67910166837716 0.04562948409355617
-          latitude        DOUBLE        6264     5627  41.492135178661  42.020337715968   41.8827895531183 0.07452195311130665
+  geocode_rejected       VARCHAR          25        2                -                -                  -                   -
+   location_source       VARCHAR        6262        2                -                -                  -                   -
+         longitude        DOUBLE        6262     5625 -87.867138665863 -87.524687713971 -87.67907158911405 0.04568480391314287
+          latitude        DOUBLE        6262     5625  41.646226247409  42.020337715968 41.883268874364965 0.07373184751233898
           map_year        BIGINT        6568        3             2003             2024 2013.6434226552983   7.252824004947139
-              ward        BIGINT        6407       50                1               50  25.06836272826596  14.550782332522589
-       ward_source       VARCHAR        6568        5                -                -                  -                   -
-filing_ward_agrees       BOOLEAN        1166        2                -                -                  -                   -
-          alderman       VARCHAR        6404      111                -                -                  -                   -
+              ward        BIGINT        6410       50                1               50 25.073322932917318  14.571432873507401
+       ward_source       VARCHAR        6568        6                -                -                  -                   -
+filing_ward_agrees       BOOLEAN        1167        2                -                -                  -                   -
+          alderman       VARCHAR        6407      111                -                -                  -                   -

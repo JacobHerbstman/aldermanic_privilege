@@ -1,16 +1,16 @@
 File: alderman_zoning_measures_by_half.csv
 Rows: 290
 Columns: 6
-SHA-256 (saved bytes): bd6ca684235f9cecdb51dd8339e0e609bc0d626d123afa9e04638514fdf303cb
+SHA-256 (saved bytes): 69eacfdfcc3de7cbfe4a2101f8cbf73ba9a0becf8dc363c8266eff3883002154
 Key: measure, alderman
 Types: DuckDB inference from the complete saved CSV.
 Distinct counts: exact (exact up to 100,000 rows).
 Row counts, non-missing counts, and declared-key checks: exact.
 
-              column inferred_type non_missing distinct                 min                max                   mean                  sd
-             measure       VARCHAR         290        3                   -                  -                      -                   -
-            alderman       VARCHAR         290      107                   -                  -                      -                   -
-applications_earlier        BIGINT         282       58                   1                221      24.52127659574468   32.95809764685661
-  applications_later        BIGINT         275       54                   1                198     21.432727272727274  29.905172846395534
-      effect_earlier        DOUBLE         282      280 -1.7441106384756955 0.9128783249918375 -0.0023182342118739704  0.2163347803123734
-        effect_later        DOUBLE         275      268 -0.5561725085662704 1.5263818937755307  -0.005018321273695671 0.20167793837979184
+              column inferred_type non_missing distinct                 min                max                   mean                 sd
+             measure       VARCHAR         290        3                   -                  -                      -                  -
+            alderman       VARCHAR         290      107                   -                  -                      -                  -
+applications_earlier        BIGINT         282       57                   1                220      24.51418439716312  33.05922880943797
+  applications_later        BIGINT         275       51                   1                197     21.465454545454545 29.992482136993754
+      effect_earlier        DOUBLE         282      280  -1.741935714840936 0.9153417129823008 -0.0021328440946997017 0.2181871414126259
+        effect_later        DOUBLE         275      268 -0.5590464137140311 1.5256754723552213  -0.004721114859096422 0.2029211462941369
