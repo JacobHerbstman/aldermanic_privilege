@@ -1,0 +1,31 @@
+File: journal_amendment_follow_up.csv
+Rows: 6924
+Columns: 21
+SHA-256 (saved bytes): 8bf829e12d3566ba9cb8835fc75a109b3b8142cc0cca240299dc4d036ece15a0
+Key: introduction
+Types: DuckDB inference from the complete saved CSV.
+Distinct counts: exact (exact up to 100,000 rows).
+Row counts, non-missing counts, and declared-key checks: exact.
+
+              column inferred_type non_missing distinct   min     max               mean                 sd
+        introduction       VARCHAR        6924     6924     -       -                  -                  -
+                file       VARCHAR        6924      169     -       -                  -                  -
+            position        BIGINT        6924     6775 21242 9281444 1239766.8236568458 1705851.9288499083
+   introduction_date          DATE        6924      169     -       -                  -                  -
+               filer       VARCHAR        6924        2     -       -                  -                  -
+                name       VARCHAR        6906     3992     -       -                  -                  -
+                ward        BIGINT        2439       50     1      50 27.367363673636735  15.01654600350828
+  application_number       VARCHAR        5397     5393     -       -                  -                  -
+       record_number       VARCHAR         906      906     -       -                  -                  -
+     journal_outcome       VARCHAR        6924        5     -       -                  -                  -
+journal_outcome_date          DATE        5281      145     -       -                  -                  -
+    follow_up_source       VARCHAR        6924        4     -       -                  -                  -
+      elms_matter_id       VARCHAR         103      103     -       -                  -                  -
+   follow_up_outcome       VARCHAR        6924        4     -       -                  -                  -
+      follow_up_date          DATE        5349      161     -       -                  -                  -
+            refiling       VARCHAR         150      150     -       -                  -                  -
+     refiling_source       VARCHAR         150        2     -       -                  -                  -
+       refiling_date          DATE         150       89     -       -                  -                  -
+    days_to_refiling        BIGINT         150       93    21    1449             505.22  437.8115476722466
+      refiling_basis       VARCHAR         150        6     -       -                  -                  -
+    refiling_outcome       VARCHAR         150        3     -       -                  -                  -
