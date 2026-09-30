@@ -1,39 +1,39 @@
 File: journal_sample_scores.csv
-Rows: 250
+Rows: 254
 Columns: 29
-SHA-256 (saved bytes): 0163c99966835a540e07f8c671a87ecb34b386777dd1171eb90a4bb6dd1568b5
+SHA-256 (saved bytes): 012931e7c53aacd8109e699c528420a258fa97849cb637d7416fe846a4c62fe5
 Key: table, file, page, order, match_rule
 Types: DuckDB inference from the complete saved CSV.
 Distinct counts: exact (exact up to 100,000 rows).
 Row counts, non-missing counts, and declared-key checks: exact.
 
-            column inferred_type non_missing distinct min  max    mean                 sd
-             table       VARCHAR         250        2   -    -       -                  -
-              file       VARCHAR         250       69   -    -       -                  -
-              page        BIGINT         250       83  20 3882 924.496 1042.5907268332644
-             order        BIGINT         250        5   1    5   2.124 1.1773566471969297
-        match_rule       VARCHAR         250        5   -    -       -                  -
-             filer       VARCHAR         165        1   -    -       -                  -
-              name       VARCHAR         165        2   -    -       -                  -
-              ward       VARCHAR         165        1   -    -       -                  -
-       application       VARCHAR         250        1   -    -       -                  -
-               map       VARCHAR         250        2   -    -       -                  -
-              from       VARCHAR         250        3   -    -       -                  -
-                to       VARCHAR         250        4   -    -       -                  -
-           address       VARCHAR         165        2   -    -       -                  -
-            record       VARCHAR         165        2   -    -       -                  -
-  read_application       VARCHAR          85       85   -    -       -                  -
-parsed_application       VARCHAR          85       85   -    -       -                  -
-          read_map       VARCHAR         250      119   -    -       -                  -
-        parsed_map       VARCHAR         247      119   -    -       -                  -
-         read_from       VARCHAR         250       87   -    -       -                  -
-       parsed_from       VARCHAR         248       78   -    -       -                  -
-           read_to       VARCHAR         250       67   -    -       -                  -
-         parsed_to       VARCHAR         249       59   -    -       -                  -
-              note       VARCHAR          91       85   -    -       -                  -
-         read_name       VARCHAR         165      152   -    -       -                  -
-      read_address       VARCHAR          32       32   -    -       -                  -
-       read_record       VARCHAR          30       30   -    -       -                  -
-       parsed_name       VARCHAR         165      153   -    -       -                  -
-    parsed_address       VARCHAR          32       32   -    -       -                  -
-     parsed_record       VARCHAR          29       29   -    -       -                  -
+            column inferred_type non_missing distinct min  max               mean                 sd
+             table       VARCHAR         254        2   -    -                  -                  -
+              file       VARCHAR         254       69   -    -                  -                  -
+              page        BIGINT         254       84  20 3882   930.503937007874  1035.750205467868
+             order        BIGINT         254        5   1    5 2.1141732283464565 1.1722903773240705
+        match_rule       VARCHAR         254        7   -    -                  -                  -
+             filer       VARCHAR         165        1   -    -                  -                  -
+              name       VARCHAR         165        2   -    -                  -                  -
+              ward       VARCHAR         165        1   -    -                  -                  -
+       application       VARCHAR         250        2   -    -                  -                  -
+               map       VARCHAR         250        2   -    -                  -                  -
+              from       VARCHAR         250        3   -    -                  -                  -
+                to       VARCHAR         250        4   -    -                  -                  -
+           address       VARCHAR         165        2   -    -                  -                  -
+            record       VARCHAR         165        2   -    -                  -                  -
+  read_application       VARCHAR          85       85   -    -                  -                  -
+parsed_application       VARCHAR          85       85   -    -                  -                  -
+          read_map       VARCHAR         250      119   -    -                  -                  -
+        parsed_map       VARCHAR         246      120   -    -                  -                  -
+         read_from       VARCHAR         250       87   -    -                  -                  -
+       parsed_from       VARCHAR         248       78   -    -                  -                  -
+           read_to       VARCHAR         250       67   -    -                  -                  -
+         parsed_to       VARCHAR         249       60   -    -                  -                  -
+              note       VARCHAR          91       85   -    -                  -                  -
+         read_name       VARCHAR         165      152   -    -                  -                  -
+      read_address       VARCHAR          32       32   -    -                  -                  -
+       read_record       VARCHAR          30       30   -    -                  -                  -
+       parsed_name       VARCHAR         165      153   -    -                  -                  -
+    parsed_address       VARCHAR          32       32   -    -                  -                  -
+     parsed_record       VARCHAR          29       29   -    -                  -                  -

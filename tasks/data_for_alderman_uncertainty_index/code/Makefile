@@ -19,7 +19,7 @@ all: ../output/permits_for_uncertainty_index.csv
 ../input/ward_panel.gpkg: ../../ward_panel_create/output/ward_panel.gpkg | ../input
 	ln -sf $< $@
 
-../input/building_permits_clean.gpkg: ../../clean_building_permits/output/building_permits_clean.gpkg | ../input
+../input/building_permits_clean.gpkg: ../../clean_building_permits/output/building_permits_clean_2006_2022.gpkg | ../input
 	ln -sf $< $@
 
 ../input/chicago_alderman_terms.csv: ../../create_alderman_data/output/chicago_alderman_terms.csv | ../input

@@ -3,8 +3,20 @@ include ../../shared/code/shell_functions.make
 all: ../output/zoning_amendment_address_queries.csv ../output/census_geocoder_responses.csv \
 	../output/zoning_amendment_wards.csv
 
-../%/zoning_amendment_address_queries.csv ../%/census_geocoder_responses.csv: geocode_amendment_addresses.R \
-	../input/zoning_map_amendments.csv | ../output ../report ../temp
+../output/zoning_amendment_address_queries.csv: build_address_queries.R ../input/zoning_map_amendments.csv \
+	| ../output ../report
+	$(R) $<
+
+../output/census_geocoder_responses.csv: ../sources/census_geocoder_responses_20260928.csv.gz \
+	geocoder_snapshot.sha256 | ../output
+	shasum -a 256 -c geocoder_snapshot.sha256
+	gzip -dc $< > $@.tmp
+	mv $@.tmp $@
+
+refresh-geocodes: ../temp/census_geocoder_responses_current.csv
+
+../temp/census_geocoder_responses_current.csv: geocode_amendment_addresses.R \
+	../output/zoning_amendment_address_queries.csv | ../temp
 	$(R) $<
 
 ../output/zoning_amendment_wards.csv: assign_amendment_wards.R ../output/zoning_amendment_address_queries.csv \

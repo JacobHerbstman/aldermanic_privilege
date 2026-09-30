@@ -1,7 +1,7 @@
 File: journal_zoning_outcomes.csv
 Rows: 6924
 Columns: 21
-SHA-256 (saved bytes): aa620cedba68a1db35049d4d0217c30108571a918314f7523b564762ccdbb01a
+SHA-256 (saved bytes): 5c3105488f13099a40c88357f97af662803284d80d18fde1e200c70becd6d2b3
 Key: file, position
 Types: DuckDB inference from the complete saved CSV.
 Distinct counts: exact (exact up to 100,000 rows).
@@ -10,22 +10,22 @@ Row counts, non-missing counts, and declared-key checks: exact.
             column inferred_type non_missing distinct   min     max               mean                  sd
  introduction_date          DATE        6924      169     -       -                  -                   -
               file       VARCHAR        6924      169     -       -                  -                   -
-          position        BIGINT        6924     6775 21242 9281444 1239766.8236568458  1705851.9288499083
+          position        BIGINT        6924     6775 21242 9281444 1239764.6995956094  1705848.7540816031
               page        BIGINT        6924      663    15    4617  667.6463027151935   887.4527047469608
       journal_page        BIGINT        6924     1857    77  118414  53253.65670132871  31500.981500789298
              filer       VARCHAR        6924        2     -       -                  -                   -
               name       VARCHAR        6906     3992     -       -                  -                   -
               ward        BIGINT        2439       50     1      50 27.367363673636735   15.01654600350828
-application_number       VARCHAR        5423     5419     -       -                  -                   -
-application_source       VARCHAR        5423        2     -       -                  -                   -
+application_number       VARCHAR        5446     5442     -       -                  -                   -
+application_source       VARCHAR        5446        2     -       -                  -                   -
      record_number       VARCHAR         906      906     -       -                  -                   -
         map_number       VARCHAR        6814      246     -       -                  -                   -
     from_districts       VARCHAR        6846      516     -       -                  -                   -
       to_districts       VARCHAR        6832      157     -       -                  -                   -
     common_address       VARCHAR         894      871     -       -                  -                   -
            outcome       VARCHAR        6924        5     -       -                  -                   -
-      outcome_date          DATE        5307      145     -       -                  -                   -
-   days_to_passage        BIGINT        5288      209    21    2541 117.40109682299546  126.43769937810684
-        link_basis       VARCHAR        5307        4     -       -                  -                   -
-         ordinance       VARCHAR        5307     5307     -       -                  -                   -
-        ordinances        BIGINT        6924        4     0       3 0.7720970537261699 0.42937918138504355
+      outcome_date          DATE        5340      145     -       -                  -                   -
+   days_to_passage        BIGINT        5321      209    21    2541 117.31554219131742  126.15579430595453
+        link_basis       VARCHAR        5340        5     -       -                  -                   -
+         ordinance       VARCHAR        5340     5331     -       -                  -                   -
+        ordinances        BIGINT        6924        4     0       3 0.7755632582322357 0.42716262074702677

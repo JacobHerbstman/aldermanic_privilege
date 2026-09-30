@@ -1,0 +1,29 @@
+File: substitute_changes.csv
+Rows: 5148
+Columns: 19
+SHA-256 (saved bytes): 55311239fe926a9e63f857c45acd6aa1b5cb514ec8fed6c9ae6282e8e76f3713
+Key: matter_id, field
+Types: DuckDB inference from the complete saved CSV.
+Distinct counts: exact (exact up to 100,000 rows).
+Row counts, non-missing counts, and declared-key checks: exact.
+
+           column inferred_type non_missing distinct min     max              mean                 sd
+        matter_id       VARCHAR        5148     2570   -       -                 -                  -
+    record_number       VARCHAR        5148     2570   -       -                 -                  -
+            field       VARCHAR        5148        4   -       -                 -                  -
+filed_by_alderman       BOOLEAN        5148        2   -       -                 -                  -
+          outcome       VARCHAR        5148        5   -       -                 -                  -
+introduction_date          DATE        5148      202   -       -                 -                  -
+        direction       VARCHAR        5148        5   -       -                 -                  -
+ introduced_value        DOUBLE        3796      835 0.0  5580.0 32.85593712679983 157.92289744885085
+ substitute_value        DOUBLE        2677      617 0.0 10000.0 36.49465826173544 254.89884300239595
+           change       VARCHAR        1983        3   -       -                 -                  -
+     not_compared       VARCHAR        3165        8   -       -                 -                  -
+  introduced_text       VARCHAR        4533     1953   -       -                 -                  -
+  substitute_text       VARCHAR        3403     1279   -       -                 -                  -
+  introduced_rule       VARCHAR        2783        8   -       -                 -                  -
+  substitute_rule       VARCHAR        1681        8   -       -                 -                  -
+  introduced_file       VARCHAR        2783     1415   -       -                 -                  -
+  substitute_file       VARCHAR        1681      882   -       -                 -                  -
+   introduced_url       VARCHAR        2783     1432   -       -                 -                  -
+   substitute_url       VARCHAR        1681      884   -       -                 -                  -

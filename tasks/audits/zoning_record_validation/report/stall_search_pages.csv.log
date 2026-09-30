@@ -1,0 +1,33 @@
+File: stall_search_pages.csv
+Rows: 195
+Columns: 23
+SHA-256 (saved bytes): b0024a091a63ff9ce336958b64368444b11431d2d3a652f3e556cf35bf8d495a
+Key: label, candidate_rank
+Types: DuckDB inference from the complete saved CSV.
+Distinct counts: exact (exact up to 100,000 rows).
+Row counts, non-missing counts, and declared-key checks: exact.
+
+           column inferred_type non_missing distinct min  max               mean                 sd
+            label       VARCHAR         195       50   -    -                  -                  -
+    group_at_draw       VARCHAR         195        2   -    -                  -                  -
+      outcome_now       VARCHAR         195        2   -    -                  -                  -
+     introduction       VARCHAR         195       50   -    -                  -                  -
+introduction_date          DATE         195       35   -    -                  -                  -
+             file       VARCHAR         195       35   -    -                  -                  -
+introduction_page        BIGINT         195       29  36  237  60.09230769230769  32.66467703943213
+             name       VARCHAR         195       48   -    -                  -                  -
+       map_number       VARCHAR         187       38   -    -                  -                  -
+   from_districts       VARCHAR         195       26   -    -                  -                  -
+     to_districts       VARCHAR         195       20   -    -                  -                  -
+        distances       VARCHAR         186       43   -    -                  -                  -
+          streets       VARCHAR         194       49   -    -                  -                  -
+            names       VARCHAR         191       46   -    -                  -                  -
+   candidate_rank        BIGINT         195        5   0    4  2.476923076923077  1.132113600921986
+   candidate_file       VARCHAR         194       96   -    -                  -                  -
+   candidate_page        BIGINT         194      177  25 3385  1133.041237113402  829.4190040631163
+   candidate_date          DATE         194       96   -    -                  -                  -
+matched_distances        BIGINT         194       11   0   16 1.5206185567010309  2.272176293255684
+  matched_streets        BIGINT         194        6   0    9 1.3350515463917525 1.2860786071845296
+     matched_name       BOOLEAN         194        2   -    -                  -                  -
+      matched_map       BOOLEAN         194        2   -    -                  -                  -
+            score        BIGINT         194       22   3   49  7.845360824742268  6.845202103520601

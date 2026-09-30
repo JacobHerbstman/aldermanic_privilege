@@ -1,0 +1,19 @@
+File: elms_districts_vs_zoning_map.csv
+Rows: 4316
+Columns: 9
+SHA-256 (saved bytes): 0deeb631687dce31281b553d3378ac72e54c982d2a455149ddc463dea01862a4
+Key: matter_id
+Types: DuckDB inference from the complete saved CSV.
+Distinct counts: exact (exact up to 100,000 rows).
+Row counts, non-missing counts, and declared-key checks: exact.
+
+           column inferred_type non_missing distinct min max mean sd
+        matter_id       VARCHAR        4316     4316   -   -    -  -
+    record_number       VARCHAR        4316     4316   -   -    -  -
+filed_by_alderman       BOOLEAN        4316        2   -   -    -  -
+   from_districts       VARCHAR        4015      298   -   -    -  -
+     to_districts       VARCHAR        3809       63   -   -    -  -
+        to_source       VARCHAR        4316        3   -   -    -  -
+        direction       VARCHAR        4316        5   -   -    -  -
+      map_classes       VARCHAR        4316      615   -   -    -  -
+           agrees       BOOLEAN        4105        2   -   -    -  -

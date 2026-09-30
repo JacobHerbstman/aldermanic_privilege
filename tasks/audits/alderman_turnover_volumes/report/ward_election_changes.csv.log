@@ -1,0 +1,23 @@
+File: ward_election_changes.csv
+Rows: 1050
+Columns: 13
+SHA-256 (saved bytes): 5aacbe6bc44238d333c160926ab3b8b142182cd1e12c8d5a90e0f9cb34f8dcd9
+Key: measure, election, ward
+Types: DuckDB inference from the complete saved CSV.
+Distinct counts: exact (exact up to 100,000 rows).
+Row counts, non-missing counts, and declared-key checks: exact.
+
+              column inferred_type non_missing distinct                 min                max                 mean                  sd
+            election          DATE        1050        3                   -                  -                    -                   -
+                ward        BIGINT        1050       50                   1                 50                 25.5  14.437746444729102
+                side       VARCHAR        1050        9                   -                  -                    -                   -
+     alderman_before       VARCHAR        1050       89                   -                  -                    -                   -
+      alderman_after       VARCHAR        1050       95                   -                  -                    -                   -
+            turnover       BOOLEAN        1050        2                   -                  -                    -                   -
+             measure       VARCHAR        1050        7                   -                  -                    -                   -
+        count_before        BIGINT        1050      371                   0               7000   214.57238095238094   556.5824244733637
+         count_after        BIGINT        1050      354                   0               5595   201.39904761904762  510.27933601285844
+share_after_citywide        DOUBLE        1050       21  0.3076923076923077 0.6787029759427928  0.44237809476361045 0.08247608632633673
+    share_after_side        DOUBLE        1050      187                 0.0                1.0  0.43399261547623463 0.13260928580194695
+          z_citywide        DOUBLE        1030      989  -12.43275940081752  9.641533384682464 -0.06440960674304007  2.5458858604233847
+              z_side        DOUBLE        1026     1017 -10.488167002231739   9.17815197120912 0.022586562523787938  2.1310728582573204

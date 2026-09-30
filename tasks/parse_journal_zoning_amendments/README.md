@@ -32,7 +32,8 @@ report has none of them. Text amendments, appointments and other business of the
 
 Page headers are removed before pages are joined. An introduction's boundary follows "bounded by:" or its printed
 variants ("bounded", "bounded:", "bound by", "bounded © by:"), or failing those "as follows:" or "described as:"; 21
-of 6,924 print none. The anchors of each entry allow for the misreadings of both OCRs, listed in the script ("ZONING
+of 6,924 print none. An ordinance's area follows "in the area bounded by", also printed "area-bounded by" or "bounded.
+by". The anchors of each entry allow for the misreadings of both OCRs, listed in the script ("ZONING
 -RECLASSIFICATIONS _ OF PARTICULAR AREAS" on the degraded scans of 2002). District codes are read as in the zoning
 ordinance with OCR confusions repaired (l or I for 1 or a doubled 1, 8 for B, S for 5, "RS General Residence" for R5,
 7 for T); a planned development is coded PD. Journals before November 1, 2004 use the zoning ordinance of 1957, and
@@ -83,12 +84,12 @@ entries the first reading of those years got wrong, each for a general cause sin
 
 | Year | Introductions (applications, aldermen's) | With map, before, after | Ordinances by action | With change, map |
 | --- | --- | --- | --- | --- |
-| 2000 | 564 (313, 251) | 98%, 99%, 100% | 482: 474 passed, 8 deferred | 97%, 98% |
+| 2000 | 564 (313, 251) | 98%, 99%, 100% | 483: 475 passed, 8 deferred | 97%, 98% |
 | 2001 | 603 (319, 284) | 99%, 99%, 100% | 484: 472 passed, 12 deferred | 99%, 98% |
 | 2002 | 579 (336, 243) | 99%, 99%, 98% | 512: 505 passed, 6 deferred, 1 failed | 99%, 98% |
 | 2003 | 650 (304, 346) | 98%, 99%, 99% | 444: 438 passed, 5 deferred, 1 failed | 97%, 98% |
 | 2004 | 761 (542, 219) | 98%, 99%, 98% | 597: 592 passed, 3 deferred, 2 failed | 97%, 99% |
-| 2005 | 828 (626, 202) | 98%, 99%, 99% | 710: 706 passed, 4 deferred | 97%, 99% |
+| 2005 | 828 (626, 202) | 98%, 99%, 99% | 718: 714 passed, 4 deferred | 97%, 99% |
 | 2006 | 901 (651, 250) | 98%, 98%, 98% | 729: 723 passed, 4 deferred, 1 failed, 1 re-referred | 98%, 99% |
 | 2007 | 697 (478, 219) | 97%, 99%, 99% | 618: 613 passed, 2 deferred, 2 failed, 1 re-referred | 97%, 100% |
 | 2008 | 443 (305, 138) | 100%, 99%, 99% | 415: 413 passed, 2 deferred | 98%, 100% |

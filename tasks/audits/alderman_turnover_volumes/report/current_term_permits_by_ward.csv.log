@@ -1,0 +1,22 @@
+File: current_term_permits_by_ward.csv
+Rows: 50
+Columns: 12
+SHA-256 (saved bytes): 5b03749cd0b683f84309dc9f5dc349c10e76e32edcebfe3c92217e063475cd12
+Key: ward
+Types: DuckDB inference from the complete saved CSV.
+Distinct counts: exact (exact up to 100,000 rows).
+Row counts, non-missing counts, and declared-key checks: exact.
+
+                   column inferred_type non_missing distinct                 min                max               mean                 sd
+                     ward        BIGINT          50       50                   1                 50               25.5 14.577379737113247
+                 alderman       VARCHAR          50       50                   -                  -                  -                  -
+         permits_previous        BIGINT          50       47                  12                509             114.84 105.66376398940251
+          permits_current        BIGINT          50       41                   9                404              89.72   91.0705131606654
+            cost_previous        DOUBLE          50       50            476610.0  796047937.3610002 101427117.14912802 137907816.20426646
+             cost_current        DOUBLE          50       50            592895.0  729717025.6041999  74579276.34318799 111738133.45617494
+permits_per_year_previous        DOUBLE          50       47  3.0103021978021975 127.68698489010988  28.80859203296703  26.50665508044594
+ permits_per_year_current        DOUBLE          50       41   2.728008298755187 122.45726141078838 27.195211618257254  27.60456840824319
+   cost_per_year_previous        DOUBLE          50       50  119561.67754120879 199695404.61614376  25443856.13923008  34595350.18448376
+    cost_per_year_current        DOUBLE          50       50  179713.60892116182 221186011.28791204 22605876.086597033 33869172.817317754
+   permits_change_vs_city        DOUBLE          50       49  0.4266607222469908   2.77329469460544  1.035687290783462 0.5131935326302103
+      cost_change_vs_city        DOUBLE          50       50 0.03048946744930911 29.391102545330547 2.1204207947551943  4.384513980881203

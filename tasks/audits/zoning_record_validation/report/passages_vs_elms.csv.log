@@ -1,7 +1,7 @@
 File: passages_vs_elms.csv
 Rows: 340
 Columns: 22
-SHA-256 (saved bytes): 67a7f2018244df427760b98795f7effda6e478bee2fdb6a4a198780c97c0d49d
+SHA-256 (saved bytes): 32e9d920c130d17b4657acdbb82450a97204bd7ac19adc499d92f66f2ff7e0ec
 Key: ordinance
 Types: DuckDB inference from the complete saved CSV.
 Distinct counts: exact (exact up to 100,000 rows).
@@ -23,10 +23,10 @@ application_number       VARCHAR         338      338       -       -           
        journal_map       VARCHAR         336      136       -       -                  -                 -
           elms_map       VARCHAR         273      120       -       -                  -                 -
       journal_from       VARCHAR         333       68       -       -                  -                 -
-         elms_from       VARCHAR         197       47       -       -                  -                 -
+         elms_from       VARCHAR         252       52       -       -                  -                 -
         journal_to       VARCHAR         334       45       -       -                  -                 -
-           elms_to       VARCHAR         216       37       -       -                  -                 -
+           elms_to       VARCHAR         273       40       -       -                  -                 -
        date_agrees       BOOLEAN         301        2       -       -                  -                 -
         map_agrees       BOOLEAN         269        2       -       -                  -                 -
-       from_agrees       BOOLEAN         194        2       -       -                  -                 -
-         to_agrees       BOOLEAN         215        2       -       -                  -                 -
+       from_agrees       BOOLEAN         249        2       -       -                  -                 -
+         to_agrees       BOOLEAN         271        2       -       -                  -                 -

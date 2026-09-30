@@ -1,7 +1,7 @@
 File: journal_amendment_places.csv
 Rows: 6924
 Columns: 19
-SHA-256 (saved bytes): 935983005ed45d131045565b2d3d401fbae6485ae1b1e960c56019067dcf690c
+SHA-256 (saved bytes): 1ce25e2e72e3fc551a9eaaacc3fb4a420a57b73d70a2284d3f36f8e4f0faf7a4
 Key: file, position
 Types: DuckDB inference from the complete saved CSV.
 Distinct counts: exact (exact up to 100,000 rows).
@@ -9,7 +9,7 @@ Row counts, non-missing counts, and declared-key checks: exact.
 
            column inferred_type non_missing distinct                min                max               mean                  sd
              file       VARCHAR        6924      169                  -                  -                  -                   -
-         position        BIGINT        6924     6775              21242            9281444 1239766.8236568458  1705851.9288499083
+         position        BIGINT        6924     6775              21242            9281444 1239764.6995956094  1705848.7540816031
 introduction_date          DATE        6924      169                  -                  -                  -                   -
             filer       VARCHAR        6924        2                  -                  -                  -                   -
           streets       VARCHAR        6867     5114                  -                  -                  -                   -

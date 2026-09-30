@@ -1,19 +1,40 @@
 include ../../../shared/code/shell_functions.make
 
 SAMPLE_YEARS := $(shell seq 2000 2009)
+JOURNAL_YEARS := $(shell seq 2000 2011)
 
 all: ../output/journal_sample_pages.csv ../output/form_holdout_pages.csv ../output/journal_sample_scores.csv \
-	../output/form_holdout_scores.csv ../output/passages_vs_elms.csv ../output/withdrawals_vs_elms.csv \
+	../output/form_holdout_scores.csv ../output/attached_form_holdout_pages.csv \
+	../output/attached_form_holdout_scores.csv ../output/passages_vs_elms.csv ../output/withdrawals_vs_elms.csv \
 	../output/introductions_vs_elms.csv ../output/elms_coverage_by_month.csv ../output/journal_link_checks.csv \
-	../output/outcomes_vs_elms.csv ../output/journal_places_vs_zoning_map.csv
+	../output/outcomes_vs_elms.csv ../output/journal_places_vs_zoning_map.csv ../output/stall_search_pages.csv \
+	../output/stall_search_scores.csv ../output/elms_districts_vs_zoning_map.csv \
+	../output/substitute_holdout_pages.csv ../output/substitute_holdout_scores.csv
 
 ../output/journal_sample_pages.csv: draw_journal_sample.R \
 	$(foreach year,$(SAMPLE_YEARS),../input/journal_zoning_ocr_$(year).parquet) | ../output ../report
 	$(R) $<
 
+../output/stall_search_pages.csv: draw_stall_search.R ../adjudication/stall_search_sample.csv \
+	../input/journal_amendment_follow_up.csv \
+	$(foreach year,$(shell seq 2000 2008),../input/journal_introductions_$(year).csv) \
+	$(foreach year,$(JOURNAL_YEARS),../input/journal_pages_$(year).parquet ../input/journal_zoning_ocr_$(year).parquet) \
+	| ../output ../report
+	$(R) $<
+
+../output/stall_search_scores.csv: score_stall_search.R ../output/stall_search_pages.csv \
+	../adjudication/stall_search_reads.csv ../input/journal_amendment_follow_up.csv ../input/journal_ordinance_links.csv \
+	| ../output ../report
+	$(R) $<
+
 ../output/form_holdout_pages.csv: draw_form_holdout.R ../input/zoning_map_amendments.csv \
 	../input/application_form_reads.csv ../input/elms_zoning_legislation_files.csv \
 	../input/application_form_pages.parquet | ../output ../report
+	$(R) $<
+
+../output/attached_form_holdout_pages.csv: draw_attached_form_holdout.R ../input/zoning_map_amendments.csv \
+	../input/application_form_reads.csv ../adjudication/form_holdout_reads.csv \
+	../input/elms_zoning_application_files.csv ../input/attached_application_pages.parquet | ../output ../report
 	$(R) $<
 
 ../output/journal_sample_scores.csv: score_journal_sample.R ../output/journal_sample_pages.csv \
@@ -24,7 +45,11 @@ all: ../output/journal_sample_pages.csv ../output/form_holdout_pages.csv ../outp
 
 ../output/form_holdout_scores.csv: score_form_holdout.R ../adjudication/form_holdout_reads.csv \
 	../input/application_form_fields.csv | ../output ../report
-	$(R) $<
+	$(R) $< form_holdout
+
+../output/attached_form_holdout_scores.csv: score_form_holdout.R ../adjudication/attached_form_holdout_reads.csv \
+	../input/application_form_fields.csv | ../output ../report
+	$(R) $< attached_form_holdout
 
 ../output/passages_vs_elms.csv: check_passages_against_elms.R ../input/journal_ordinances_2010.csv \
 	../input/journal_ordinances_2011.csv ../input/zoning_map_amendments.csv | ../output ../report
@@ -56,8 +81,26 @@ all: ../output/journal_sample_pages.csv ../output/form_holdout_pages.csv ../outp
 	../input/Chicago_Wards_1998.geojson ../input/Wards_2014.geojson | ../output ../report
 	$(R) $<
 
+../output/elms_districts_vs_zoning_map.csv: check_elms_districts.R ../input/zoning_districts_current.geojson \
+	../input/zoning_map_amendments.csv | ../output ../report
+	$(R) $<
+
+../output/substitute_holdout_pages.csv: draw_substitute_holdout.R ../adjudication/substitute_holdout_sample.csv \
+	../input/substitute_changes.csv ../input/application_form_pages.parquet ../input/attached_application_pages.parquet \
+	../input/elms_zoning_legislation_files.csv ../input/elms_zoning_application_files.csv | ../output ../report
+	$(R) $<
+
+../output/substitute_holdout_scores.csv: score_substitute_holdout.R ../adjudication/substitute_holdout_reads.csv \
+	../input/substitute_changes.csv ../output/substitute_holdout_pages.csv | ../output ../report
+	$(R) $<
+
 ../input/journal_zoning_ocr_%.parquet: ../../../ocr_council_journal_zoning_pages/output/journal_zoning_ocr_%.parquet \
 	| ../input
+	ln -sf $< $@
+../input/journal_pages_%.parquet: ../../../extract_council_journal_text/output/journal_pages_%.parquet | ../input
+	ln -sf $< $@
+../input/journal_amendment_follow_up.csv: \
+	../../../follow_journal_zoning_amendments/output/journal_amendment_follow_up.csv | ../input
 	ln -sf $< $@
 ../input/journal_introductions_%.csv: ../../../parse_journal_zoning_amendments/output/journal_introductions_%.csv \
 	| ../input
@@ -95,6 +138,8 @@ all: ../output/journal_sample_pages.csv ../output/form_holdout_pages.csv ../outp
 	ln -sf $< $@
 ../input/zoning_map_amendments.csv: ../../../clean_zoning_map_amendments/output/zoning_map_amendments.csv | ../input
 	ln -sf $< $@
+../input/substitute_changes.csv: ../../../compare_substitute_ordinances/output/substitute_changes.csv | ../input
+	ln -sf $< $@
 ../input/application_form_reads.csv: ../../../extract_zoning_application_forms/adjudication/application_form_reads.csv \
 	| ../input
 	ln -sf $< $@
@@ -103,18 +148,28 @@ all: ../output/journal_sample_pages.csv ../output/form_holdout_pages.csv ../outp
 ../input/elms_zoning_legislation_files.csv: ../../../download_elms_matters/output/elms_zoning_legislation_files.csv \
 	| ../input
 	ln -sf $< $@
+../input/elms_zoning_application_files.csv: ../../../download_elms_matters/output/elms_zoning_application_files.csv \
+	| ../input
+	ln -sf $< $@
+../input/attached_application_pages.parquet: \
+	../../../extract_zoning_application_forms/output/attached_application_pages.parquet | ../input
+	ln -sf $< $@
 ../input/application_form_pages.parquet: \
 	../../../extract_zoning_application_forms/output/application_form_pages.parquet | ../input
 	ln -sf $< $@
 
-link-inputs: $(foreach year,$(SAMPLE_YEARS),../input/journal_zoning_ocr_$(year).parquet \
+link-inputs: $(foreach year,$(JOURNAL_YEARS),../input/journal_zoning_ocr_$(year).parquet \
+	../input/journal_pages_$(year).parquet) ../input/journal_amendment_follow_up.csv \
+	$(foreach year,$(SAMPLE_YEARS),\
 	../input/journal_introductions_$(year).csv ../input/journal_ordinances_$(year).csv) \
 	../input/journal_introductions_2010.csv ../input/journal_introductions_2011.csv ../input/journal_ordinances_2010.csv \
 	../input/journal_ordinances_2011.csv ../input/journal_report_notes_2010.csv ../input/journal_report_notes_2011.csv \
 	../input/zoning-code-summary-district-types.csv ../input/zoning_conversion_2004_crosswalk.csv \
 	../input/elms_matter_index.jsonl \
-	../input/application_form_fields.csv ../input/zoning_map_amendments.csv ../input/application_form_reads.csv \
+	../input/application_form_fields.csv ../input/zoning_map_amendments.csv ../input/substitute_changes.csv \
+	../input/application_form_reads.csv \
 	../input/elms_zoning_legislation_files.csv ../input/application_form_pages.parquet \
+	../input/elms_zoning_application_files.csv ../input/attached_application_pages.parquet \
 	../input/journal_ordinance_links.csv ../input/journal_zoning_outcomes.csv ../input/zoning_districts_current.geojson \
 	../input/zoning_districts_2012.zip ../input/journal_amendment_places.csv ../input/Chicago_Wards_1998.geojson \
 	../input/Wards_2014.geojson

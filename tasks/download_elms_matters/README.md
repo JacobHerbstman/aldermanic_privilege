@@ -25,6 +25,13 @@ API (City of Chicago, Office of the City Clerk, https://api.chicityclerkelms.chi
   rather than kept: one object that is empty at the source (the introduced version of SO2011-2264) and two that return
   404 (the RTF files of SO2015-6397 and SO2019-328).
 
+- `download_elms_zoning_application_files.R` downloads the other application files of those matters: from 2023
+  eLMS attaches each application's form separately (attachment type "Miscellaneous", "Application.pdf") and its
+  narrative and plans as another file ("Exhibits", "Narrative and Plans.pdf"); before 2023 both were part of the
+  legislation file. 2,291 PDFs of 1,034 matters (964 forms, 1,327 narratives; 2.8 GB, in
+  `output/zoning_application_files`), retrieved September 29, 2026 with the same checks, recorded with their SHA-256
+  in `elms_zoning_application_files.csv`; none was empty or absent at the source.
+
 The API limits requests per window and returns 429 when the limit is used up; the scripts wait and retry.
 Zoning map amendments are ordinances; most are applications transmitted through the Zoning Administrator (filing
 office "Misc."), and 1,347 were filed by an alderman (filing office a ward number). The districts before and after a

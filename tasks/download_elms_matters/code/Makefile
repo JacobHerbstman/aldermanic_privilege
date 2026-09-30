@@ -2,7 +2,7 @@ include ../../shared/code/shell_functions.make
 
 all: ../output/elms_matter_index.jsonl ../output/elms_matter_index_requests.csv \
 	../output/elms_zoning_matter_details.jsonl ../output/elms_zoning_matter_requests.csv \
-	../output/elms_zoning_legislation_files.csv
+	../output/elms_zoning_legislation_files.csv ../output/elms_zoning_application_files.csv
 
 ../%/elms_matter_index.jsonl ../%/elms_matter_index_requests.csv: download_elms_matter_index.R | ../output ../report ../temp
 	$(R) $<
@@ -15,7 +15,13 @@ all: ../output/elms_matter_index.jsonl ../output/elms_matter_index_requests.csv 
 	../output/zoning_legislation_files ../report ../temp
 	$(R) $<
 
+../output/elms_zoning_application_files.csv: download_elms_zoning_application_files.R \
+	../output/elms_zoning_matter_details.jsonl | ../output/zoning_application_files ../report ../temp
+	$(R) $<
+
 ../output/zoning_legislation_files: | ../output
+	mkdir -p $@
+../output/zoning_application_files: | ../output
 	mkdir -p $@
 
 include ../../shared/code/generic.make

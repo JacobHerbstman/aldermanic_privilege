@@ -1,0 +1,27 @@
+File: large_project_matches.csv
+Rows: 326
+Columns: 17
+SHA-256 (saved bytes): f91c1abad9e62e2c3803926d570c9db7b9fdd104e55bae6bc86ca67960c1063b
+Key: record_number
+Types: DuckDB inference from the complete saved CSV.
+Distinct counts: exact (exact up to 100,000 rows).
+Row counts, non-missing counts, and declared-key checks: exact.
+
+                    column inferred_type non_missing distinct                 min                max                  mean                 sd
+             record_number       VARCHAR         326      326                   -                  -                     -                  -
+                  alderman       VARCHAR         326       51                   -                  -                     -                  -
+                      ward        BIGINT         326       34                   1                 50    27.322085889570552 14.873329872016935
+         introduction_date          DATE         326      140                   -                  -                     -                  -
+       planned_development       BOOLEAN         326        2                   -                  -                     -                  -
+                  downtown       BOOLEAN         326        2                   -                  -                     -                  -
+             miles_to_loop        DOUBLE         326      292 0.13571848005425813 13.482761870814565    2.7235940324523122  2.623128644955536
+            dwelling_units        BIGINT         287      200                   0              10000     447.7595818815331  943.2154838582932
+                 height_ft        BIGINT         162      132                  42               1195    273.71604938271605  203.1000875906427
+                   outcome       VARCHAR         326        4                   -                  -                     -                  -
+                      days        BIGINT         274      114                  28               1337    211.76277372262774  203.5256963759579
+        passed_within_year       BOOLEAN         321        2                   -                  -                     -                  -
+                   matches       VARCHAR         326      301                   -                  -                     -                  -
+       matched_median_days        DOUBLE         326      123                32.0              553.0    174.54907975460122  87.69632418792486
+matched_passed_within_year        DOUBLE         326        8                 0.2                1.0    0.7373210633946845 0.2021959306684976
+           days_vs_matches        DOUBLE         274      271 -2.0892231304104945 2.5223963390971225 -0.009415753744334385 0.8595741266553117
+          matched_distance        DOUBLE         326      292 0.06787742240308514 4.5706035984967235    0.7945166181604122 0.8655533642015837

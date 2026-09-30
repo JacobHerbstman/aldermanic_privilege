@@ -1,0 +1,24 @@
+File: substitute_holdout_scores.csv
+Rows: 90
+Columns: 14
+SHA-256 (saved bytes): a5dc09a9239d738cba8e20268b38414dc34a669fb08982f2c592a76fb0781201
+Key: record_number, field
+Types: DuckDB inference from the complete saved CSV.
+Distinct counts: exact (exact up to 100,000 rows).
+Row counts, non-missing counts, and declared-key checks: exact.
+
+           column inferred_type non_missing distinct  min   max               mean                sd
+    record_number       VARCHAR          90       30    -     -                  -                 -
+            field       VARCHAR          90        3    -     -                  -                 -
+  introduced_read        DOUBLE          80       66  0.0 365.0 50.490553750000004  79.3500964827677
+  substitute_read        DOUBLE          83       69  0.0 318.0   49.0423204819277 76.70134182561091
+ introduced_clear       BOOLEAN          90        2    -     -                  -                 -
+ substitute_clear       BOOLEAN          90        1    -     -                  -                 -
+introduced_parsed        DOUBLE          66       55 0.32 365.0 49.072752525252525 77.33086788426982
+substitute_parsed        DOUBLE          62       55  0.0 318.0  48.03827956989247 69.36834728401055
+    parsed_change       VARCHAR          54        3    -     -                  -                 -
+     not_compared       VARCHAR          16        4    -     -                  -                 -
+ introduced_score       VARCHAR          90        4    -     -                  -                 -
+ substitute_score       VARCHAR          90        4    -     -                  -                 -
+      read_change       VARCHAR          80        3    -     -                  -                 -
+    change_agrees       BOOLEAN          54        2    -     -                  -                 -

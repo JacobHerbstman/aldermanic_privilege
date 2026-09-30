@@ -1,0 +1,37 @@
+File: stalls_and_delays_by_alderman.csv
+Rows: 316
+Columns: 27
+SHA-256 (saved bytes): 19b8199b3db3d756aad6c71d3236e142ee2bfe6fa96b33e0cb71ea7c9a2cfe5b
+Key: period, alderman
+Types: DuckDB inference from the complete saved CSV.
+Distinct counts: exact (exact up to 100,000 rows).
+Row counts, non-missing counts, and declared-key checks: exact.
+
+                   column inferred_type non_missing distinct                  min                  max                   mean                    sd
+                   period       VARCHAR         316        3                    -                    -                      -                     -
+                 alderman       VARCHAR         316      136                    -                    -                      -                     -
+                    wards       VARCHAR         316       52                    -                    -                      -                     -
+               first_year        BIGINT         316       23                 2000                 2025      2009.379746835443      8.09515441576442
+                last_year        BIGINT         316       20                 2000                 2026     2017.0664556962026      7.85859239190834
+             applications        BIGINT         316      110                    1                  776     58.620253164556964     76.76689991031593
+       stall_applications        BIGINT         316      105                    0                  713      52.21518987341772     73.56390952368068
+               stall_rate        DOUBLE         286      159                  0.0                  1.0     0.1258679328027013    0.1197275955725877
+                 stall_se        DOUBLE         286      166                  0.0   0.3535533905932738   0.051465475887654474   0.05171833295086064
+        stall_vs_citywide        DOUBLE         286      203 -0.18410041841004185    0.915929203539823   0.003919655622151253   0.11069237122586134
+    stalled_for_good_rate        DOUBLE         286      133                  0.0                  1.0    0.10942469588858726   0.11732800574155118
+not_passed_in_window_rate        DOUBLE         316      174                  0.0                  1.0     0.3479690186537678   0.19125136302578155
+                   passed        BIGINT         316      102                    0                  656     49.265822784810126     66.59414319273765
+              median_days        DOUBLE         312       54                 34.0                252.5      62.13782051282051    22.859846550274256
+         days_vs_citywide        DOUBLE         312      217  -0.5145643352832723   1.6013978490560699   0.014397424653779543    0.2969282893509377
+           stall_adjusted        DOUBLE         286      284 -0.17363907071691093   0.8947165792724341   0.004558945696963827   0.10892946171280729
+        stall_adjusted_se        DOUBLE         286      192 0.012034997605808301   0.3676102544617518    0.07089812861651074  0.059190904878331035
+             stall_shrunk        DOUBLE         203       54 -0.00964048758184057 0.015961097559009162 -6.785283799347886e-05 0.0022680961164120096
+          window_adjusted        DOUBLE         316      315  -0.5273704718650513   0.6882488892251779   -0.01348263573134156   0.15404060856741456
+       window_adjusted_se        DOUBLE         316      211 0.015501611617397208   0.4558699740807267     0.0930007297335221   0.07447861622268093
+            window_shrunk        DOUBLE         231      231 -0.15771854592454224  0.15930051246730367  -0.012680744147004718  0.057640858126277575
+            days_adjusted        DOUBLE         312      311  -0.9009174858839177   0.9778580452682983  -0.017846501771523762   0.19269417792793891
+         days_adjusted_se        DOUBLE         312      186  0.02276027443041254   0.5946185056693101     0.1405726858381385   0.11154409953300994
+              days_shrunk        DOUBLE         205      205 -0.15113510622656673  0.17428965850713934  -0.012456705976415251   0.06473413272547111
+ applications_redrawn_map        BIGINT          74       57                    1                  297     55.351351351351354     59.92379462727969
+   stall_rate_redrawn_map        DOUBLE          74       64                  0.0                  1.0    0.18419613489195474   0.13996823509270237
+ stall_shrunk_redrawn_map        DOUBLE          53       53 -0.02054281379471688 0.027612197701065426 -0.0005898322602822326  0.008928955389567386

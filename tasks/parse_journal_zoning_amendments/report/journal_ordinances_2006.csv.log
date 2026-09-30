@@ -1,7 +1,7 @@
 File: journal_ordinances_2006.csv
 Rows: 729
 Columns: 22
-SHA-256 (saved bytes): f6e1bed46bda37fe442fa602c2b866b911f64228c0382386d398963d1631e898
+SHA-256 (saved bytes): e10374c121a1c85be4e8b58ddb9b716918b4f0a0fbf08c6adf2bd5db71f67fb8
 Key: file, position
 Types: DuckDB inference from the complete saved CSV.
 Distinct counts: exact (exact up to 100,000 rows).
@@ -25,7 +25,7 @@ application_number       VARCHAR         729      726       -       -           
              steps        BIGINT         729        4       0       3   1.01920438957476 0.21525329618653158
          from_text       VARCHAR         721      256       -       -                  -                   -
            to_text       VARCHAR         721      148       -       -                  -                   -
-          boundary       VARCHAR         722      721       -       -                  -                   -
+          boundary       VARCHAR         724      723       -       -                  -                   -
     ordinance_text       VARCHAR         729      729       -       -                  -                   -
         map_number       VARCHAR         719      160       -       -                  -                   -
     from_districts       VARCHAR         714       90       -       -                  -                   -

@@ -460,14 +460,14 @@ report_notes <- reports |>
 # without "On"); a report of a single ordinance has none, and its ordinance, under the report's title, follows "Be It
 # Ordained". The change reads "changing all the <from> District symbols and indications as shown on Map Number <map> in
 # the area bounded by: ..., to those of (or to that of, or to the designation of) a <to> District", the area also
-# written "in an area bound by", "in the area generally bounded by" or "in the following area"; a change in several
-# steps has several such sentences, of which a later one may leave out the map ("changing all of the B3-5 ... District
-# symbols to those of a Business Planned Development", "... symbols and indications established in Section 1 above to
-# the designation of an Institutional Planned Development"). A planned development's statements, which follow it, are
-# not read for the change. The map number is printed in the heading (or title) and in the first change, and OCR misreads
-# either ("Map Number 17-L" in a heading for 1-L, "8-H" in a change for 9-H): it is their common reading, or the one
-# that is legible, and is left blank where the two conflict.
-ordinance_area <- "\\b(?:area\\s+(?:generally\\s+)?bound(?:ed)?\\s+by|following\\s+area)\\s*:?"
+# written "in an area bound by", "in the area generally bounded by", "in the area-bounded by" or "in the following
+# area"; a change in several steps has several such sentences, of which a later one may leave out the map ("changing all
+# of the B3-5 ... District symbols to those of a Business Planned Development", "... symbols and indications established
+# in Section 1 above to the designation of an Institutional Planned Development"). A planned development's statements,
+# which follow it, are not read for the change. The map number is printed in the heading (or title) and in the first
+# change, and OCR misreads either ("Map Number 17-L" in a heading for 1-L, "8-H" in a change for 9-H): it is their
+# common reading, or the one that is legible, and is left blank where the two conflict.
+ordinance_area <- "\\b(?:area\\W+(?:generally\\W+)?bound(?:ed)?\\W+by\\b|following\\s+area)\\s*:?"
 ordinance_heading <- paste0("(?<=\\n[ \\t_.,:;'\u2018\u2019~-]{0,10})[Rr]ec[l1i]assifi\\s?cation\\W+[Oo]f\\W+",
   "Areas?\\W+[Ss]hown\\W+(?:[Oo]n\\W+)?")
 change_sentence <- paste0("changing (?:a\\S{1,3}\\s*)?(?:of\\s*)?the\\W(.{0,400}?)",

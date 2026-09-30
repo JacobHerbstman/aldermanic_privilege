@@ -1,0 +1,24 @@
+File: substitute_changes_by_alderman.csv
+Rows: 105
+Columns: 14
+SHA-256 (saved bytes): 7a74d57bd1b58643e6af1aa019c6e9e4d5296739d4fbe798e50a36e2f2de350e
+Key: alderman
+Types: DuckDB inference from the complete saved CSV.
+Distinct counts: exact (exact up to 100,000 rows).
+Row counts, non-missing counts, and declared-key checks: exact.
+
+              column inferred_type non_missing distinct                 min                 max                   mean                  sd
+            alderman       VARCHAR         105      105                   -                   -                      -                   -
+ applications_passed        BIGINT         105       53                   1                 415     44.733333333333334   61.10650643102688
+            compared        BIGINT         105       31                   0                 138      10.82857142857143  21.032235854871576
+planned_developments        BIGINT          88       10                   0                  27     1.5454545454545454  3.8860466301503953
+             smaller        BIGINT          88        9                   0                  17     1.0681818181818181  2.6772582241438876
+              larger        BIGINT          88        7                   0                  13     1.0227272727272727  2.0227287403279757
+               mixed        BIGINT          88        3                   0                   2    0.07954545454545454  0.3464629455263283
+      mean_log_units        DOUBLE          62       19  -0.275415479189845 0.13089867598202218 -0.0007729460372040419 0.04270080859758601
+     mean_log_height        DOUBLE          64       25 -0.2826695306282366 0.13285158286650284  0.0034164239484237957 0.04658854742228016
+        mean_log_far        DOUBLE          69       36 -0.6931471805599453  0.2094245364027742  -0.022948695443264958 0.13341949995492955
+       share_smaller        DOUBLE          88       25                 0.0                 1.0     0.0703332522894144  0.1411745528727061
+    share_smaller_se        DOUBLE          88       29                 0.0  0.3535533905932738    0.04186930334594255 0.07269710502148495
+        share_larger        DOUBLE          88       26                 0.0                 1.0     0.0807048028434952  0.1698655131000776
+     share_larger_se        DOUBLE          88       31                 0.0  0.3535533905932738   0.040934602929304335 0.06586813740826075

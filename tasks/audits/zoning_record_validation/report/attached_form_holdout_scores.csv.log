@@ -1,0 +1,17 @@
+File: attached_form_holdout_scores.csv
+Rows: 120
+Columns: 7
+SHA-256 (saved bytes): d434d04c230b3c1873379080a52b6a9dad933c4a552e2fd937f063a66999d9cb
+Key: record_number, field
+Types: DuckDB inference from the complete saved CSV.
+Distinct counts: exact (exact up to 100,000 rows).
+Row counts, non-missing counts, and declared-key checks: exact.
+
+       column inferred_type non_missing distinct min     max              mean                 sd
+record_number       VARCHAR         120       20   -       -                 -                  -
+        clear       BOOLEAN         120        2   -       -                 -                  -
+        field       VARCHAR         120        6   -       -                 -                  -
+         read        DOUBLE          81       53 0.0 75125.0 6592.975555555556 16559.418715262924
+       parsed        DOUBLE          66       43 0.0 75125.0 5494.788787878787 14810.456640485258
+       source       VARCHAR          67        3   -       -                 -                  -
+       result       VARCHAR         120        6   -       -                 -                  -

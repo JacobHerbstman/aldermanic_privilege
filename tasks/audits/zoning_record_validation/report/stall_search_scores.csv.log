@@ -1,0 +1,21 @@
+File: stall_search_scores.csv
+Rows: 50
+Columns: 11
+SHA-256 (saved bytes): ef316c6b6d8cf175815c15450f5b1ff0a1b02b7929a71656b2bfb130d785876c
+Key: label
+Types: DuckDB inference from the complete saved CSV.
+Distinct counts: exact (exact up to 100,000 rows).
+Row counts, non-missing counts, and declared-key checks: exact.
+
+             column inferred_type non_missing distinct min max mean                  sd
+              label       VARCHAR          50       50   -   -    -                   -
+      group_at_draw       VARCHAR          50        2   -   -    -                   -
+        outcome_now       VARCHAR          50        2   -   -    -                   -
+       introduction       VARCHAR          50       50   -   -    -                   -
+            verdict       VARCHAR          50        7   -   -    -                   -
+          ordinance       VARCHAR          17       17   -   -    -                   -
+             action       VARCHAR          17        2   -   -    -                   -
+linked_introduction       VARCHAR          16       16   -   -    -                   -
+           refiling       VARCHAR           3        3   -   -    -                   -
+    ordinances_read        BIGINT          50        4   0   4 0.44  0.7602362683228611
+ introductions_read        BIGINT          50        3   0   2 0.12 0.43518703462079467

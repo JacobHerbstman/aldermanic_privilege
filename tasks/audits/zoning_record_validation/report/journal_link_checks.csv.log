@@ -1,24 +1,24 @@
 File: journal_link_checks.csv
-Rows: 5806
+Rows: 5815
 Columns: 14
-SHA-256 (saved bytes): 192692e19f8c114de58231a96565881de9c5a4e9d888329f605acc4b5152278e
+SHA-256 (saved bytes): 0a9e3875c3d83ebecdc52f721b6db785b6922366e2d9e7ee2b6a60fbbce83ce2
 Key: ordinance
 Types: DuckDB inference from the complete saved CSV.
 Distinct counts: exact (exact up to 100,000 rows).
 Row counts, non-missing counts, and declared-key checks: exact.
 
-               column inferred_type non_missing distinct    min     max               mean                  sd
-            ordinance       VARCHAR        5806     5806      -       -                  -                   -
-         meeting_date          DATE        5806      147      -       -                  -                   -
-               action       VARCHAR        5806        5      -       -                  -                   -
-           link_basis       VARCHAR        5806        5      -       -                  -                   -
-   application_number       VARCHAR        5787     5739      -       -                  -                   -
-         introduction       VARCHAR        5346     5318      -       -                  -                   -
-    introduction_date          DATE        5346      167      -       -                  -                   -
-  number_introduction       VARCHAR         515      514      -       -                  -                   -
-boundary_introduction       VARCHAR        5315     5228      -       -                  -                   -
-  boundary_similarity        DOUBLE        5315      144    0.4     1.0 0.9507541103334699 0.11810820053206716
-      boundary_agrees       BOOLEAN         497        2      -       -                  -                   -
-      previous_median        DOUBLE        5306      319 4309.5 17368.0 12227.134658876743   4470.475615865955
-          next_median        DOUBLE        5331      320 4325.0 17389.5 12290.851622584882   4470.182525457657
-      number_in_order       BOOLEAN        5304        2      -       -                  -                   -
+               column inferred_type non_missing distinct    min     max               mean                 sd
+            ordinance       VARCHAR        5815     5815      -       -                  -                  -
+         meeting_date          DATE        5815      147      -       -                  -                  -
+               action       VARCHAR        5815        5      -       -                  -                  -
+           link_basis       VARCHAR        5815        5      -       -                  -                  -
+   application_number       VARCHAR        5794     5746      -       -                  -                  -
+         introduction       VARCHAR        5370     5342      -       -                  -                  -
+    introduction_date          DATE        5370      167      -       -                  -                  -
+  number_introduction       VARCHAR         515      514      -       -                  -                  -
+boundary_introduction       VARCHAR        5339     5252      -       -                  -                  -
+  boundary_similarity        DOUBLE        5339      144    0.4     1.0 0.9508568576679263 0.1180516870905852
+      boundary_agrees       BOOLEAN         497        2      -       -                  -                  -
+      previous_median        DOUBLE        5329      319 4309.5 17368.0 12226.609119909926  4471.206267983953
+          next_median        DOUBLE        5354      320 4324.0 17389.5 12290.397833395593  4471.020845377175
+      number_in_order       BOOLEAN        5327        2      -       -                  -                  -

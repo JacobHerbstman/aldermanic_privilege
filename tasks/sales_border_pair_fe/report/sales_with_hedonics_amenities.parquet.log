@@ -1,7 +1,7 @@
 File: sales_with_hedonics_amenities.parquet
 Rows: 222505
 Columns: 68
-SHA-256 (saved bytes): e325d0f9a9e39ad80481abe0a12f126e65163cc8c3e3298a71ca1a0aecf7a579
+SHA-256 (saved bytes): 9c470d614496f51ebc9ac6b4d0b0a86dc7de4adb0bf2edf34a7019a1c39cd9f9
 Key: row_id
 Types: Stored Parquet schema.
 Distinct counts: approximate (exact up to 100,000 rows).
@@ -55,8 +55,8 @@ sale_price_cpi_chi_all_items        DOUBLE      222505      212              197
                         sign       INTEGER      222056        2                 -1                  1     0.075233274489318    0.9971682066276574
                 alderman_own       VARCHAR      222295      111                  -                  -                     -                     -
            alderman_neighbor       VARCHAR      222280      111                  -                  -                     -                     -
-              strictness_own        DOUBLE      222290      106 -3.445538716858031 3.3357976529033273    0.1515892464663285    0.9136842887178905
-         strictness_neighbor        DOUBLE      222271      106 -3.445538716858031 3.3357976529033273   0.06972603202899838    0.9175177632842867
+              strictness_own        DOUBLE      222290      104 -3.445538716858071  3.335797652903346    0.1515892464663387    0.9136842887178827
+         strictness_neighbor        DOUBLE      222271      104 -3.445538716858071  3.335797652903346   0.06972603202901252    0.9175177632842716
             same_party_names       BOOLEAN      222505        2                  -                  -                     -                     -
            resale_within_365       BOOLEAN      222505        2                  -                  -                     -                     -
     days_since_previous_sale       INTEGER       86948     5830                  1               6191    1462.7279408382021    1347.3285841797992

@@ -172,6 +172,24 @@ descriptions and metes and bounds) and 4 percent of applications have no ward; a
 zoning map can check lie within 330 feet of their parcels. Net of refilings that passed, 14 to 22 percent of
 applications introduced in 2000--2008 never passed.
 
+\textit{Update, night of September 29, 2026: a blind search for stalled applications' passage}
+(\path{tasks/audits/zoning_record_validation}, section 7 of its README). Whether an application recorded as stalled in
+fact passed was tested without the parser or the links. 40 applications of 2000--2008 recorded as stalled were drawn
+at random, with 10 recorded as passed as controls. Every later page of the Journals through 2011 was searched in its
+own text for each application's distances, streets, map sheet and applicant's name, and the four best-matching pages
+were read from their images by readers who did not know which applications were controls. They found the passage of 8
+of the 10 controls (the other two were an ordinance amended to name another street and a page deep in a planned
+development's exhibit). Of the 40 stalled, 31 had no later passage and 2 passed through their recorded refilings; 5
+had passed and were wrongly recorded, for three reasons, each now fixed in general. OCR had printed ``area-bounded
+by'' or ``bounded. by'', so the parser read no boundary to link (\path{tasks/parse_journal_zoning_amendments});
+tesseract had split a page into two columns and broken its ordinance heading, and 9 such pages are now read again as
+one column (\path{tasks/ocr_council_journal_zoning_pages}); and an application printed twice at one meeting, as the
+applicant's and as the sponsoring alderman's, had its ordinance linked to only one printing, and now shares it with
+its twin (\path{tasks/link_journal_zoning_outcomes}). Together these turned 32 introductions of 2000--2011 from
+stalled to passed. Net of refilings that passed, 13 to 22 percent of applications introduced in each year of
+2000--2008 never passed, against 7 percent in 2011; with eLMS's rate of refiling, 10 to 17 percent. The five errors
+were found in this sample and fixed from it, so it cannot measure the error that remains; a fresh draw would.
+
 \textit{Reproduction.} Run \texttt{make} in \path{tasks/link_journal_zoning_outcomes/code/} and
 \path{tasks/place_journal_zoning_amendments/code/}, which read \path{tasks/parse_journal_zoning_amendments}, and that in
 turn \path{tasks/ocr_council_journal_zoning_pages} and \path{tasks/extract_council_journal_text}; the task READMEs give

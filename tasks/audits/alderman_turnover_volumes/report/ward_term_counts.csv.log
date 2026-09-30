@@ -1,0 +1,24 @@
+File: ward_term_counts.csv
+Rows: 250
+Columns: 14
+SHA-256 (saved bytes): 5a57267e7e1a87db369d7ae640207cd1ec27194f0f181b1838ae2d6fd7718d43
+Key: term_start, ward
+Types: DuckDB inference from the complete saved CSV.
+Distinct counts: exact (exact up to 100,000 rows).
+Row counts, non-missing counts, and declared-key checks: exact.
+
+           column inferred_type non_missing distinct min     max      mean                  sd
+       term_start          DATE         250        5   -       -         -                   -
+             ward        BIGINT         250       50   1      50      25.5   14.45981830389048
+      map_version        BIGINT         250        2   1       2       1.4 0.49088069367381604
+             side       VARCHAR         250        9   -       -         -                   -
+         alderman       VARCHAR         250      107   -       -         -                   -
+         aldermen        BIGINT         250        2   1       2      1.08 0.27183741892777985
+     applications        BIGINT         250       76   1     229    29.012  31.828415734886494
+   own_amendments        BIGINT         250       40   0      71     9.812  11.651251548679326
+  own_downzonings        BIGINT         250       33   0      51     5.056    8.10751448747757
+          permits        BIGINT         250      225 117    7000   788.808   762.7529741234292
+ new_construction        BIGINT         250      151   6     681   105.956  115.86944800040982
+    new_buildings        BIGINT         250      121   0     450    65.444   83.38173010715627
+        new_units        BIGINT         250      185   0    6867    453.08   946.8720103667996
+new_units_squared        BIGINT         250      221   0 3367685 95729.208   370767.2999058393

@@ -82,10 +82,13 @@ amendments <- records |>
 # 2. Districts before and after. Ordinances state each change as "changing all the <from> District symbols and
 # indications as shown on Map No. ... to those of a <to> District"; a change in steps (for example to a district and
 # then to a planned development) has several such sentences. Applications also fill in "Present Zoning District" and
-# "Proposed Zoning District". OCR confusions in codes are repaired (l or I for 1, O for 0, spaces around hyphens) and
-# only codes in the zoning ordinance are kept.
+# "Proposed Zoning District". OCR confusions in codes are repaired (l or I for 1, O for 0, 8 for B before a digit
+# and hyphen as in "83-2", S for 5 in "RMS", spaces between letters and around hyphens as in "R M 5" and "B l - l")
+# and only codes in the zoning ordinance are kept.
 district_codes <- function(clause) {
   if (is.na(clause)) return(character())
+  clause <- str_replace_all(clause, c("\\b8([1-3])\\s?-\\s?(?=[0-9lI])" = "B\\1-", "\\bRMS(?=\\b|\\.)" = "RM5",
+    "\\bR\\s([MTS])\\s?(?=[0-9])" = "R\\1", "\\b([BCM])\\s([1-3lI])\\s?-\\s?" = "\\1\\2-"))
   found <- str_match_all(clause, paste0("\\b(RS|RT|RM|B[1-3lI]|C[1-3lI]|M[1-3lI]|DC|DX|DR|DS|POS|PMD)\\s?[-–]?\\s?",
     "([0-9lIO]{1,2}(?:\\.[0-9])?A?)\\b"))[[1]]
   prefix <- str_replace_all(found[, 2], c("l" = "1", "I" = "1"))
@@ -93,11 +96,26 @@ district_codes <- function(clause) {
   code[prefix == "PMD"] <- "PMD"
   unique(code[code %in% districts$district])
 }
+# The sentence's wording varies and OCR mangles it: "changing all of the", "changing all ofthe", "changing the",
+# "changing ail", "changingill" or "changuig all" before the district; "symbols" misread ("s3aTibols"), singular or
+# left out ("District and indications", "District, as shown on Map"); "to those of", "to the designation of", "lo" or
+# "10 those of", "tho.se", "thosc", "tiiose" or "o f", with the article run on ("ofthe", "ofa"). The new district ends
+# at "District", "which" or "is hereby" (after "which" misread: "vvhich", "wfiich").
 change_sentences <- function(text) {
-  str_match_all(str_squish(text), regex(paste0("changing all (?:of )?the (.{0,250}?)symbols(?: and indications)?",
-    ".{0,8000}?to those of (?:a |an |the )?(.{0,200}?)(?:district|which|and a corresponding|\\.(?:\\s|$))"),
+  str_match_all(str_squish(text), regex(paste0(
+    "chang(?:ing|uig)\\s*(?:a\\s?[il1]\\s?[il1]|ill)?\\s*(?:o\\s?f\\s*)?(?:the\\s*)?(.{0,250}?)",
+    "(?:\\bs\\w{3,6}ls\\b(?: and indications)?|\\bsymbol\\b|\\band indications\\b|\\bdesignations?\\b|",
+    ",?\\s*(?:as\\s+)?shown\\s+on\\s+map).{0,8000}?",
+    "(?:to|\\blo|\\b10)\\s+(?:t(?:h|ii|li)\\W?o\\W?s\\W?[ec]|the\\s+designations?)\\s*o\\s?[f!]\\s*",
+    "(?:(?:a|an|the)\\b\\s*)?(.{0,200}?)(?:district|which|\\bis hereby\\b|and a corresponding|\\.(?:\\s|$))"),
     ignore_case = TRUE))[[1]]
 }
+# "Planned Development" as OCR reads it ("Plarmed", "Plaimed", "Developmenl", "FJevelopment").
+planned_development <- "p\\s?la\\w{1,4}ed\\W{0,2}\\w{0,2}evel"
+# Every ordinance establishing or amending a planned development attaches its statements ("PLANNED DEVELOPMENT NO.
+# 1230, AS AMENDED PLANNED DEVELOPMENT STATEMENTS", "PLANNED DEVELOPMENT NO. PLAN OF DEVELOPMENT STATEMENTS").
+planned_development_statements <- paste0(planned_development, "\\w*\\W{0,3}(?:no\\.?|number)?[\\s\\d_\\[\\]#.]{0,12}",
+  "\\W{0,3}statements|plan\\s+of\\s+develop\\w*\\W{0,3}statements")
 application_fields <- function(text) {
   text <- str_squish(text)
   c(from = str_match(text, regex("present zoning(?: district)?:?\\s+(.{0,80}?)\\s+(?:proposed zoning|\\d+\\.|lot size)",
@@ -110,30 +128,38 @@ file_districts <- bind_rows(lapply(seq_len(nrow(texts)), function(i) {
   sentences <- change_sentences(texts$text[i])
   form <- application_fields(texts$text[i])
   tibble(matter_id = texts$matter_id[i], file_name = texts$file_name[i],
-    substitute = startsWith(texts$file_name[i], "SO"),
+    # A substitute's file name starts with SO, or S0 as some are typed ("S02023-0002715 Final Ordinance.pdf").
+    substitute = grepl("^S[O0]", texts$file_name[i]),
     change_sentences = nrow(sentences),
     sentence_from = if (nrow(sentences) > 0) paste(district_codes(sentences[1, 2]), collapse = ";") else "",
     sentence_to = if (nrow(sentences) > 0) paste(district_codes(sentences[nrow(sentences), 3]), collapse = ";") else "",
-    to_planned_development = nrow(sentences) > 0 &&
-      grepl("planned development", sentences[nrow(sentences), 3], ignore.case = TRUE),
+    # A change to a planned development is its last step, but a file may print its ordinance twice, so any step to a
+    # planned development counts, as do the planned development's statements where no step is read as one.
+    to_planned_development = (nrow(sentences) > 0 &&
+      any(grepl(planned_development, sentences[, 3], ignore.case = TRUE, perl = TRUE))) ||
+      grepl(planned_development_statements, str_squish(texts$text[i]), ignore.case = TRUE, perl = TRUE),
     form_from = paste(district_codes(form[["from"]]), collapse = ";"),
     form_to = paste(district_codes(form[["to"]]), collapse = ";"))
 }))
 
 # Each matter uses its substitute ordinance where one exists (the version passed), otherwise the introduced one, from
-# the files of all its records. The
-# district before is the application's present district, or else the first sentence's; the district after is the last
-# sentence's, or else the application's proposed district.
+# the files of all its records. The district before is the application's present district, or else the first
+# sentence's; the district after is the last sentence's, or else the application's proposed district. The district
+# after as each version states it, and whether each version is to a planned development (missing where the matter has
+# no file of that version), are kept for comparing the two.
 matter_districts <- file_districts |>
   inner_join(select(records, matter_id, kept_matter_id), by = "matter_id", relationship = "many-to-one") |>
-  mutate(matter_id = kept_matter_id) |>
+  mutate(matter_id = kept_matter_id, read = sentence_to != "" | to_planned_development) |>
   arrange(matter_id, desc(substitute)) |>
   summarise(
+    introduced_to_districts = dplyr::first(sentence_to[!substitute & sentence_to != ""], default = ""),
+    substitute_to_districts = dplyr::first(sentence_to[substitute & sentence_to != ""], default = ""),
+    introduced_to_planned_development = if (any(!substitute)) any(to_planned_development[!substitute]) else NA,
+    substitute_to_planned_development = if (any(substitute)) any(to_planned_development[substitute]) else NA,
     sentence_from = dplyr::first(sentence_from[sentence_from != ""], default = ""),
     sentence_to = dplyr::first(sentence_to[sentence_to != ""], default = ""),
     change_sentences = dplyr::first(change_sentences[change_sentences > 0], default = 0L),
-    to_planned_development = dplyr::first(to_planned_development[sentence_to != "" | to_planned_development],
-      default = FALSE),
+    to_planned_development = dplyr::first(to_planned_development[read], default = FALSE),
     form_from = dplyr::first(form_from[form_from != ""], default = ""),
     form_to = dplyr::first(form_to[form_to != ""], default = ""),
     .by = matter_id) |>

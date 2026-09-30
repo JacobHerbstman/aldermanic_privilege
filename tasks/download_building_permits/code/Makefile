@@ -3,7 +3,7 @@ include ../../shared/code/shell_functions.make
 START_YEAR = 2006
 END_YEAR = 2022
 
-all: ../output/building_permits_2006_2022.csv
+all: ../output/building_permits_2006_2022.csv ../output/building_permits_2023_2026.csv
 
 ../output/building_permits_2006_2022.csv: ../input/building_permits_2006_2022_preserved_20260912.csv.gz source_snapshot.sha256 | ../output ../report
 	shasum -a 256 -c source_snapshot.sha256
@@ -14,6 +14,18 @@ all: ../output/building_permits_2006_2022.csv
 ../input/building_permits_2006_2022_preserved_20260912.csv.gz: source_snapshot.sha256 | ../input
 	curl -L --fail --retry 20 --retry-all-errors --retry-delay 10 -C - -o $@.tmp https://github.com/JacobHerbstman/aldermanic_privilege/releases/download/recorded-sources-2026-09-10/building_permits_2006_2022_preserved_20260912.csv.gz
 	sed 's/\.csv\.gz$$/.csv.gz.tmp/' source_snapshot.sha256 | shasum -a 256 -c -
+	mv $@.tmp $@
+
+../output/building_permits_2023_2026.csv: ../input/building_permits_2023_2026_preserved_20260929.csv.gz \
+	source_snapshot_2023_2026.sha256 | ../output ../report
+	shasum -a 256 -c source_snapshot_2023_2026.sha256
+	gzip -dc $< > $@.tmp
+	mv $@.tmp $@
+	$(PYTHON) ../../shared/code/report.py $@ ../report/building_permits_2023_2026.csv.log id
+
+../input/building_permits_2023_2026_preserved_20260929.csv.gz: source_snapshot_2023_2026.sha256 | ../input
+	curl -L --fail --retry 20 --retry-all-errors --retry-delay 10 -C - -o $@.tmp https://github.com/JacobHerbstman/aldermanic_privilege/releases/download/recorded-sources-2026-09-10/building_permits_2023_2026_preserved_20260929.csv.gz
+	sed 's/\.csv\.gz$$/.csv.gz.tmp/' source_snapshot_2023_2026.sha256 | shasum -a 256 -c -
 	mv $@.tmp $@
 
 download-current: ../temp/building_permits_current_$(START_YEAR)_$(END_YEAR).csv

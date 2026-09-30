@@ -1,0 +1,61 @@
+record_number,version,far,dwelling_units,height_ft,clear,note
+O2023-0002177,introduced,,8,,TRUE,Transit-served narrative page only; no FAR or height in feet stated; eight dwelling units
+O2023-0002177,substitute,,8,,TRUE,Same text as introduced; no FAR or height in feet stated; eight dwelling units
+O2025-0016000,introduced,1.76,16,47,TRUE,
+O2025-0016000,substitute,1.76,16,47,TRUE,
+O2025-0019560,introduced,,13,46.75,TRUE,"Narrative p1 only; no FAR stated; height 46'9"" from table (both buildings); 13 dwelling units"
+O2025-0019560,substitute,1.94,13,46.75,TRUE,"FAR 1.94 proposed on p2; table height 46'9"" (46.75) but p2 states maximum building height is 47 feet; recorded 47; second reader recorded the table height 46.75 (first listed), as the rules direct; kept"
+SO2014-2321,introduced,0.32,0,33,TRUE,Units: None recorded as 0
+SO2014-2321,substitute,0.735,0,44,TRUE,Units: None recorded as 0
+SO2015-6398,introduced,3.5,31,63,TRUE,
+SO2015-6398,substitute,3.48,30,65.2083,TRUE,Height 65 feet 2.5 inches
+SO2015-7342,introduced,3.5,25,55,TRUE,
+SO2015-7342,substitute,3.5,24,55,TRUE,
+SO2016-6339,introduced,7,149,107.5,TRUE,Height 107 feet 6 inches
+SO2016-6339,substitute,7,149,109.5833,TRUE,Height 109 feet 7 inches
+SO2016-7934,introduced,5,,104,TRUE,"Density N/A and no dwelling units stated (commercial); height 101'4"" to underside of roof framing and 104'0"" overall; recorded overall 104"
+SO2016-7934,substitute,5,,102,TRUE,Density N/A and no dwelling units stated (commercial)
+SO2016-8617,introduced,5,365,200,TRUE,
+SO2016-8617,substitute,4.5,261,150,TRUE,
+SO2017-130,introduced,5,250,295,TRUE,Subareas: FAR 5.0 is the blended property total; no property-wide dwelling-unit total so first listed (Subarea A 250); no overall height so first listed (Subarea A 295 ft; B and C 60 ft)
+SO2017-130,substitute,5,250,295,TRUE,FAR total across all subareas 5.0; dwelling units first listed (Subarea A 250; B and C per Statement 12); height first listed Subarea A 295 (B and C 45 ft)
+SO2017-6195,introduced,3.15,19,49.6667,TRUE,"Two heights printed: 49'8"" with elevator (first listed recorded) and 44'5"""
+SO2017-6195,substitute,3.15,19,52.6667,TRUE,"Two heights printed: 52'8"" with elevator (first listed recorded) and 46'5"""
+SO2018-124,introduced,1.7,2,25,TRUE,Dwelling units from text: existing two-dwelling-unit building (density 510 sf per unit on 1020 sf lot); count not in a table
+SO2018-124,substitute,1.7,2,23.8333,TRUE,Dwelling units from text: existing two-dwelling-unit building; height 23 feet 10 inches
+SO2018-1835,introduced,4.27,127,85,TRUE,
+SO2018-1835,substitute,4,109,70,TRUE,FAR printed 4.00
+SO2018-7750,introduced,10.5,297,210,TRUE,
+SO2018-7750,substitute,11.25,318,225,TRUE,
+SO2019-2660,introduced,5,,,TRUE,Height and setbacks only 'in conformance with the Plans'; no dwelling units stated
+SO2019-2660,substitute,3.4,0,50,TRUE,
+SO2019-4309,introduced,11.4,252,223.8333,TRUE,Height 223 feet-10 inches
+SO2019-4309,substitute,8.1,281,282,TRUE,Maximum FAR 8.1 is base 5.0 plus bonus 3.1
+SO2019-5534,introduced,1.1,,38,TRUE,Height printed as not to exceed 38 feet; no dwelling units stated
+SO2019-5534,substitute,1.1,,38,TRUE,Height printed as not to exceed 38 feet; no dwelling units stated
+SO2019-7948,introduced,1.77,8,47,TRUE,
+SO2019-7948,substitute,1.43,8,47,TRUE,
+SO2020-4452,introduced,14.71,,99.75,FALSE,"Recorded from narrative table on p8 (FAR 14.71 height 99'9""); p5 is a statements page that says permitted FAR 18 (base FAR 18) for the property so FAR is ambiguous; no dwelling units stated"
+SO2020-4452,substitute,14.71,,99.75,TRUE,No dwelling units stated
+SO2020-4802,introduced,3.38,9,49.9583,TRUE,Height 49 feet 11.5 inches
+SO2020-4802,substitute,2.7,8,42.625,TRUE,Height 42 feet 7.5 inches
+SO2021-4545,introduced,2.2,64,74,TRUE,
+SO2021-4545,substitute,3.2,65,72,TRUE,
+SO2023-0001903,introduced,1.09,2,22.083,TRUE,"Height 22'-1""; density 2 residential dwelling units"
+SO2023-0001903,substitute,2.0,2,30,TRUE,Height 30 feet; 2 dwelling units
+SO2024-0007273,introduced,2.145,8,43.208,FALSE,"Height: table ""Height (existing)"" 43'-2.5"" used but narrative says new building height 42'-0"" (conflicting)"
+SO2024-0007273,substitute,2.145,8,42,TRUE,"Table height (existing) 42'-0""; text also says new height 42'-0"""
+SO2024-0008912,introduced,1.49,0,81.083,TRUE,No dwelling units; height 81 feet 1 inch (existing)
+SO2024-0008912,substitute,1.49,0,81.083,TRUE,No dwelling units; height 81 feet 1 inch (existing)
+SO2024-0011149,introduced,3.5,31,57,TRUE,Two heights printed: 57.0 ft to underside of top floor ceiling (first listed used) and 74.5 ft to top of elevator overrun
+SO2024-0011149,substitute,3.5,31,57,TRUE,Two heights printed: 57.0 ft to underside of top floor ceiling (first listed used) and 74.5 ft to top of elevator overrun; scan slightly faint but legible
+SO2025-0014954,introduced,,8,,TRUE,Only supplemental transit narrative page; 8 dwelling units stated; no FAR or height
+SO2025-0014954,substitute,,20,,TRUE,Only supplemental transit narrative page; 20 dwelling units stated; no FAR or height
+SO2025-0016358,introduced,2.29,20,47.167,TRUE,Height 47 feet 2 inches
+SO2025-0016358,substitute,3.0,24,54.833,TRUE,Height 54 feet 10 inches
+SO2025-0016653,introduced,2.50,6,36.5,TRUE,"Maximum FAR 2.50; height 36'-6"""
+SO2025-0016653,substitute,2.50,6,36.5,TRUE,"Maximum FAR 2.50; height 36'-6"""
+SO2025-0019761,introduced,1.48,2,39.01,TRUE,Maximum FAR 1.48; height 39.01'
+SO2025-0019761,substitute,1.48,2,39.01,TRUE,FAR 1.48; height 39.01'
+SO2026-0023209,introduced,1.31,4,37.67,FALSE,Table height 37.67 ft but narrative text says proposed height 37.75 feet
+SO2026-0023209,substitute,1.32,4,49.58,TRUE,Table height 49.58 ft (top of stair enclosure); text also says 37.75 ft building height

@@ -99,6 +99,9 @@ logbook.pdf: logbook.tex \
 	entries/2026-09-27-measures-without-processing-times.tex \
 	entries/2026-09-28-zoning-record-duplicates-and-refilings.tex \
 	entries/2026-09-28-council-journal-zoning-records.tex \
+	entries/2026-09-29-where-aldermen-differ-in-zoning.tex \
+	entries/2026-09-30-checking-the-elms-extraction.tex \
+	entries/2026-09-30-substitute-ordinances.tex \
 	records/density_fixed_effects/density_fixed_effects.tex \
 	records/score_pair_reliability/split_agreement.pdf \
 	records/multifamily_score_uncertainty/multifamily_score_draws.pdf \

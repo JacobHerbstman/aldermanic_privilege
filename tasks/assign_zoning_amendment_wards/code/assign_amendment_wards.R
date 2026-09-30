@@ -22,7 +22,7 @@ source("../../shared/code/centerline_address.R")
 sf_use_s2(FALSE)
 
 amendments <- read_csv("../input/zoning_map_amendments.csv", show_col_types = FALSE) |>
-  select(matter_id, introduction_date, filed_by_alderman, filing_ward)
+  select(matter_id, title, introduction_date, filed_by_alderman, filing_ward)
 queries <- read_csv("../output/zoning_amendment_address_queries.csv", show_col_types = FALSE)
 # Addresses without a match (No_Match, Tie) come back with three fields rather than eight, which readr reports as
 # parsing problems; the check below stops on any other short row.
@@ -31,17 +31,20 @@ responses <- suppressWarnings(read_csv("../output/census_geocoder_responses.csv"
   col_types = cols(.default = col_character())))
 short_rows <- readr::problems(responses)$row
 stopifnot(all(responses$match[short_rows] %in% c("No_Match", "Tie")))
-stopifnot(!anyDuplicated(responses$address_id), setequal(as.integer(responses$address_id),
-  queries$address_id[!is.na(queries$address_id)]))
+# The responses are the preserved snapshot of September 27-28, 2026 (geocode_amendment_addresses.R), matched to the
+# queries by the address sent; a query the snapshot does not answer stops the build, since new titles call for a
+# deliberate refresh.
 geocodes <- responses |>
-  transmute(address_id = as.integer(address_id), geocode_match = match, geocode_match_type = match_type,
-    matched_address, longitude = as.numeric(sub(",.*", "", coordinates)),
+  transmute(address_query = sub(",\\s*Chicago,\\s*IL,\\s*$", "", input_address), geocode_match = match,
+    geocode_match_type = match_type, matched_address, longitude = as.numeric(sub(",.*", "", coordinates)),
     latitude = as.numeric(sub(".*,", "", coordinates)))
+stopifnot(!anyDuplicated(geocodes$address_query),
+  all(queries$address_query[!is.na(queries$address_query)] %in% geocodes$address_query))
 
 opposite <- c(N = "S", S = "N", E = "W", W = "E")
 compact <- function(x) str_remove_all(x, "[^A-Z0-9]")
 points <- queries |>
-  left_join(geocodes, by = "address_id", relationship = "many-to-one") |>
+  left_join(geocodes, by = "address_query", relationship = "many-to-one") |>
   inner_join(amendments, by = "matter_id", relationship = "one-to-one") |>
   mutate(map_year = canonical_boundary_year_from_date(introduction_date),
     matched = str_match(matched_address, paste0("^[0-9]+\\s+(?:([NSEW])\\s+)?(.+?)(?:\\s+(?:", street_types,
@@ -81,6 +84,64 @@ points <- points |>
     latitude = if_else(location_source %in% "street_centerlines", centerline_latitude, latitude),
     geocoded = !is.na(location_source) & is.finite(longitude) & is.finite(latitude))
 
+# Amendments still unplaced (the geocoder has no match, or rejected a match the centerlines could not place, or no
+# query could be formed from the title) are read again from the title and placed on the centerlines. Every address the
+# title lists after "at" (or after the map number) is read: addresses joined by "/", ";", commas or "and" ("400-410 N
+# Green St/401-411 N Peoria St"), house numbers listed before one street ("5531, 5533, 5535 and 5537 S Oakley Ave",
+# "1140/1152 W Eddy St"), ranges ("1744 to 1754 W Addison St") by their first number, directions spelled out ("North")
+# abbreviated, addresses run together ("1647 N LaSalle St 1601 N Wells St") separated, a parenthesis ("(commonly known
+# as ...)") dropped and an ordinal's suffix restored ("75t St"). An address printed without a direction ("3723-3753
+# Archer Ave") is tried with each, and kept if exactly one places it. The first address the centerlines place is used.
+direction_words <- c(NORTH = "N", SOUTH = "S", EAST = "E", WEST = "W")
+ordinal <- function(n) paste0(n, case_when(n %% 100 %in% 11:13 ~ "TH", n %% 10 == 1 ~ "ST", n %% 10 == 2 ~ "ND",
+  n %% 10 == 3 ~ "RD", TRUE ~ "TH"))
+title_addresses <- function(title) {
+  text <- str_to_upper(coalesce(str_match(title, regex("\\bat\\s+(.+)$", ignore_case = TRUE))[, 2],
+    str_match(title, regex("map\\s+no\\.?\\s+(\\d.+)$", ignore_case = TRUE))[, 2], "")) |>
+    str_remove("\\s*-\\s*(?:APP\\b.*|\\d+T\\d.*)$") |>
+    str_remove_all("\\([^)]*\\)") |>
+    str_replace_all("\\b(NORTH|SOUTH|EAST|WEST)\\b", function(w) direction_words[w])
+  chunks <- str_squish(str_split(text, paste0("\\s*(?:/|;|,|\\bAND\\b)\\s*|(?<=\\b(?:", street_types,
+    "))\\.?\\s+(?=\\d)"))[[1]])
+  found <- str_match(chunks, paste0("^(\\d+)[A-Z]?(?:\\s*(?:-|TO)\\s*\\d+[A-Z]?)?(?:\\s+(?:([NSEW])\\.?\\s+)?(.+?))?",
+    "(?:\\s+(?:", street_types, ")\\.?)?$"))
+  found <- tibble(number = as.integer(found[, 2]), direction = found[, 3], street = found[, 4]) |>
+    filter(!is.na(number)) |>
+    # House numbers listed before a street take its direction and name; a street printed without a direction keeps none.
+    mutate(direction = if_else(!is.na(street) & is.na(direction), "", direction)) |>
+    tidyr::fill(direction, street, .direction = "up") |>
+    mutate(direction = na_if(direction, "")) |>
+    filter(!is.na(street)) |>
+    mutate(street = if_else(str_detect(street, "^\\d+[A-Z]{0,2}$"),
+      ordinal(as.integer(str_extract(street, "^\\d+"))), street))
+  found
+}
+unplaced <- points |>
+  filter(!geocoded) |>
+  transmute(matter_id, addresses = lapply(title, title_addresses)) |>
+  tidyr::unnest(addresses) |>
+  mutate(order = row_number(), .by = matter_id)
+candidates <- bind_rows(
+  filter(unplaced, !is.na(direction)),
+  tidyr::expand_grid(filter(unplaced, is.na(direction)) |> select(-direction), direction = c("N", "S", "E", "W"))) |>
+  mutate(id = paste(matter_id, order, direction))
+placed_again <- centerline_address_points(centerlines, select(candidates, id, number, direction, street),
+  centerline_offset_feet) |>
+  inner_join(candidates, by = "id", relationship = "one-to-one") |>
+  filter(n() == 1, .by = c(matter_id, order)) |>
+  slice_min(order, n = 1, by = matter_id) |>
+  st_as_sf(coords = c("x", "y"), crs = 3435) |>
+  st_transform(4326)
+placed_again <- tibble(matter_id = placed_again$matter_id,
+  reread_longitude = st_coordinates(placed_again)[, 1], reread_latitude = st_coordinates(placed_again)[, 2])
+points <- points |>
+  left_join(placed_again, by = "matter_id", relationship = "one-to-one") |>
+  mutate(location_source = if_else(!geocoded & !is.na(reread_longitude), "title_on_street_centerlines",
+      location_source),
+    longitude = if_else(location_source %in% "title_on_street_centerlines", reread_longitude, longitude),
+    latitude = if_else(location_source %in% "title_on_street_centerlines", reread_latitude, latitude),
+    geocoded = !is.na(location_source) & is.finite(longitude) & is.finite(latitude))
+
 # Ward maps, as the paper's ward panel reads them (the 2003 map's OUT polygons are not wards).
 ward_maps <- bind_rows(
   st_read("../input/Wards_2014.geojson", quiet = TRUE) |> filter(ward != "OUT") |> transmute(map_year = 2003L, ward),
@@ -106,8 +167,8 @@ wards <- points |>
   left_join(located_wards, by = "matter_id", relationship = "one-to-one") |>
   mutate(
     ward = coalesce(geocoded_ward, filing_ward),
-    ward_source = case_when(!is.na(geocoded_ward) ~ if_else(location_source == "street_centerlines",
-        "centerline_address", "geocoded_address"),
+    ward_source = case_when(!is.na(geocoded_ward) ~ if_else(location_source %in% c("street_centerlines",
+        "title_on_street_centerlines"), "centerline_address", "geocoded_address"),
       !is.na(filing_ward) ~ "filing_ward",
       geocoded ~ "geocoded_outside_wards",
     !is.na(geocode_rejected) ~ "geocode_rejected",

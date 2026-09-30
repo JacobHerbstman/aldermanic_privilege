@@ -1,7 +1,7 @@
 File: new_construction_analysis_data.csv
 Rows: 11794
 Columns: 52
-SHA-256 (saved bytes): 878c1f5cb36bd2ee609abb051c5a0bc18a9275818df8b9b5616bb269f396b512
+SHA-256 (saved bytes): 6821312141ae5397f34fc2142426478bfdf061c5269865420ed4bdc9fbd59397
 Key: building_id
 Types: DuckDB inference from the complete saved CSV.
 Distinct counts: exact (exact up to 100,000 rows).
@@ -43,8 +43,8 @@ Row counts, non-missing counts, and declared-key checks: exact.
                  segment_id       VARCHAR       11794     1364                   -                  -                   -                   -
                alderman_own       VARCHAR       11778      105                   -                  -                   -                   -
           alderman_neighbor       VARCHAR       11728      106                   -                  -                   -                   -
-             strictness_own        DOUBLE       11777      104  -3.445538716858031 3.3357976529033273  0.3273452850079021  0.8291474001095303
-        strictness_neighbor        DOUBLE       11728      106  -3.445538716858031 3.3357976529033273  0.3027970494023614  0.8491861547110472
+             strictness_own        DOUBLE       11777      104  -3.445538716858071  3.335797652903346  0.3273452850078848  0.8291474001095157
+        strictness_neighbor        DOUBLE       11728      106  -3.445538716858071  3.335797652903346  0.3027970494023528  0.8491861547110264
             share_white_own        DOUBLE       11794      442 0.00358238087470588  0.872029224787542 0.41106551221788434 0.26127756895551013
             share_black_own        DOUBLE       11794      442 0.00606358527153015 0.9760814204807162 0.23144731702576116  0.3002072879094928
        median_hh_income_own        DOUBLE       11794      442   17794.77018835824 156816.80301053703  59971.497514404546  28033.254194227997

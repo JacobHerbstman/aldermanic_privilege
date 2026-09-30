@@ -48,11 +48,11 @@ without an alderman that day (the 26th in June 2009 and the 1st in February 2010
 
 ## Validation
 
-- Against the parcels themselves (`tasks/audits/zoning_record_validation`): for 1,763 passed ordinances whose
+- Against the parcels themselves (`tasks/audits/zoning_record_validation`): for 1,777 passed ordinances whose
   application number, passage date and district class match a district on the City's zoning map (almost all from 2004
-  on; the map carries few amendments' numbers before), the placed point is inside the parcel for 1,261 and within 100
-  feet for 1,633; 99 percent are within 469 feet, and 3 are farther than 1,500 feet. The ward agrees for 1,516 of the
-  1,520 parcels that lie in one ward, and for 218 of the 237 that span two. Of those placed only with the
+  on; the map carries few amendments' numbers before), the placed point is inside the parcel for 1,274 and within 100
+  feet for 1,646; 99 percent are within 468 feet, and 3 are farther than 1,500 feet. The ward agrees for 1,528 of the
+  1,532 parcels that lie in one ward, and for 220 of the 239 that span two. Of those placed only with the
   through-street types taken as one, all 35 lie within 240 feet of the parcel and the ward agrees for 30 of 31 in one
   ward; of those with a direction repaired, all 15 lie within 330 feet and agree in ward; of those placed at their
   common address, all 22 lie within 230 feet and the ward agrees for 20 of 21.

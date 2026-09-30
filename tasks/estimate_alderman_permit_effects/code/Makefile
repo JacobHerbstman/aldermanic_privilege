@@ -14,7 +14,7 @@ all: ../output/block_alderman_year_panel.parquet ../output/alderman_permit_effec
 
 ../input/census_blocks_2010.csv: ../../download_chicago_spatial_data/output/census_blocks_2010.csv | ../input
 	ln -sf $< $@
-../input/building_permits_clean.gpkg: ../../clean_building_permits/output/building_permits_clean.gpkg | ../input
+../input/building_permits_clean.gpkg: ../../clean_building_permits/output/building_permits_clean_2006_2022.gpkg | ../input
 	ln -sf $< $@
 ../input/manual_permit_block_assignments.csv: ../../permit_block_hand_adjudications/output/manual_permit_block_assignments.csv | ../input
 	ln -sf $< $@

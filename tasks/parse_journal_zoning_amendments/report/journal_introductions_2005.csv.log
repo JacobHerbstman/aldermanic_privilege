@@ -1,7 +1,7 @@
 File: journal_introductions_2005.csv
 Rows: 828
 Columns: 21
-SHA-256 (saved bytes): 2a05457104a7bdc523366b0adcaf28376e766a8fc28810c14d8f8af5840513df
+SHA-256 (saved bytes): a30d70ad4868a44f175955f53748989a47735e8c95a894c5273d4dd88965c34d
 Key: file, position
 Types: DuckDB inference from the complete saved CSV.
 Distinct counts: exact (exact up to 100,000 rows).
@@ -10,7 +10,7 @@ Row counts, non-missing counts, and declared-key checks: exact.
             column inferred_type non_missing distinct   min     max               mean                 sd
       meeting_date          DATE         828       14     -       -                  -                  -
               file       VARCHAR         828       14     -       -                  -                  -
-          position        BIGINT         828      827 37270 5561699  901771.5929951691 1518652.2647768108
+          position        BIGINT         828      827 37270 5561699    901753.88647343  1518618.543859986
               page        BIGINT         828      109    24    2712  489.7657004830918  798.7804341861192
       journal_page        BIGINT         828      213 40547   67412  51065.92270531401 7129.4554790753655
        text_source       VARCHAR         828        1     -       -                  -                  -

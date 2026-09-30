@@ -1,7 +1,7 @@
 File: journal_ordinances_2003.csv
 Rows: 444
 Columns: 22
-SHA-256 (saved bytes): d854b372e81df119b32b383eaddaf8f1d59b4eae0bda16ec863a13f2c501dd65
+SHA-256 (saved bytes): 0e384e96a4741f4ea79abfcafc98e4ec40b4828d5311f50522500385c6a66993
 Key: file, position
 Types: DuckDB inference from the complete saved CSV.
 Distinct counts: exact (exact up to 100,000 rows).
@@ -25,7 +25,7 @@ application_number       VARCHAR         443      441       -       -           
              steps        BIGINT         444        5       0       7 1.0810810810810811 0.5184650924621282
          from_text       VARCHAR         433      131       -       -                  -                  -
            to_text       VARCHAR         433       87       -       -                  -                  -
-          boundary       VARCHAR         436      436       -       -                  -                  -
+          boundary       VARCHAR         438      438       -       -                  -                  -
     ordinance_text       VARCHAR         444      444       -       -                  -                  -
         map_number       VARCHAR         437      152       -       -                  -                  -
     from_districts       VARCHAR         426       77       -       -                  -                  -

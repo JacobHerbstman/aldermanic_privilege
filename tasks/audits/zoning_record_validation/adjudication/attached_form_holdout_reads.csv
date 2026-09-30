@@ -1,0 +1,21 @@
+record_number,lot_as_printed,lot_sqft,dwelling_units,parking_spaces,commercial_sqft,height_ft,stories,clear,note
+O2023-0002760,"12,225 square feet",12225,0,0,71499,79,6,TRUE,Existing vacant 4-story building to be replaced by an all-commercial building; item 13 states no dwelling units and no parking spaces.
+O2023-0004132,"29,958 sf.",29958,0,18,11469,20,NA,FALSE,"Two alternative scenarios (10,069sf/18 spaces vs 11,469sf/14 spaces) depending on parking determination; recorded largest values; height capped at 20 ft."
+O2023-0004798,30 feet x 127.89 feet,3837,3,2,NA,NA,NA,TRUE,Item 13 says no change to existing building height but gives no number; no commercial space mentioned.
+O2023-0006173,"44,244.0 sq. ft.",44244,14,28,NA,24,2,FALSE,Item 13 describes 14 separate single-family buildings each with a two-car detached garage; dwelling units and parking spaces are totals across all 14 buildings.
+O2023-0006463,"10,973 SF",10973,up to 140,140,NA,NA,NA,FALSE,Up to 140 residential units (cap) and 56 hotel units in mixed-use conversion; only 140 bicycle parking spaces given; commercial sqft not stated (FAR 11.0 given instead).
+O2024-0008869,125 X 601,75125,NA,6,NA,NA,1,FALSE,"Item 13 keeps the existing building (1-story per item 11) with only 100% parking relief noted; 6 employee parking spaces stated, no commercial square footage or new height given."
+O2024-0014061,"2,373 sq. ft.",2373,NA,0,1017,30,partial two-story and partial one-story,FALSE,"Building is partial two-story/partial one-story; indoor event venue capacity capped at 80 individuals; no parking proposed; height stated as 30.40 ft, unchanged."
+O2025-0017460,"30,000.0 sq. ft.",30000,8,NA,NA,NA,NA,FALSE,"Describes 8 separate single-family homes on 8 re-subdivided lots, each 2,500 sq ft; no parking, height, or stories stated."
+O2025-0018573,"125.32ft x 33ft = 4,136 sqaure feet",4136,0,NA,2040,30,2,TRUE,"Existing 2-story, 30 ft building retained for office rentals and a small cafe; no dwelling units and no parking mentioned."
+O2025-0020095,"4,720 SF",4720,7,4,1500,45,4,TRUE,"Commercial space stated as approximate ('around 1,500 SF')."
+O2025-0020952,"16,168 sq. ft.",16168,NA,NA,NA,NA,NA,TRUE,"Temporary construction-yard use for up to 24 months with no new construction; item 13 gives no dwelling units, parking, commercial space, or height."
+O2026-0022345,"7,198.75 square feet",7199,NA,7,1469.02,14,1,FALSE,'2 Bays' read as auto-repair service bays rather than parking; parking spaces taken as the 7 outside/off-site spaces; printed height (14 feet 8 inches) read as about 14 feet.
+O2026-0025313,"4,954 square feet (irregular shape / dimensions)",4954,8,3,NA,41,4,TRUE,New four-story residential building with 8 dwelling units and 3 off-street parking spaces; no commercial space proposed.
+O2026-0027416,"24,833 sq. ft.",24833,NA,15,NA,NA,3,TRUE,"Existing three-story brick building with basement retained (adding a cafe/restaurant use); 15 off-street parking spaces (one ADA) stated, no height or commercial square footage given in item 13."
+SO2024-0008812,"60,029 square feet",60029,380,257,20000,450,NA,FALSE,"Describes two subareas (A: 287 units/252 parking/20,000sf commercial/315ft; B: 380 units/257 parking/3,350sf commercial/450ft); recorded largest value per field."
+SO2024-0010944,"2,189 sf",2189,NA,0,3940,NA,NA,TRUE,"Existing restaurant floor area remains unchanged; no dwelling units, height, or stories mentioned."
+SO2024-0013359,"Approximately 3,930 square feet.",3930,0,2,3700,15,NA,TRUE,Space serves as both photography studio and private event space; no stories given.
+SO2025-0019779,"2,280 sq. ft.",2280,4,2,0,50,4,FALSE,"Item 13 lists a 2-car attached garage separately from 4 bicycle parking spaces; parking_spaces recorded as the 2 vehicle spaces, not the bicycle spaces."
+SO2026-0023206,"24.00' x 108.02' = 2,592.48 sf",2592,3,2,0,22,3,TRUE,Existing 3-story building continues; ground floor commercial converted to residential; 2-car garage counted as 2 parking spaces.
+SO2026-0025288,"73,869 SF",73869,NA,NA,NA,NA,NA,TRUE,"This form's item 14 (proposed use) only describes amending the existing Planned Development to allow overnight boarding/kenneling; no dwelling units, parking, commercial space, or height are stated."

@@ -1,7 +1,7 @@
 File: journal_amendment_follow_up.csv
 Rows: 6924
 Columns: 21
-SHA-256 (saved bytes): 34321bd2d0ccff7f9eccb9f620d3af4a429bb4ee8789f707cf75e5e43ef5478f
+SHA-256 (saved bytes): 83351b792a5d5f7903a02d6b038ed8a81ce1795477f2dd08b16b11ebc0603b6a
 Key: introduction
 Types: DuckDB inference from the complete saved CSV.
 Distinct counts: exact (exact up to 100,000 rows).
@@ -10,19 +10,19 @@ Row counts, non-missing counts, and declared-key checks: exact.
               column inferred_type non_missing distinct   min     max               mean                 sd
         introduction       VARCHAR        6924     6924     -       -                  -                  -
                 file       VARCHAR        6924      169     -       -                  -                  -
-            position        BIGINT        6924     6775 21242 9281444 1239766.8236568458 1705851.9288499083
+            position        BIGINT        6924     6775 21242 9281444 1239764.6995956094 1705848.7540816031
    introduction_date          DATE        6924      169     -       -                  -                  -
                filer       VARCHAR        6924        2     -       -                  -                  -
                 name       VARCHAR        6906     3992     -       -                  -                  -
                 ward        BIGINT        2439       50     1      50 27.367363673636735  15.01654600350828
-  application_number       VARCHAR        5423     5419     -       -                  -                  -
+  application_number       VARCHAR        5446     5442     -       -                  -                  -
        record_number       VARCHAR         906      906     -       -                  -                  -
      journal_outcome       VARCHAR        6924        5     -       -                  -                  -
-journal_outcome_date          DATE        5307      145     -       -                  -                  -
+journal_outcome_date          DATE        5340      145     -       -                  -                  -
     follow_up_source       VARCHAR        6924        4     -       -                  -                  -
       elms_matter_id       VARCHAR         103      103     -       -                  -                  -
    follow_up_outcome       VARCHAR        6924        4     -       -                  -                  -
-      follow_up_date          DATE        5375      161     -       -                  -                  -
+      follow_up_date          DATE        5408      161     -       -                  -                  -
             refiling       VARCHAR         153      153     -       -                  -                  -
      refiling_source       VARCHAR         153        2     -       -                  -                  -
        refiling_date          DATE         153       89     -       -                  -                  -

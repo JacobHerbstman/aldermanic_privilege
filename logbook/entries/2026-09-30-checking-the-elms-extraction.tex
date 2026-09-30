@@ -1,0 +1,41 @@
+\clearpage
+\section*{Checking what is read from eLMS}
+\textit{September 30, 2026. Agent-drafted work on branch \texttt{explore-alderman-measures}; Jacob asked that the
+extraction be checked carefully before more measures are built on it.}
+
+Three readings of the eLMS records were audited: the application forms, the sites, and the districts before and after.
+The form parser's plausibility flags fell from 195 records to 174 after nine rule fixes, most of the rest large
+planned developments whose values are right, and both hand-read holdouts improved without new errors
+(\path{tasks/audits/zoning_record_validation}, sections 3 and 8). Applications without a ward fell from 157 to 26 by
+reading the title address again onto the 2013 street centerlines where the geocoder failed; where both place a site,
+the reread lies a median of 52 feet from the geocoder's point. The geocoder's responses are now a preserved snapshot
+(\path{tasks/assign_zoning_amendment_wards}), so that re-reading the ordinances does not re-query a live service.
+
+The districts were the weakest reading: the kind of change was unknown for 19 percent of eLMS applications. The
+ordinance sentence was missed when it was worded or misread in ways the reader did not allow (``changing the'' without
+``all'', ``District, as shown on Map'' without ``symbols'', ``10 those of'', ``vvhich'' for the word ending the new
+district), when OCR misread a code (``83-2'', ``RMS'' for RM-5), when a substitute's file name began ``S0'', and when
+a planned development's statements were headed ``Plan of Development Statements''. With these read
+(\path{tasks/clean_zoning_map_amendments}), the kind is unknown for 4 percent of applications and 16 percent of
+aldermen's amendments; the largest group of the rest changes a planned development, which has no floor-area ratio, to
+a district. Two independent checks agree. The City's zoning map names the ordinance record that set each district
+since 2011; for 98 percent of the 4,105 passed amendments on it, the map has the district read, newly read districts
+as often as the others. Against the districts the Journals print for 2010--2011 passages, agreement rose from 94 to 97
+percent while the number compared rose from 215 to 271. Where an introduced ordinance and its substitute name
+different districts (99 passed amendments), the map has the substitute's for 85, which supports reading the
+substitute.
+
+Stalls still carry no alderman signal, but several results of the September 29 entry change. Reilly's passages took 5
+percent longer than those of the same kind before and 23 percent shorter now: 97 of his 116 applications are planned
+developments, 51 of which had been of unknown kind, and among planned developments his are fast, as the matched
+comparison of large projects also finds (0.69 log points below their matches). Conway's large downtown projects take
+longer than their matches by 0.80 log points (standard error 0.31), and by 0.39 without 30 N LaSalle and 37 S
+Sangamon. In the production measures (\path{tasks/estimate_alderman_zoning_measures}) days to passage are now shrunk
+to zero for every alderman, because the kind of change explains more of the differences and the true variance is
+estimated from all aldermen, those with few passages included. And aldermen's own downzonings in eLMS had been
+undercounted: batches such as Maldonado's 19 of December 2018 (16 of them RS-3 to RS-1) and Scott's 16 of April 2022
+(to B2-1) were of unknown kind. The term of 2019--2023 had 120, not 46, and the fall from 540 in 2003--2007 is less
+steep. The turnover tests of new construction are unchanged (\path{tasks/audits/alderman_turnover_volumes}).
+
+\textit{Open.} \path{tasks/explore_alderman_measures} reads the production measures and was not rebuilt. An ordinance
+changing several separate areas is read as its first area's district before and its last area's after.

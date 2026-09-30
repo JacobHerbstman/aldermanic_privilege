@@ -1,0 +1,23 @@
+File: own_amendments_by_alderman.csv
+Rows: 186
+Columns: 13
+SHA-256 (saved bytes): 33a0d7260cd4a6979ed43cf6b322e2b6e2c079144ecc63076839cf86b662eab4
+Key: period, alderman
+Types: DuckDB inference from the complete saved CSV.
+Distinct counts: exact (exact up to 100,000 rows).
+Row counts, non-missing counts, and declared-key checks: exact.
+
+                 column inferred_type non_missing distinct                 min                max               mean                  sd
+                 period       VARCHAR         186        2                   -                  -                  -                   -
+               alderman       VARCHAR         186      138                   -                  -                  -                   -
+        years_in_office        DOUBLE         186       67 0.01642710472279261 15.728952772073923  7.175406445725049   4.305987711127122
+                  wards       VARCHAR         186       52                   -                  -                  -                   -
+         own_amendments        BIGINT         186       53                   0                157 19.521505376344088  25.418913364668278
+            downzonings        BIGINT         186       42                   0                 79  9.629032258064516  15.486943624944105
+              upzonings        BIGINT         186       24                   0                 53  4.037634408602151   7.634465435237539
+               same_far        BIGINT         186       19                   0                 59  3.521505376344086  6.1689781792162846
+ to_planned_development        BIGINT         186        8                   0                  9 0.7688172043010753  1.3736106293268517
+           unknown_kind        BIGINT         186       10                   0                 13  1.564516129032258  2.2609801826254325
+           passed_share        DOUBLE         169       76                 0.0                1.0 0.7182581869204543 0.25239959604413614
+own_amendments_per_year        DOUBLE         186      147                 0.0 20.855951056729698  2.590665963849058  2.9974052411630323
+   downzonings_per_year        DOUBLE         186      117                 0.0  9.886262513904338  1.236825782192678  1.7763324135176306

@@ -1,7 +1,7 @@
 File: block_treatment_panel_frozen2014.csv
 Rows: 46311
 Columns: 23
-SHA-256 (saved bytes): 7b472e63ac780e6f382d67f9b234e88ce57fd9829877241c306adc1173c76736
+SHA-256 (saved bytes): 9d73905e653c51b94dcf158b0783fb798f98201aa9b9eed959c465a43197011b
 Key: block_id
 Types: DuckDB inference from the complete saved CSV.
 Distinct counts: exact (exact up to 100,000 rows).
@@ -25,9 +25,9 @@ has_complete_ward_assignment       BOOLEAN       46311        1                 
         alderman_origin_2015       VARCHAR       46311       50                      -                  -                     -                    -
           alderman_dest_2014       VARCHAR       46311       50                      -                  -                     -                    -
           alderman_dest_2015       VARCHAR       46311       50                      -                  -                     -                    -
-    strictness_origin_frozen        DOUBLE       46311       50     -2.626220074885348 1.5587681397802318   0.10183841721230708   0.8740290102937527
-      strictness_dest_frozen        DOUBLE       46311       50     -2.626220074885348 1.5587681397802318    0.0827230892325579   0.8719174957559055
+    strictness_origin_frozen        DOUBLE       46311       50    -2.6262200748865507 1.5587681397809066   0.10183841721243575   0.8740290102942266
+      strictness_dest_frozen        DOUBLE       46311       50    -2.6262200748865507 1.5587681397809066   0.08272308923266347   0.8719174957563898
                stable_origin       BOOLEAN       46311        2                      -                  -                     -                    -
                  stable_dest       BOOLEAN       46311        2                      -                  -                     -                    -
                  stable_both       BOOLEAN       46311        2                      -                  -                     -                    -
-    strictness_change_frozen        DOUBLE       46311      158    -3.5029305643741093 3.2130541265384394 -0.019115327979741522   0.6249785265443232
+    strictness_change_frozen        DOUBLE       46311      158    -3.5029305643755766  3.213054126541173 -0.019115327979774006    0.624978526544778

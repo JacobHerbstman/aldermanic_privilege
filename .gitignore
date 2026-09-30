@@ -144,3 +144,15 @@ tasks/audits/zoning_record_validation/input/
 tasks/audits/zoning_record_validation/output/
 tasks/audits/zoning_record_validation/temp/
 !tasks/audits/zoning_record_validation/report/*.log
+# Zoning stalls, delays and substitute changes by alderman.
+!tasks/audits/zoning_stalls_and_delays/
+tasks/audits/zoning_stalls_and_delays/input/
+tasks/audits/zoning_stalls_and_delays/output/
+tasks/audits/zoning_stalls_and_delays/temp/
+!tasks/audits/zoning_stalls_and_delays/report/*.log
+# Zoning amendments and permits at alderman turnover.
+!tasks/audits/alderman_turnover_volumes/
+tasks/audits/alderman_turnover_volumes/input/
+tasks/audits/alderman_turnover_volumes/output/
+tasks/audits/alderman_turnover_volumes/temp/
+!tasks/audits/alderman_turnover_volumes/report/*.log

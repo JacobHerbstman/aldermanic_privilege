@@ -1,8 +1,9 @@
 # setwd("tasks/audits/zoning_record_validation/code")
-# The application-form parser's fields (tasks/extract_zoning_application_forms) on the holdout applications
-# (draw_form_holdout.R), against their forms as read by hand from the page images
-# (adjudication/form_holdout_reads.csv; readers saw only the images and were given the parser's documented reading
-# rules). One row per application and field: agrees (a lot size within half a percent, to allow for dimensions in
+# holdout <- "attached_form_holdout"
+# The application-form parser's fields (tasks/extract_zoning_application_forms) on one holdout's applications:
+# form_holdout (draw_form_holdout.R) or attached_form_holdout (draw_attached_form_holdout.R, forms attached separately
+# from 2023), against their forms as read by hand from the page images (adjudication/<holdout>_reads.csv; readers saw
+# only the images and were given the parser's documented reading rules). One row per application and field: agrees (a lot size within half a percent, to allow for dimensions in
 # feet and inches, other fields exactly), parser blank, differs, parser reads a value the form does not state, both
 # blank, or not scored where the form gives a range ("17,000-18,000") rather than a number.
 lot_tolerance <- 0.005
@@ -10,8 +11,13 @@ lot_tolerance <- 0.005
 source("../../../setup_environment/code/packages.R")
 source("../../../shared/code/save_data.R")
 
+cli_args <- commandArgs(trailingOnly = TRUE)
+if (interactive()) cli_args <- holdout
+stopifnot(length(cli_args) == 1, cli_args[1] %in% c("form_holdout", "attached_form_holdout"))
+holdout <- cli_args[1]
+
 fields <- c("lot_sqft", "dwelling_units", "parking_spaces", "commercial_sqft", "height_ft", "stories")
-reads <- read_csv("../adjudication/form_holdout_reads.csv", col_types = cols(.default = col_character()))
+reads <- read_csv(sprintf("../adjudication/%s_reads.csv", holdout), col_types = cols(.default = col_character()))
 parsed <- read_csv("../input/application_form_fields.csv", col_types = cols(.default = col_character())) |>
   semi_join(reads, by = "record_number")
 stopifnot(nrow(parsed) == nrow(reads), !anyDuplicated(reads$record_number))
@@ -37,4 +43,4 @@ scores <- reads |>
       abs(parsed - read) <= tolerance ~ "agrees",
       TRUE ~ "differs")) |>
   select(record_number, clear, field, read, parsed, source, result)
-SaveData(scores, c("record_number", "field"), "../output/form_holdout_scores.csv")
+SaveData(scores, c("record_number", "field"), sprintf("../output/%s_scores.csv", holdout))

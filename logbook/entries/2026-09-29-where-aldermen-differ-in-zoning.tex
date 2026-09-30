@@ -1,0 +1,36 @@
+\clearpage
+\section*{Where aldermen differ in the zoning record}
+\textit{September 29, 2026. Agent-drafted work on branch \texttt{explore-alderman-measures}; Jacob asked why the
+alderman stall measures are so noisy and whether other cuts of the rezonings carry more signal.}
+
+With the Journals (2000--2010) and eLMS (2011 to September 2026) joined
+(\path{tasks/audits/zoning_stalls_and_delays}), whether an application stalls carries almost no alderman signal.
+Adjusted for year, kind of change and months left in the council term, the variance of aldermen's true stall effects
+is close to zero: among aldermen with at least 20 applications its standard deviation is 1 to 2 points, against 4 to 5
+points of sampling error in each alderman's average, and a test that all aldermen share one rate is not rejected (p
+near 0.1 in each period). Nearly every application that reaches the Council passes, consistent with applications
+being screened with the alderman before they are filed. The production eLMS measure
+(\path{tasks/estimate_alderman_zoning_measures}) overstates the spread because aldermen with a few applications at the
+edge of the data window, often lapsing with a term, inflate its estimate of the true variance (8.5 points with them,
+near zero without).
+
+Delays carry signal, but much of it is the project. The share of applications not passed within 90 days differs
+across aldermen by about 8 points beyond sampling error (p below $10^{-15}$). Large projects are slow everywhere: 84
+percent of applications for 200 or more units, from the application forms
+(\path{tasks/extract_zoning_application_forms}), were not passed within 90 days, against about 20 percent of small
+ones. Controlling for distance to the Loop by kind of change cut Burnett's excess from 16 to 6 points and turned
+Reilly's negative. Conway's applications of 2023--2026 are nearly all large downtown planned developments passed as
+substitutes, slow (76 percent not passed within 90 days) but none stalled; the forms stop in mid-2023, when eLMS began
+attaching them separately, so these cannot yet be adjusted for size.
+
+What is filed and built responds more clearly to the alderman
+(\path{tasks/audits/alderman_turnover_volumes}). Across the elections of 2007, 2011 and 2019, when wards kept their
+boundaries, wards whose alderman changed departed from their side of the city's split of new construction permits
+much more than wards whose alderman stayed (permutation p = 0.010), with falls and rises alike; applications point
+the same way but not clearly (p = 0.14). Aldermen's own downzonings vary across aldermen several times more than
+counting noise allows (2.15 a year in the 2000s, standard deviation 2.36 against 0.57), led by Matlak, Ocasio, Flores,
+Shiller and Balcer, but they do not shift at turnovers: they come in bursts, in the same wards whoever holds them. Own
+downzonings fell from 540 in the term of 2003--2007 to 46 in that of 2019--2023.
+
+\textit{Open.} The size adjustment for 2023--2026 needs eLMS's separately attached applications, and the permit test
+for those years needs permits after 2022; both are new downloads.

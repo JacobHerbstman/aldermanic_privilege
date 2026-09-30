@@ -24,15 +24,16 @@ both amendments' names, dates, maps, districts, boundaries and addresses; they a
 on, one they agreed on that the addresses contradict, and the 16 pairs later builds added were decided in adjudication
 from the same fields ("Adjudicated" in the reason). A later amendment covering none of the earlier site (an adjoining
 strip, the other side of the street), a much larger or smaller area by another applicant, or the opposite change is a
-different project. 160 of the 195 pairs reviewed are the same project (one reviewed pair ceased to be a candidate when
-a placement moved, and its row was removed). Reviewed September 29, 2026.
+different project. 160 of the 194 pairs reviewed are the same project (two reviewed pairs ceased to be candidates,
+when a placement moved and when an earlier amendment was found to pass, and their rows were removed; six keep their
+decisions under introduction identifiers renumbered when pages were read again). Reviewed September 29, 2026.
 
 ## Counts (September 29, 2026)
 
-Of 6,924 introductions, 1,617 were undecided in December 2011; eLMS gives 103 of them a later outcome (100 by record
-number, 3 by application number): 68 passed and 35 never did. All 95 still pending then match eLMS. Of the 1,568 that
+Of 6,924 introductions, 1,584 were undecided in December 2011; eLMS gives 103 of them a later outcome (100 by record
+number, 3 by application number): 68 passed and 35 never did. All 95 still pending then match eLMS. Of the 1,535 that
 never passed, 153 were refiled (73 applications and 80 aldermen's amendments), a median of 462 days later for an
-application and 224 for an aldermen's amendment; 112 of the refilings passed. 141 refilings were found by boundary or
+application and 224 for an aldermen's amendment; 113 of the refilings passed. 141 refilings were found by boundary or
 place alone, 12 by address (9 of them also by boundary or place).
 
 | Introduced | Applications stalled | Net of refilings that passed | If refiled as often as in eLMS |
@@ -40,12 +41,12 @@ place alone, 12 by address (9 of them also by boundary or place).
 | 2000 | 16.9% | 16.6% | 12.9% |
 | 2001 | 17.9% | 15.4% | 13.6% |
 | 2002 | 17.6% | 15.5% | 13.4% |
-| 2003 | 16.8% | 14.5% | 12.8% |
-| 2004 | 14.2% | 13.8% | 10.8% |
-| 2005 | 15.7% | 14.9% | 12.0% |
-| 2006 | 19.7% | 18.4% | 15.0% |
-| 2007 | 18.8% | 18.2% | 14.3% |
-| 2008 | 23.0% | 22.0% | 17.5% |
+| 2003 | 15.8% | 13.5% | 12.0% |
+| 2004 | 14.0% | 13.7% | 10.7% |
+| 2005 | 13.7% | 12.9% | 10.4% |
+| 2006 | 19.5% | 18.3% | 14.9% |
+| 2007 | 18.4% | 17.6% | 14.0% |
+| 2008 | 22.6% | 21.6% | 17.2% |
 | 2009 | 19.6% | 17.6% | 14.9% |
 | 2010 | 13.2% | 12.1% | 10.1% |
 | 2011 | 8.4% | 7.0% | 6.4% |

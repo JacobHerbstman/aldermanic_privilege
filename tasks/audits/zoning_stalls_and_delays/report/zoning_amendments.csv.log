@@ -1,0 +1,24 @@
+File: zoning_amendments.csv
+Rows: 13422
+Columns: 14
+SHA-256 (saved bytes): b08f203c2226ba8e32d0206e1e7b4055507a22fc46251b656afea2ed3251f6a5
+Key: source, amendment
+Types: DuckDB inference from the complete saved CSV.
+Distinct counts: exact (exact up to 100,000 rows).
+Row counts, non-missing counts, and declared-key checks: exact.
+
+              column inferred_type non_missing distinct  min  max               mean                 sd
+              source       VARCHAR       13422        2    -    -                  -                  -
+           amendment       VARCHAR       13422    13422    -    -                  -                  -
+               filer       VARCHAR       13422        2    -    -                  -                  -
+   introduction_date          DATE       13422      373    -    -                  -                  -
+                ward        BIGINT       13223       50    1   50 25.417983816078046 14.643184113464866
+            alderman       VARCHAR       13215      136    -    -                  -                  -
+    redrawn_alderman       VARCHAR       13214      136    -    -                  -                  -
+           direction       VARCHAR       13422        5    -    -                  -                  -
+             outcome       VARCHAR       13422        5    -    -                  -                  -
+             stalled       BOOLEAN       12096        2    -    -                  -                  -
+    stalled_for_good       BOOLEAN       12096        2    -    -                  -                  -
+     days_to_passage        BIGINT       10714      316    1 2541  102.7463132350196 118.64516787116942
+not_passed_in_window       BOOLEAN       13331        2    -    -                  -                  -
+   introduction_year        BIGINT       13422       27 2000 2026 2011.4139472507823  7.730233446220071

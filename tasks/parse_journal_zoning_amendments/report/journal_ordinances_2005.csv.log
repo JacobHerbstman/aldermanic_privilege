@@ -1,32 +1,32 @@
 File: journal_ordinances_2005.csv
-Rows: 710
+Rows: 718
 Columns: 22
-SHA-256 (saved bytes): 5fd55954453a2c63af5d310be92de9eb39b0d3a6f159fbbdae6c18ae6edbb25f
+SHA-256 (saved bytes): 9a9649f6ff88dcb116a0ec05196fccbec2612b7b7062bde9deea33f5b9edccdb
 Key: file, position
 Types: DuckDB inference from the complete saved CSV.
 Distinct counts: exact (exact up to 100,000 rows).
 Row counts, non-missing counts, and declared-key checks: exact.
 
-            column inferred_type non_missing distinct    min     max               mean                  sd
-      meeting_date          DATE         710       13      -       -                  -                   -
-              file       VARCHAR         710       13      -       -                  -                   -
-          position        BIGINT         710      710 374522 5434275 3029363.8774647885   812555.7759575358
-              page        BIGINT         710      369    179    2638 1569.5859154929578  402.28892398710303
-      journal_page        BIGINT         710      412  41231   65818  52179.55352112676   6691.882215595235
-       text_source       VARCHAR         710        1      -       -                  -                   -
-            report        BIGINT         710       76      1      77  43.04225352112676  21.029119859839618
-      report_title       VARCHAR         710       76      -       -                  -                   -
-            action       VARCHAR         710        2      -       -                  -                   -
-       heading_map       VARCHAR         707      168      -       -                  -                   -
-        change_map       VARCHAR         682      165      -       -                  -                   -
-application_number       VARCHAR         708      707      -       -                  -                   -
-     record_number       VARCHAR           0        0      -       -                  -                   -
-        as_amended       BOOLEAN         710        2      -       -                  -                   -
-             steps        BIGINT         710        4      0       3 1.0380281690140845 0.28595037255870004
-         from_text       VARCHAR         697      290      -       -                  -                   -
-           to_text       VARCHAR         697      173      -       -                  -                   -
-          boundary       VARCHAR         695      692      -       -                  -                   -
-    ordinance_text       VARCHAR         710      710      -       -                  -                   -
-        map_number       VARCHAR         701      166      -       -                  -                   -
-    from_districts       VARCHAR         691      123      -       -                  -                   -
-      to_districts       VARCHAR         688       58      -       -                  -                   -
+            column inferred_type non_missing distinct    min     max               mean                 sd
+      meeting_date          DATE         718       13      -       -                  -                  -
+              file       VARCHAR         718       13      -       -                  -                  -
+          position        BIGINT         718      718 374522 5434275 3033034.9596100277  808750.8252064608
+              page        BIGINT         718      373    179    2638 1571.6949860724235  400.5321811985428
+      journal_page        BIGINT         718      416  41231   65818  52165.72980501393  6655.720788794055
+       text_source       VARCHAR         718        1      -       -                  -                  -
+            report        BIGINT         718       77      1      78  43.57242339832869  21.34519808172879
+      report_title       VARCHAR         718       77      -       -                  -                  -
+            action       VARCHAR         718        2      -       -                  -                  -
+       heading_map       VARCHAR         715      169      -       -                  -                  -
+        change_map       VARCHAR         689      165      -       -                  -                  -
+application_number       VARCHAR         715      714      -       -                  -                  -
+     record_number       VARCHAR           0        0      -       -                  -                  -
+        as_amended       BOOLEAN         718        2      -       -                  -                  -
+             steps        BIGINT         718        4      0       3 1.0376044568245126 0.2843786926211756
+         from_text       VARCHAR         705      290      -       -                  -                  -
+           to_text       VARCHAR         705      174      -       -                  -                  -
+          boundary       VARCHAR         709      706      -       -                  -                  -
+    ordinance_text       VARCHAR         718      718      -       -                  -                  -
+        map_number       VARCHAR         708      166      -       -                  -                  -
+    from_districts       VARCHAR         699      123      -       -                  -                  -
+      to_districts       VARCHAR         696       58      -       -                  -                  -

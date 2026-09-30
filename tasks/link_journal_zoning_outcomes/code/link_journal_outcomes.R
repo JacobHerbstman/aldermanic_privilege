@@ -26,6 +26,10 @@
 # A report's note of a withdrawal ("Application Number A-7371 was withdrawn") is linked to the one earlier
 # introduction with its application number, printed or taken from a linked ordinance. Aldermen's "A-" numbers name
 # series shared by several amendments and are never printed with an introduction, so their notes rarely link.
+# An amendment may be printed twice at one meeting, as an application and again among the sponsoring alderman's
+# amendments (the Public Building Commission's, in 2003); an introduction without an outcome of its own takes that of
+# its twin, an introduction of the same meeting and map sheet whose boundary is nearly the same
+# (identical_boundary_similarity), with link_basis same_meeting_twin.
 # An introduction's outcome is its first passage; else a withdrawal, placing on file or failure; else it stalled if
 # introduced at least stall_follow_up_days before the last meeting read, and is pending if introduced later. Matters
 # did not lapse with the council term that began on May 16, 2011: amendments introduced before it passed after it.
@@ -206,6 +210,23 @@ decisions <- events |>
   filter(outcome %in% outcome_order) |>
   arrange(introduction, match(outcome, outcome_order), outcome_date) |>
   slice_head(n = 1, by = introduction)
+twins <- bind_rows(lapply(split(introductions, introductions$introduction_date), function(meeting) {
+  printed <- meeting |>
+    filter(!is.na(boundary)) |>
+    transmute(introduction, map_number, words = boundary_words(boundary))
+  cross_join(printed, rename_with(printed, ~ paste0("twin_", .x))) |>
+    filter(introduction != twin_introduction, coalesce(map_number == twin_map_number, TRUE)) |>
+    mutate(shared = map2_int(words, twin_words, function(x, y) length(intersect(x, y))),
+      similarity = shared / (lengths(words) + lengths(twin_words) - shared)) |>
+    filter(similarity >= identical_boundary_similarity) |>
+    select(introduction, twin = twin_introduction)
+}))
+decisions <- bind_rows(decisions, twins |>
+  filter(!introduction %in% decisions$introduction) |>
+  inner_join(rename(decisions, twin = introduction), by = "twin", relationship = "many-to-one") |>
+  arrange(introduction, match(outcome, outcome_order), outcome_date, twin) |>
+  slice_head(n = 1, by = introduction) |>
+  transmute(introduction, outcome, outcome_date, ordinance, link_basis = "same_meeting_twin"))
 outcomes <- introductions |>
   select(-application_number) |>
   left_join(select(numbered, introduction, application_number, application_source), by = "introduction",

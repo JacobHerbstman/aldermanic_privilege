@@ -1,7 +1,7 @@
 File: introductions_vs_elms.csv
 Rows: 403
 Columns: 24
-SHA-256 (saved bytes): ce02a3c1a3bf59687fe1a13d5bf72a17a70cf852040a8b0c5987fe6167a33ffe
+SHA-256 (saved bytes): 4ae1f90c91537f7e941d54a86bdc97afc139bf955901654a78629606e93298e3
 Key: ordinance
 Types: DuckDB inference from the complete saved CSV.
 Distinct counts: exact (exact up to 100,000 rows).
@@ -24,11 +24,11 @@ application_number        BIGINT         260      260 17136  172771  17865.53846
        journal_map       VARCHAR         378      144     -       -                  -                  -
           elms_map       VARCHAR         360      141     -       -                  -                  -
       journal_from       VARCHAR         374       86     -       -                  -                  -
-         elms_from       VARCHAR         286       70     -       -                  -                  -
+         elms_from       VARCHAR         334       75     -       -                  -                  -
         journal_to       VARCHAR         376       52     -       -                  -                  -
-           elms_to       VARCHAR         280       46     -       -                  -                  -
+           elms_to       VARCHAR         321       47     -       -                  -                  -
        date_agrees       BOOLEAN         377        1     -       -                  -                  -
 application_agrees       BOOLEAN         255        2     -       -                  -                  -
         map_agrees       BOOLEAN         340        2     -       -                  -                  -
-       from_agrees       BOOLEAN         267        2     -       -                  -                  -
-         to_agrees       BOOLEAN         265        2     -       -                  -                  -
+       from_agrees       BOOLEAN         314        2     -       -                  -                  -
+         to_agrees       BOOLEAN         305        2     -       -                  -                  -

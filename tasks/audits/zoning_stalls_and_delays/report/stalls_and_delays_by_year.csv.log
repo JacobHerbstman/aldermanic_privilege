@@ -1,0 +1,26 @@
+File: stalls_and_delays_by_year.csv
+Rows: 28
+Columns: 16
+SHA-256 (saved bytes): 65f12011cf70ef199f43e31414e09cc11cc51799004eebba183d5981f93c9028
+Key: source, introduction_year
+Types: DuckDB inference from the complete saved CSV.
+Distinct counts: exact (exact up to 100,000 rows).
+Row counts, non-missing counts, and declared-key checks: exact.
+
+                   column inferred_type non_missing distinct                 min                 max                mean                   sd
+                   source       VARCHAR          28        2                   -                   -                   -                    -
+        introduction_year        BIGINT          28       27                2000                2026  2012.9285714285713    7.798046153333743
+             applications        BIGINT          28       28                 182                 651   345.2857142857143    117.5105533930045
+               stall_rate        DOUBLE          24       24 0.05250596658711217  0.2262295081967213 0.12145174355798331 0.052737507648498834
+    stalled_for_good_rate        DOUBLE          24       24                0.04 0.21639344262295082 0.10576910798283841  0.05429828875580915
+                 followed        BIGINT          28       28                 156                 651  342.85714285714283   120.64232851106378
+not_passed_in_window_rate        DOUBLE          28       28  0.1834862385321101  0.5314900153609831 0.36639677436311674  0.09060601981143722
+                   passed        BIGINT          28       28                   0                 540  290.17857142857144   115.28774101140688
+                mean_days        DOUBLE          27       27  58.165714285714266   133.5121951219512   96.35694690569832   18.124733320356004
+              median_days        BIGINT          27       11                  34                  77  57.407407407407405   11.580020125063086
+                 days_q25        BIGINT          27       11                  28                  64    46.2962962962963   11.521934983108773
+                 days_q75        DOUBLE          27       15                63.0              127.75   94.83333333333333   18.542959476681336
+             stall_ci_low        DOUBLE          24       24 0.03114889857405133 0.17927396605734539   0.087230529487342  0.04713996847474997
+            stall_ci_high        DOUBLE          24       24 0.07386303460017302  0.2731850503360972 0.15567295762862463 0.059042920248747376
+            window_ci_low        DOUBLE          28       28 0.14153298001160658   0.493157037565784  0.3142454723732415  0.08961691144801848
+           window_ci_high        DOUBLE          28       28 0.22543949705261362  0.5698229931561821  0.4185480763529919  0.09258078689793504
