@@ -11,7 +11,7 @@ all: ../output/permit_processing_time_high_vs_low_alderman_summary.tex \
 	../%/permit_processing_time_volume_correlation.tex: build_permit_summary_stats.R ../input/building_permits_clean.gpkg ../input/ward_panel.gpkg ../input/chicago_alderman_terms.csv Makefile | ../output
 	$(R) $< $(MAX_APPLICATION_YM)
 
-../input/building_permits_clean.gpkg: ../../clean_building_permits/output/building_permits_clean.gpkg | ../input
+../input/building_permits_clean.gpkg: ../../clean_building_permits/output/building_permits_clean_2006_2022.gpkg | ../input
 	ln -sf $< $@
 
 ../input/ward_panel.gpkg: ../../ward_panel_create/output/ward_panel.gpkg | ../input

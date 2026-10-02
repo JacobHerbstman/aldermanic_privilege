@@ -41,7 +41,7 @@ all: ../output/processing_time_event_study.csv ../output/processing_time_event_s
 
 ../input/permit_block_year_panel_2015.parquet: ../../../create_event_study_permit_data/output/permit_block_year_panel_2015.parquet | ../input
 	ln -sf $< $@
-../input/building_permits_clean.gpkg: ../../../clean_building_permits/output/building_permits_clean.gpkg | ../input
+../input/building_permits_clean.gpkg: ../../../clean_building_permits/output/building_permits_clean_2006_2022.gpkg | ../input
 	ln -sf $< $@
 ../input/census_blocks_2010.csv: ../../../download_chicago_spatial_data/output/census_blocks_2010.csv | ../input
 	ln -sf $< $@

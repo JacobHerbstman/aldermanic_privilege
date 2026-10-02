@@ -118,4 +118,5 @@ building_permits_sf <- st_as_sf(
   st_transform(crs_projected) %>%
   mutate(across(c(application_start_date_ym, issue_date_ym), as.Date))
         
-SaveData(building_permits_sf, c("id"), "../output/building_permits_clean.gpkg", delete_layer = TRUE, quiet = TRUE)
+SaveData(building_permits_sf, c("id"), sprintf("../output/building_permits_clean_%d_%d.gpkg", start_year, end_year),
+  layer = "building_permits_clean", delete_layer = TRUE, quiet = TRUE)

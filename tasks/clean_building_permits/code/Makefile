@@ -1,16 +1,15 @@
 include ../../shared/code/shell_functions.make
 
-START_YEAR ?= 2006
-END_YEAR ?= 2022
+PERIODS := 2006_2022 2023_2026
 
-all: ../output/building_permits_clean.gpkg
+all: $(foreach period,$(PERIODS),../output/building_permits_clean_$(period).gpkg)
 
-../output/building_permits_clean.gpkg: building_permits_cleaning.R ../input/building_permits_$(START_YEAR)_$(END_YEAR).csv Makefile | ../output ../report
-	$(R) $< $(START_YEAR) $(END_YEAR)
+../output/building_permits_clean_%.gpkg: building_permits_cleaning.R ../input/building_permits_%.csv | ../output ../report
+	$(R) $< $(subst _, ,$*)
 
-../input/building_permits_$(START_YEAR)_$(END_YEAR).csv: ../../download_building_permits/output/building_permits_$(START_YEAR)_$(END_YEAR).csv | ../input
+../input/building_permits_%.csv: ../../download_building_permits/output/building_permits_%.csv | ../input
 	ln -sf $< $@
 
-link-inputs: ../input/building_permits_$(START_YEAR)_$(END_YEAR).csv
+link-inputs: $(foreach period,$(PERIODS),../input/building_permits_$(period).csv)
 
 include ../../shared/code/generic.make

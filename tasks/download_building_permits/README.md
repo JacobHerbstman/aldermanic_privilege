@@ -18,6 +18,20 @@ Retrieval through the Makefile's public URL reproduces both the compressed
 snapshot and the original CSV exactly, verified by their SHA-256 checksums.
 The original September 10 archive is unchanged.
 
+A second extract continues the series: 121,286 records with the same 116 columns,
+selected by application date from January 1, 2023 through the download on
+September 29, 2026 (the latest application date is September 28, 2026), retrieved
+with `make download-current START_YEAR=2023 END_YEAR=2026`. It does not overlap
+the first. The dataset lists issued permits only (every record has an issue date),
+so applications of the last months that were still under review then are missing.
+The compressed snapshot,
+`input/building_permits_2023_2026_preserved_20260929.csv.gz`, is verified by
+`code/source_snapshot_2023_2026.sha256` before it is extracted to
+`output/building_permits_2023_2026.csv`; the extracted CSV's SHA-256 is
+`3315741685611e4e61f1794305f2269db8b5f653d4f984cdd680ec9bba225d85`. Its release
+asset has not yet been uploaded, so until it is, only this checkout has the file
+and the Makefile's URL for it does not resolve.
+
 For a deliberate refresh, `make download-current` retrieves the Makefile's
 `START_YEAR`–`END_YEAR` period into `temp/`. Ordered batches, CSV structure and
 start/end row counts are checked before publishing that comparison file.
