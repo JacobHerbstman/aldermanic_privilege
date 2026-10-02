@@ -1,0 +1,104 @@
+check_id,type,route,period,year,pin10,verdict,problem,reason
+H001,2-6 flat,house: new card,2000-2005,2001,1708100018,not new,exempt existing,"EX until 2000, condo records later give year built 1996: existing building leaving the exempt rolls"
+H002,2-6 flat,house: new card,2000-2005,2001,1636417016,probably new,,vacant 590 to 212 flat in 2001; no permits before 2006
+H003,2-6 flat,house: new card,2000-2005,2004,2029430039,new,dated late 1y,"vacant/EX lots get a building in 2003, merged parcel 2004"
+H004,2-6 flat,house: new card,2000-2005,2004,1613201004,new,wrong type,"vacant 2000-03, 245-512k in 2004-05, class 313 from 2006: a large building, recorded first as a 2-6 flat"
+H005,2-6 flat,house: new card,2000-2005,2002,2002300041,probably new,dated late 1y,"vacant/EX lots built 2001, merged 2002"
+H006,2-6 flat,house: new card,2006-2025,2006,2023103008,new,,vacant to 211 in 2006
+H007,2-6 flat,house: new card,2006-2025,2020,1717308015,new,dated late 1y,"vacant 241 to 297 in 2019, 211 in 2020; 5-unit permit 2018"
+H008,2-6 flat,house: new card,2006-2025,2010,1615221042,new,dated late 3y,old lot vacant to 211 in 2007 with 2006-07 permits; counted on the new parcel in 2010
+H009,2-6 flat,house: new card,2006-2025,2023,1728131037,probably new,,"6-unit permit Dec 2022 nearby, first assessed 2023"
+H010,2-6 flat,house: new card,2006-2025,2007,1610410035,new,,vacant to 211 2007; 3-unit permits 2006-07
+H011,2-6 flat,house: rebuild,2000-2005,2005,1332118018,probably new,,"1-story 202 to 211 flat, value 12k to 59k"
+H012,2-6 flat,house: rebuild,2000-2005,2000,1728328002,doubtful,no value change,year built revised in 2000 with value unchanged (8k); value jumps only in 2003
+H013,2-6 flat,house: rebuild,2000-2005,2004,1305317001,doubtful,no value change,small continuous values 13-19k; class flips
+H014,2-6 flat,house: rebuild,2000-2005,2003,1309317013,probably new,,value dips to 4k in 2003 then 19k-56k
+H015,2-6 flat,house: rebuild,2000-2005,2002,1429204025,new,,211 to vacant 2001 to 212 2002
+H016,2-6 flat,house: rebuild,2006-2025,2009,1432425038,new,,vacant 2001-08 to 212 2009; permit 2007
+H017,2-6 flat,house: rebuild,2006-2025,2020,1721306053,probably new,,many new-building permits 2018-19 on the block
+H018,2-6 flat,house: rebuild,2006-2025,2018,1728209020,probably new,,small 202 house; permits 2017 nearby
+H019,2-6 flat,house: rebuild,2006-2025,2025,1728412007,doubtful,no permit,no new-building permit near the site after 2013
+H020,2-6 flat,house: rebuild,2006-2025,2022,1432222004,probably new,,permits 2021-22 on the block
+H021,apartment class,"apartment: new parcel, cleared land",2000-2005,2001,1704113082,new,,EX lot to 391 in 2001; valuation 16 units built 2001-02
+H022,apartment class,"apartment: new parcel, cleared land",2000-2005,2005,1717323002,new,,"EX to 313 2005; Roosevelt Square CHA, valuation built 2006"
+H023,apartment class,"apartment: new parcel, cleared land",2000-2005,2002,1708238027,not apartment,wrong type,valuation: warehouse / auto service garage
+H024,apartment class,"apartment: new parcel, cleared land",2000-2005,2005,1735108010,new,,"EX to 313 2005; Oakwood Shores, 163 units"
+H025,apartment class,"apartment: new parcel, cleared land",2000-2005,2005,1735101112,new,,"Oakwood Shores, same development"
+H026,apartment class,"apartment: new parcel, cleared land",2006-2025,2025,1624208080,new,,"EX to 391 2025; Ogden Commons, 92-unit permit 2022"
+H027,apartment class,"apartment: new parcel, cleared land",2006-2025,2012,1317105112,new,dated early 11y,"building value zero 2012-2022; building 2023 (26 units, permit 2021)"
+H028,apartment class,"apartment: new parcel, cleared land",2006-2025,2011,1707332004,not new,exempt existing,valuation 297 units built 2000-01 on the successor parcel; partial exempt status change
+H029,apartment class,"apartment: new parcel, cleared land",2006-2025,2006,1720200066,new,,"Roosevelt Square, benchmarking built 2007"
+H030,apartment class,"apartment: new parcel, cleared land",2006-2025,2006,1715300030,new,dated early 17y,building value zero 2006-2022; 169-unit building assessed 2023
+H031,apartment class,"apartment: new parcel, land with little building value",2000-2005,2002,1718128056,new,condo double count,"391 for one year, condominium units next year (built 2002): counted by the condominium rule too"
+H032,apartment class,"apartment: new parcel, land with little building value",2000-2005,2005,1608419034,not new,existing on successor,valuation retail built 1930; condominium conversion
+H033,apartment class,"apartment: new parcel, land with little building value",2006-2025,2025,1320411047,new,,9-unit building built 2024 (3440 N Central)
+H034,apartment class,"apartment: new parcel, land with little building value",2006-2025,2020,1722318029,new,,"2111 S Wabash, 275 units built 2020"
+H035,apartment class,"apartment: new parcel, land with little building value",2006-2025,2025,1320411046,new,same development,3440 N Central
+H036,apartment class,"apartment: new parcel, land with little building value",2006-2025,2025,1320411049,new,same development,3440 N Central
+H037,apartment class,"apartment: new parcel, land with little building value",2006-2025,2025,1320411044,new,same development,3440 N Central
+H038,apartment class,"apartment: new parcel, no polygon",2000-2005,2000,1715307029,doubtful,,"one-year parcel, no polygon, no valuation"
+H039,apartment class,"apartment: new parcel, old parcels cover under half",2000-2005,2000,1709242010,not new,dated to parcel creation,commercial 593 parcel created 2000; the tower on it was built 2021
+H040,apartment class,"apartment: new parcel, old parcels cover under half",2000-2005,2002,1706204049,new,condo double count,"mixed-use condominium built 2002, counted by the condominium rule"
+H041,apartment class,"apartment: new parcel, old parcels cover under half",2000-2005,2001,2632114014,not new,existing on successor,mobile home park built 1978
+H042,apartment class,"apartment: new parcel, old parcels cover under half",2000-2005,2000,1717324030,not new,,parcel created 2000 with an existing building
+H043,apartment class,"apartment: new parcel, old parcels cover under half",2000-2005,2000,1709242009,not new,dated to parcel creation,same as H039
+H044,apartment class,"apartment: same parcel, after exempt",2000-2005,2004,2003403011,new,,EX to 313; 6 units built 2001-03
+H045,apartment class,"apartment: same parcel, after exempt",2000-2005,2000,2521220016,doubtful,exempt existing,"EX to 319 in 2000, no valuation, no permits"
+H046,apartment class,"apartment: same parcel, after exempt",2000-2005,2003,1130404005,new,,120 units built 2004-06
+H047,apartment class,"apartment: same parcel, after exempt",2000-2005,2005,2015106008,new,,17 units built 2001-04
+H048,apartment class,"apartment: same parcel, after exempt",2000-2005,2005,2003118008,probably new,,small CHA-area building near 2007 permits
+H049,apartment class,"apartment: same parcel, after exempt",2006-2025,2018,1704306042,new,,"12 units built 2017, Cabrini-area"
+H050,apartment class,"apartment: same parcel, after exempt",2006-2025,2006,1715110042,new,dated late 1-2y,University Center student housing built 2004
+H051,apartment class,"apartment: same parcel, after exempt",2006-2025,2014,1624207052,new,,"Ogden North, permits 2010"
+H052,apartment class,"apartment: same parcel, after exempt",2006-2025,2011,1324322040,new,dated late 2y,"taxable from 2009, redated 2011 by year built"
+H053,apartment class,"apartment: same parcel, after exempt",2006-2025,2008,2015106012,new,,"54 units, permits 2007"
+H054,apartment class,"apartment: same parcel, after vacant",2000-2005,2002,2003219050,new,,"vacant to 313 in 2002, 12 units"
+H055,apartment class,"apartment: same parcel, after vacant",2000-2005,2001,1705318004,new,condo double count,"397 one year, then 48 condominium units"
+H056,apartment class,"apartment: same parcel, after vacant",2000-2005,2000,1430410017,new,condo double count,condominium units the next year (built 1999)
+H057,apartment class,"apartment: same parcel, after vacant",2000-2005,2000,1706201005,new,condo double count,condominium units the next year (built 1999)
+H058,apartment class,"apartment: same parcel, after vacant",2000-2005,2004,2130402033,new,,84 units mixed income
+H059,apartment class,"apartment: same parcel, after vacant",2006-2025,2019,1417229017,new,,"841 W Agatite, 381 units"
+H060,apartment class,"apartment: same parcel, after vacant",2006-2025,2017,1704222066,new,,"1201 N LaSalle, 390 units"
+H061,apartment class,"apartment: same parcel, after vacant",2006-2025,2019,1717205007,new,,"33 S Aberdeen, 50 units"
+H062,apartment class,"apartment: same parcel, after vacant",2006-2025,2022,1326104025,new,,"3101 N Milwaukee, 27 units"
+H063,apartment class,"apartment: same parcel, after vacant",2006-2025,2022,1336107032,new,,"2845 W Belden, 100 units"
+H064,apartment class,"apartment: same parcel, into a large class, valuation dates it new",2000-2005,2001,1417300006,new,two PINs one building,"4339 N Ashland, 8 units, on two PINs"
+H065,apartment class,"apartment: same parcel, into a large class, valuation dates it new",2000-2005,2004,1429107030,new,,8 units built 2003-05
+H066,apartment class,"apartment: same parcel, into a large class, valuation dates it new",2000-2005,2003,1420424032,new,dated late 2y,"appears 2001 as 597, enters 391 in 2003"
+H067,apartment class,"apartment: same parcel, into a large class, valuation dates it new",2000-2005,2001,1417300005,new,two PINs one building,same building as H064
+H068,apartment class,"apartment: same parcel, into a large class, valuation dates it new",2000-2005,2003,1420123001,new,,6 units built 2002-05
+H069,apartment class,"apartment: same parcel, into a large class, valuation dates it new",2006-2025,2015,1036428009,new,dated late 4y,"30 units, permit 2007, enters 397 only in 2015"
+H070,apartment class,"apartment: same parcel, into a large class, valuation dates it new",2006-2025,2009,2014408029,new,route 3 repeat,building appears 2005 as 297; route 3 again in 2009
+H071,apartment class,"apartment: same parcel, into a large class, valuation dates it new",2006-2025,2020,1331205069,new,,"72 units in townhome buildings, permits 2019"
+H072,apartment class,"apartment: same parcel, into a large class, valuation dates it new",2006-2025,2008,0936419054,new,,"36 units, permit 2006"
+H073,apartment class,"apartment: same parcel, into a large class, valuation dates it new",2006-2025,2013,1131113055,new,route 3 repeat,building appears 2009 as 297; route 3 again in 2013
+H074,condominium,condominium: units first appear,2000-2005,2001,1429315101,new,,condominium units built 1-3 years before first appearance on cleared or small lots
+H075,condominium,condominium: units first appear,2000-2005,2002,1429412062,new,,condominium units built 1-3 years before first appearance on cleared or small lots
+H076,condominium,condominium: units first appear,2000-2005,2005,1601412026,new,,condominium units built 1-3 years before first appearance on cleared or small lots
+H077,condominium,condominium: units first appear,2000-2005,2001,1718123058,new,,condominium units built 1-3 years before first appearance on cleared or small lots
+H078,condominium,condominium: units first appear,2000-2005,2003,1429108045,new,,condominium units built 1-3 years before first appearance on cleared or small lots
+H079,condominium,condominium: units first appear,2006-2025,2022,1601415059,new,,condominium units built 1-3 years before first appearance on cleared or small lots
+H080,condominium,condominium: units first appear,2006-2025,2008,1705119024,new,,condominium units built 1-3 years before first appearance on cleared or small lots
+H081,condominium,condominium: units first appear,2006-2025,2024,1720400071,new,,condominium units built 1-3 years before first appearance on cleared or small lots
+H082,condominium,condominium: units first appear,2006-2025,2007,1706417042,new,,condominium units built 1-3 years before first appearance on cleared or small lots
+H083,condominium,condominium: units first appear,2006-2025,2020,1336423053,new,,condominium units built 1-3 years before first appearance on cleared or small lots
+H084,house,house: new card,2000-2005,2001,1322108052,new,,vacant or exempt lot to a new house record
+H085,house,house: new card,2000-2005,2003,1324207038,new,,vacant or exempt lot to a new house record
+H086,house,house: new card,2000-2005,2002,1722308061,new,dated late 1y,"townhomes; built on the old lot in 2001, subdivided 2002"
+H087,house,house: new card,2000-2005,2003,2014314034,new,dated late 1y,"townhome built on the old lot in 2002, subdivided 2003"
+H088,house,house: new card,2000-2005,2003,1720233019,new,,vacant or exempt lot to a new house record
+H089,house,house: new card,2006-2025,2006,1722110077,new,,vacant or exempt lot to a new house record
+H090,house,house: new card,2006-2025,2015,1601217042,new,,vacant or exempt lot to a new house record
+H091,house,house: new card,2006-2025,2007,1623206014,new,,vacant or exempt lot to a new house record
+H092,house,house: new card,2006-2025,2014,1335400027,new,,vacant or exempt lot to a new house record
+H093,house,house: new card,2006-2025,2007,1406407059,new,dated late 2y,"built on the old lot in 2005, renumbered 2007"
+H094,house,house: rebuild,2000-2005,2003,1601223025,doubtful,no value change,"294 to 295 townhome class, small values 3-12k"
+H095,house,house: rebuild,2000-2005,2001,1420319027,probably new,,"211 to 278 with value doubling, no vacant year"
+H096,house,house: rebuild,2000-2005,2001,1429420020,new,,house to vacant to a new 278/208 house
+H097,house,house: rebuild,2000-2005,2003,1706230007,new,,house to vacant to a new 278/208 house
+H098,house,house: rebuild,2000-2005,2003,1418407029,new,,house to vacant to a new 278/208 house
+H099,house,house: rebuild,2006-2025,2009,1432228019,new,,house to vacant to a new 278/208 house
+H100,house,house: rebuild,2006-2025,2013,1707204034,probably new,,new-house permits on the block 1-2 years before
+H101,house,house: rebuild,2006-2025,2015,1431419043,probably new,,new-house permits on the block 1-2 years before
+H102,house,house: rebuild,2006-2025,2019,1731301012,probably new,,new-house permits on the block 1-2 years before
+H103,house,house: rebuild,2006-2025,2014,1336419014,probably new,,new-house permits on the block 1-2 years before

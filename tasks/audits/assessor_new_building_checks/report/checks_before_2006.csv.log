@@ -1,0 +1,14 @@
+File: checks_before_2006.csv
+Rows: 4
+Columns: 4
+SHA-256 (saved bytes): f04be310904347f4a7400f907a80ade75cc18a9813e2289c2a82864a603baad2
+Key: check, period
+Types: DuckDB inference from the complete saved CSV.
+Distinct counts: exact (exact up to 100,000 rows).
+Row counts, non-missing counts, and declared-key checks: exact.
+
+   column inferred_type non_missing distinct                min                max               mean                 sd
+    check       VARCHAR           4        2                  -                  -                  -                  -
+   period       VARCHAR           4        2                  -                  -                  -                  -
+buildings        BIGINT           4        4                124                599             320.25 212.21588850350798
+    found        DOUBLE           4        4 0.5367847411444142 0.8981636060100167 0.7108735502238382 0.1696590528669709

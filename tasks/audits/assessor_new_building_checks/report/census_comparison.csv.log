@@ -1,0 +1,21 @@
+File: census_comparison.csv
+Rows: 26
+Columns: 11
+SHA-256 (saved bytes): 40bc39b7eb6219ed650094a31efc1dbcd44d3ca5abc67142d9f5a8a232345b50
+Key: year
+Types: DuckDB inference from the complete saved CSV.
+Distinct counts: exact (exact up to 100,000 rows).
+Row counts, non-missing counts, and declared-key checks: exact.
+
+                column inferred_type non_missing distinct                min                max               mean                  sd
+                  year        BIGINT          26       26               2000               2025             2012.5   7.648529270389178
+                houses        BIGINT          26       26                265               1852  878.9230769230769    542.726371062024
+             flats_2_6        BIGINT          26       24                 15                224 102.96153846153847   61.89699880881513
+           condominium        BIGINT          26       26                 33                831  262.3076923076923    205.928680708787
+    condominium_5_plus        BIGINT          26       24                 16                328              100.5   84.46312805005508
+apartment_developments        BIGINT          26       17                 13                 64  44.03846153846154  15.211786927855037
+         census_1_unit        BIGINT          26       26                129               1507  653.0769230769231  403.79617859280677
+      census_2_4_units        BIGINT          26       26                 39                736  263.4230769230769  184.37357144166253
+   census_5_plus_units        BIGINT          26       23                 35                421              169.0  107.76084632184364
+      houses_to_census        DOUBLE          26       26 0.5632183908045977  2.323607427055703 1.4331229937346026  0.4407310283071821
+       large_to_census        DOUBLE          26       26 0.6116207951070336 1.5714285714285714 0.9319080510934618 0.23927782227676328

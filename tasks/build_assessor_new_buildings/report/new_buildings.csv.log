@@ -1,0 +1,21 @@
+File: new_buildings.csv
+Rows: 34922
+Columns: 11
+SHA-256 (saved bytes): 81bddfd7dd800dd51fd012f4d326ac1d9139a24acd4a9db1fa4b5e9647478ccf
+Key: building_id
+Types: DuckDB inference from the complete saved CSV.
+Distinct counts: exact (exact up to 100,000 rows).
+Row counts, non-missing counts, and declared-key checks: exact.
+
+        column inferred_type non_missing distinct  min  max               mean                  sd
+   building_id       VARCHAR       34922    34922    -    -                  -                   -
+development_id       VARCHAR       34922    33472    -    -                  -                   -
+          year        BIGINT       34922       26 2000 2025 2009.6992440295517   7.443996225811104
+          type       VARCHAR       34922        4    -    -                  -                   -
+         route       VARCHAR       34922        8    -    -                  -                   -
+        routes       VARCHAR       34922       24    -    -                  -                   -
+         pin10       VARCHAR       34922    34235    -    -                  -                   -
+        pin10s       VARCHAR       34922    34235    -    -                  -                   -
+         units        BIGINT       34484      299    0 1679   9.09679851525345   43.43469080934698
+        events        BIGINT       34922        9    1   13 1.0049825325010022 0.13163824900127272
+     date_from       VARCHAR       34922        2    -    -                  -                   -

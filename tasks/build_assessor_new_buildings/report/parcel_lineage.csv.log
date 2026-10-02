@@ -1,0 +1,14 @@
+File: parcel_lineage.csv
+Rows: 554555
+Columns: 4
+SHA-256 (saved bytes): 62a0e9e8f170ab99196dcf2bba8c0f2d55c8ea399ae5463f488215513dc6f41d
+Key: pin10, old_pin10
+Types: DuckDB inference from the complete saved CSV.
+Distinct counts: approximate (exact up to 100,000 rows).
+Row counts, non-missing counts, and declared-key checks: exact.
+
+   column inferred_type non_missing distinct                   min                max               mean                  sd
+    pin10       VARCHAR      554555    41103                     -                  -                  -                   -
+old_pin10       VARCHAR      554555    46208                     -                  -                  -                   -
+new_share        DOUBLE      554555    98255  0.010000884518322576 1.0000000004594136 0.9344863715640285  0.2181285432268292
+old_share        DOUBLE      554555    78229 7.779057565178903e-06 1.0000000001269742 0.9374215136505564 0.21771005326865292

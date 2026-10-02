@@ -102,6 +102,7 @@ logbook.pdf: logbook.tex \
 	entries/2026-09-29-where-aldermen-differ-in-zoning.tex \
 	entries/2026-09-30-checking-the-elms-extraction.tex \
 	entries/2026-09-30-substitute-ordinances.tex \
+	entries/2026-10-02-assessor-new-buildings.tex \
 	records/density_fixed_effects/density_fixed_effects.tex \
 	records/score_pair_reliability/split_agreement.pdf \
 	records/multifamily_score_uncertainty/multifamily_score_draws.pdf \

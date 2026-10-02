@@ -1,0 +1,57 @@
+\clearpage
+\section*{New buildings before 2006 from the Assessor's records}
+\textit{October 2, 2026. Agent-drafted work on branch \texttt{explore-alderman-measures}; Jacob asked to extend
+construction back to 1999, so that the 2003, 2015 and 2023 ward maps can all be used, and asked that the data be built
+and checked before anything is estimated from it.}
+
+Chicago's building permits begin in 2006, so before then the only record of a new building is the Cook County Assessor's.
+\path{tasks/build_assessor_new_buildings} finds new buildings in the Assessor's records for 2000--2025 with one set of
+rules, set and checked against the permits of 2006--2022 and applied unchanged to earlier years; whether the Assessor
+recorded new buildings in the same way before 2006 cannot be checked building by building, only against the records
+below. It lists 34,922 buildings: 22,852 houses and 2,677 flats of 2--6 units from the residential record cards, 6,820
+condominium buildings, and 2,573 parcels of apartment-class buildings (classes 3xx and 9xx) forming 1,123 developments.
+
+Four sources were added: the Assessor's assessed values of every Chicago parcel and year, 1999--2026
+(\path{tasks/download_assessed_values}, 23.6 million rows); the Clerk's parcel maps of 2000--2025
+(\path{tasks/download_parcel_history}), which show which old parcels lie under each new one; the City's Energy
+Benchmarking, which gives owners' year built for buildings of 50,000 square feet or more; and the Census Bureau's
+annual permit counts for Chicago since 1990. The condominium download (\path{tasks/download_condominium_characteristics})
+now takes every Chicago building rather than those with a unit recorded as built in 2000 or later; that filter had
+dropped most new buildings of 2000--2002 (31, 60 and 66 found, against 255, 349 and 387), because their units' year
+built is recorded inconsistently. The construction buildings built from it (\path{tasks/prepare_permit_construction})
+are byte for byte unchanged.
+
+A house or flat is new when a record card first assessed in 2000 or later has a recent year built, or a card's year
+built jumps to a recent year. A condominium building is new when its units first appear and were built at most five
+years before; older units mark a conversion, and the two separate cleanly. An apartment-class building is new when a
+parcel becomes improved the year after a vacant or exempt year; when a new parcel appears on land that was cleared, or
+carried little building value, in the three years before (judged from the old parcels under it); or when a parcel
+enters an apartment class and the Assessor's 2021+ commercial valuations date its building within two years. Those
+valuations also set aside existing buildings (dated more than five years before the event) and date buildings built
+while their land was exempt, such as the public housing redevelopments that joined the tax rolls together in 2014.
+Each building is counted once: a building first assessed on a parcel retired within three years is counted on the
+parcels replacing it, with the earlier date, and apartment-class parcels improved in the same year that touch, or
+share a valuation, form one development, usually one building assembled from several lots.
+
+Against the permits (\path{tasks/audits/assessor_new_building_checks}), the rules find 96 percent of the permit-linked
+houses and flats issued 2006--2018 within five years, 98 percent of condominium buildings and 92 percent of apartment
+buildings, nearly all with the right type. Of buildings found in 2012--2022, 93 to 97 percent of houses and flats and
+96 percent of condominium buildings have a new-building permit within 100 feet, against 5 to 15 percent of parcels with
+no new building; apartment-class buildings reach 80 to 84 percent on their main routes, against 10 percent. Before
+2006, the rules find 81 percent of the surviving apartment buildings the valuations date to 1999--2005 (90 percent for
+2006--2020), and a condominium or apartment building lies at 60 percent of the large Benchmarking buildings built then
+(54 percent later). Against the Census counts two years before, yearly totals move together (correlations 0.83 for
+houses, 0.94 for buildings of five units or more, 0.97 for small multifamily), and large buildings run 0.92 times the
+Census before 2006 and 0.94 times after; houses run 1.6 times before and 1.4 times after.
+
+Two hand checks of 103 and 43 sampled buildings (\path{tasks/audits/assessor_new_building_checks/adjudication}) shaped
+the rules: the first found buildings counted twice, dates off by one to seventeen years, existing buildings passing as
+new and two routes without signal; the second found three narrower problems, each fixed by a rule applied to all
+cases. A rule to drop house rebuilds with no rise in value was tested and not adopted, since 79 percent of them have a
+permit on the parcel.
+
+\textit{Open.} The routes that rely on the 2021+ valuations see only buildings still standing in 2021, which probably
+explains part of the lower recall of early apartment buildings. Separate small buildings on touching parcels built in
+the same year count as one development. About ten apartment-class parcels a year carry near-zero values; some are
+subsidized buildings and some are not, and no value floor was set. Houses run somewhat higher relative to the Census
+before 2006 than after.

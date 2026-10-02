@@ -1,0 +1,44 @@
+check_id,group,type,year,pin10s,verdict,problem,reason
+C001,"apartment, several parcels",apartment class,2005,1710101001;1710101002;1710101003;1710101004;1710101005,new,,"747 N Wabash, 171 units, one building on five lots"
+C002,"apartment, several parcels",apartment class,2010,2020205048;2020205050,probably new,"exempt land, taxable briefly",EX to 391 for 2010 only; 99-unit permit 2008 nearby
+C003,"apartment, several parcels",apartment class,2015,1709400031;1709400035,new,wrong merge,Wolf Point West (2015) joined to Wolf Point East (2020) through a replacing parcel's valuation
+C004,"apartment, several parcels",apartment class,2006,1734423001;1734423002;1734423003,new,several buildings,"Bronzeville affordable development, 162 units in several buildings"
+C005,"apartment, several parcels",apartment class,2018,1715308021;1715308022,new,,"1140 S Wabash, 320 units, two lots"
+C006,"apartment, several parcels",apartment class,2023,1420105016;1420105017,new,,"3819 N Ashland, 48 units, two lots"
+C007,"apartment, several parcels",apartment class,2018,1417415006;1417415007,new,,"931 W Belle Plaine, 17 units, two lots"
+C008,"apartment, several parcels",apartment class,2017,1704429009;1704429016,new,,"907 N Orleans, 202 units, two lots"
+C009,"apartment, several parcels",apartment class,2018,1317311001;1317311002;1317311003;1317311004;1317311005,new,,"4025 N Narragansett, 17 units, five lots"
+C010,"apartment, several parcels",apartment class,2012,1721314016;1721314017,doubtful,,class 301 with $1k values and no permit
+C011,"apartment, several parcels",apartment class,2014,2515111051;2515111052;2515111053,probably new,"exempt land, taxable briefly",permits 2009-10 nearby; taxable 2014-15 only
+C012,"apartment, several parcels",apartment class,2006,1720200067;1720200069,new,several buildings,"Roosevelt Square, two buildings (24 and 6 units) in one development"
+C013,"apartment, several parcels",apartment class,2009,1417106010;1417106011,new,,"4644 N Clark, 36 units, permit 2006"
+C014,"apartment, several parcels",apartment class,2016,1708243007;1708243013;1708243014;1708243015;1708243016;1708243018,new,,"504 N Green, 179 units, six lots"
+C015,"apartment, several parcels",apartment class,2014,1417229008;1417229014;1417229015;1417229016;1417229017;1417229018;1417229019,new,dated early 5y,841 W Agatite: 2014 commercial-parcel events typed apartment by the 2019 tower
+C016,"apartment, one parcel",apartment class,2021,1721329035,new,,"2145 S Halsted, 6 units"
+C017,"apartment, one parcel",apartment class,2011,1707332009,doubtful,,"396 for 2011-14 then exempt, no permit or valuation"
+C018,"apartment, one parcel",apartment class,2006,1336320035,new,,"1727 N Humboldt, 18 units"
+C019,"apartment, one parcel",apartment class,2025,1708401006,doubtful,,397 at $1k in 2025 beside a new office tower
+C020,"apartment, one parcel",apartment class,2021,1710306019,new,,"60 E Randolph, 213 units"
+C021,"apartment, one parcel",apartment class,2025,1301417055,new,,"5689 N Lincoln, 6 units, permit 2022"
+C022,"apartment, one parcel",apartment class,2018,1336315024,new,,"1854 N California, 6 units"
+C023,"apartment, one parcel",apartment class,2010,1428123006,doubtful,"exempt land, taxable briefly","EX to 391 at $2M for two years, then exempt; no permit or valuation"
+C024,house dated from its old lot,house,2016,2010111041,new,,"dated from the old parcel, matching 2015-16 permits"
+C025,house dated from its old lot,house,2007,1717105101,probably new,,townhome dated from its old parcel
+C026,house dated from its old lot,house,2002,1722307069,probably new,,townhome dated from its old parcel
+C027,house dated from its old lot,house,2019,1407407032,new,,"dated 2019 from the old parcel, matching December 2018 permits"
+C028,house dated from its old lot,house,2001,2014417016,probably new,,townhome dated from its old parcel
+C029,house dated from its old lot,house,2007,1733324043,new,,2006 house permits on the block
+C030,house dated from its old lot,house,2005,1908406085,unclear date,,dated 2005 from the old parcel; a 2008 permit nearby
+C031,house dated from its old lot,house,2007,1733113060,new,,2006 townhome permits
+C032,condominium,condominium,2008,2004201027,new,,condominium units built 1-3 years before first appearance
+C033,condominium,condominium,2003,1705318058,new,,condominium units built 1-3 years before first appearance
+C034,condominium,condominium,2015,1429416101,new,,condominium units built 1-3 years before first appearance
+C035,condominium,condominium,2004,1429125060,new,,condominium units built 1-3 years before first appearance
+C036,condominium,condominium,2001,1419131047,new,,condominium units built 1-3 years before first appearance
+C037,condominium,condominium,2019,2002120040,new,,condominium units built 1-3 years before first appearance
+C038,house,house,2004,1432109020,new,,new house record on cleared land or a rebuilt house
+C039,house,house,2020,1419122027,probably new,,"permits on the block, none on the parcel"
+C040,house,house,2006,1717334030,new,,new house record on cleared land or a rebuilt house
+C041,house,house,2007,2002129015,probably new,,"permits on the block, none on the parcel"
+C042,house,house,2002,1336412051,new,,new house record on cleared land or a rebuilt house
+C043,house,2-6 flat,2005,2008214012,new,,new house record on cleared land or a rebuilt house

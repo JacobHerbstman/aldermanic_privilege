@@ -1,0 +1,15 @@
+File: condominium_buildings.csv
+Rows: 16484
+Columns: 5
+SHA-256 (saved bytes): d928c4116789dff0a155e9899f0055e2ed61f50c43e9c63179f1381d98c3c644
+Key: pin10
+Types: DuckDB inference from the complete saved CSV.
+Distinct counts: exact (exact up to 100,000 rows).
+Row counts, non-missing counts, and declared-key checks: exact.
+
+    column inferred_type non_missing distinct  min  max               mean                sd
+     pin10       VARCHAR       16484    16484    -    -                  -                 -
+first_year        BIGINT       16484       28 1999 2026 2005.7428415433146  6.69410728441533
+year_built        BIGINT       16484      162 1813 2026   1966.67750545984 45.15672964577225
+     units        BIGINT       16484      349    0 1653 17.053385100703714 52.19386612942942
+      kind       VARCHAR       16484        3    -    -                  -                 -
