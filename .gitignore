@@ -146,3 +146,8 @@ tasks/audits/uea_feedback_checks/temp/
 tasks/audits/scores_through_2026/input/
 tasks/audits/scores_through_2026/output/
 tasks/audits/scores_through_2026/temp/
+!tasks/audits/outcomes_through_2026/
+tasks/audits/outcomes_through_2026/input/
+tasks/audits/outcomes_through_2026/output/
+tasks/audits/outcomes_through_2026/temp/
+tasks/audits/outcomes_through_2026/report/
