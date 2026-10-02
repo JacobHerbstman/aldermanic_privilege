@@ -138,3 +138,7 @@ tasks/audits/construction_hand_checks/input/
 tasks/audits/construction_hand_checks/output/
 tasks/audits/construction_hand_checks/temp/
 !tasks/audits/construction_hand_checks/report/*.log
+!tasks/audits/uea_feedback_checks/
+tasks/audits/uea_feedback_checks/input/
+tasks/audits/uea_feedback_checks/output/
+tasks/audits/uea_feedback_checks/temp/
