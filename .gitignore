@@ -142,3 +142,7 @@ tasks/audits/construction_hand_checks/temp/
 tasks/audits/uea_feedback_checks/input/
 tasks/audits/uea_feedback_checks/output/
 tasks/audits/uea_feedback_checks/temp/
+!tasks/audits/scores_through_2026/
+tasks/audits/scores_through_2026/input/
+tasks/audits/scores_through_2026/output/
+tasks/audits/scores_through_2026/temp/
