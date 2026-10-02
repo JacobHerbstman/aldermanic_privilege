@@ -156,3 +156,11 @@ tasks/audits/alderman_turnover_volumes/input/
 tasks/audits/alderman_turnover_volumes/output/
 tasks/audits/alderman_turnover_volumes/temp/
 !tasks/audits/alderman_turnover_volumes/report/*.log
+# New buildings from the Assessor's records: downloads with Parquet and GeoPackage reports, and their checks.
+!tasks/download_assessed_values/report/*.parquet.log
+!tasks/download_parcel_history/report/*.gpkg.log
+!tasks/audits/assessor_new_building_checks/
+tasks/audits/assessor_new_building_checks/input/
+tasks/audits/assessor_new_building_checks/output/
+tasks/audits/assessor_new_building_checks/temp/
+!tasks/audits/assessor_new_building_checks/report/*.log

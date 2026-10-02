@@ -1,0 +1,29 @@
+File: assessed_values.parquet
+Rows: 23580948
+Columns: 19
+SHA-256 (saved bytes): 6848938b008e4da5cedfb739c0ebcbbe2d6f9cda8a8e21ef0b176bd56e20bc1e
+Key: pin, year
+Types: Stored Parquet schema.
+Distinct counts: approximate (exact up to 100,000 rows).
+Row counts, non-missing counts, and declared-key checks: exact.
+
+        column inferred_type non_missing distinct  min         max               mean                 sd
+           pin       VARCHAR    23580948   936001    -           -                  -                  -
+          year       INTEGER    23580948       29 1999        2026  2012.983564231599 7.9339043252438355
+         class       VARCHAR    23580948      150    -           -                  -                  -
+ township_code       VARCHAR    23580948        9    -           -                  -                  -
+ township_name       VARCHAR    23580948        9    -           -                  -                  -
+          nbhd       VARCHAR    23580948      688    -           -                  -                  -
+   mailed_bldg        DOUBLE    23429793   251265  0.0 294543681.0 32761.271633257707  559087.0927727578
+   mailed_land        DOUBLE    23429793   127254  0.0  21799251.0  7924.606473347844  73959.34451884951
+    mailed_tot        DOUBLE    23429793   342897  0.0 309753181.0  40685.87810656287  609613.2244900924
+    mailed_hie        DOUBLE     6029215     3728  0.0  91367236.0 60.468577750171455  44155.94228078269
+certified_bldg        DOUBLE    22973003   291777  0.0 293313850.0 31318.652659297524  527322.7802568643
+certified_land        DOUBLE    22973003   127254  0.0  21799251.0  7877.792953189446  74169.21957832776
+ certified_tot        DOUBLE    22973003   341687  0.0 306762250.0 39196.445612443444  578947.8289089805
+ certified_hie        DOUBLE     5572425     3193  0.0      7500.0   18.1066160603328  305.5272480587271
+    board_bldg        DOUBLE    22696651   244291  0.0 237590366.0 29465.939984625926  472991.0908679431
+    board_land        DOUBLE    22696651   127254  0.0  21799251.0   7748.14223578624   73862.3348523013
+     board_tot        DOUBLE    22696651   324237  0.0 252799866.0 37214.082445379274  525458.4655546328
+     board_hie        DOUBLE     5296073     4122  0.0  15948102.0  28.09214129034853   7127.02847022221
+        row_id       VARCHAR    23580948 21435946    -           -                  -                  -

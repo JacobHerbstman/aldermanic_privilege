@@ -1,0 +1,36 @@
+File: chicago_building_permits_survey.csv
+Rows: 36
+Columns: 26
+SHA-256 (saved bytes): 72734d77ad94edd4c4ff4e6372e9d4f33f8fbdef9ef514941a5e6ae5f014b147
+Key: year
+Types: DuckDB inference from the complete saved CSV.
+Distinct counts: exact (exact up to 100,000 rows).
+Row counts, non-missing counts, and declared-key checks: exact.
+
+                     column inferred_type non_missing distinct      min        max               mean                 sd
+                       year        BIGINT          36       36     1990       2025             2007.5 10.535653752852738
+            months_reported        BIGINT          36        4        8         12 11.722222222222221 0.8489021855519752
+              units_1_bldgs        BIGINT          36       35      129       1507  653.9166666666666  360.6206851685418
+              units_1_units        BIGINT          36       35      129       1507  653.9166666666666  360.6206851685418
+              units_1_value        BIGINT          36       36 26562299  255471322 116154910.52777778  55766008.38218002
+              units_2_bldgs        BIGINT          36       33       10        241  74.61111111111111  48.32466260485443
+              units_2_units        BIGINT          36       33       20        482 149.22222222222223  96.64932520970886
+              units_2_value        BIGINT          36       36  5467000   48380607 19108162.333333332  10901264.13270811
+            units_3_4_bldgs        BIGINT          36       33       29        609 179.38888888888889  137.7679784021522
+            units_3_4_units        BIGINT          36       36       97       1961  580.5277777777778  448.5979737621338
+            units_3_4_value        BIGINT          36       36  5755057  172258650  70664899.58333333   46035559.0083543
+         units_5_plus_bldgs        BIGINT          36       32       24        421 141.83333333333334 103.47850018240504
+         units_5_plus_units        BIGINT          36       36      594      11243 4025.3888888888887  2767.144658078099
+         units_5_plus_value        BIGINT          36       36 36279790 1096448329  448119106.9722222 318120840.50551295
+     units_1_bldgs_reported        BIGINT          36       36      129       1507  633.9444444444445 351.41265482087294
+     units_1_units_reported        BIGINT          36       36      129       1507  633.9444444444445 351.41265482087294
+     units_1_value_reported        BIGINT          36       36 26562299  255471322 113013638.22222222  55310222.06496911
+     units_2_bldgs_reported        BIGINT          36       33       10        241  72.88888888888889 48.250405048057246
+     units_2_units_reported        BIGINT          36       33       20        482 145.77777777777777  96.50081009611449
+     units_2_value_reported        BIGINT          36       36  5101491   48380607 18756613.694444444 11059053.973138547
+   units_3_4_bldgs_reported        BIGINT          36       33       29        609 174.05555555555554  134.6909572623714
+   units_3_4_units_reported        BIGINT          36       36       97       1961              562.0  437.1706433746111
+   units_3_4_value_reported        BIGINT          36       36  5755057  172258650   68683168.8888889 45735590.575727336
+units_5_plus_bldgs_reported        BIGINT          36       33       24        421 137.83333333333334  101.4355530796349
+units_5_plus_units_reported        BIGINT          36       36      594      11243 3939.9444444444443   2751.03993785669
+units_5_plus_value_reported        BIGINT          36       36 36279790 1096448329  441131052.0277778 321515011.81994957

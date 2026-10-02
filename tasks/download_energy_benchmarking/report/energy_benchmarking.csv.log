@@ -1,0 +1,24 @@
+File: energy_benchmarking.csv
+Rows: 28329
+Columns: 14
+SHA-256 (saved bytes): 72157aa12bcb948b52024d31e3e1c65d89075681d00c8ea7f94edd626dba57a1
+Key: row_id
+Types: DuckDB inference from the complete saved CSV.
+Distinct counts: exact (exact up to 100,000 rows).
+Row counts, non-missing counts, and declared-key checks: exact.
+
+                          column inferred_type non_missing distinct        min                max               mean                  sd
+                          row_id       VARCHAR       28329    28329          -                  -                  -                   -
+                       data_year        BIGINT       28329       10       2014               2023 2019.3811994775672   2.454560409651085
+                              id        BIGINT       28329     3852     100001             260184  187986.5649334604   60519.92087852032
+                   property_name       VARCHAR       25366     7043          -                  -                  -                   -
+                reporting_status       VARCHAR       28329        5          -                  -                  -                   -
+                         address       VARCHAR       28329     7725          -                  -                  -                   -
+                        zip_code       VARCHAR       27008      108          -                  -                  -                   -
+                  community_area       VARCHAR       28021      157          -                  -                  -                   -
+           primary_property_type       VARCHAR       24075       62          -                  -                  -                   -
+gross_floor_area_buildings_sq_ft        DOUBLE       26104     5852     2804.0          9245333.0  254896.7614311983   415486.9644748569
+                      year_built        DOUBLE       23297      154     1692.0             2023.0  1964.299866935657   37.38077953953052
+                    of_buildings        BIGINT       23875       37          0                236 1.4281884816753927   4.967539893222923
+                        latitude        DOUBLE       28314     9540  32.949589 42.022372411775464  41.88184187146009 0.08843382856269369
+                       longitude        DOUBLE       28314     9524 -96.734051       -87.52791304 -87.65425893759895 0.08127958634671908

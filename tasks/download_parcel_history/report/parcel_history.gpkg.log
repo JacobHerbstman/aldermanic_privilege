@@ -1,0 +1,17 @@
+File: parcel_history.gpkg
+Rows: 724209
+Columns: 7
+SHA-256 (saved bytes): a23b8c3ff4bfa53952aab951c0d173ccabfa284178528986dce37814c9468afb
+Key: layer, object_id
+Types: SQLite attributes read through pandas; geometry excluded.
+Distinct counts: approximate (exact up to 100,000 rows).
+Row counts, non-missing counts, and declared-key checks: exact.
+
+     column inferred_type non_missing distinct    min     max               mean                 sd
+        fid        BIGINT      724209   789341      1  724209           362105.0  209061.2748872923
+      layer       VARCHAR      724209        3      -       -                  -                  -
+  object_id        BIGINT      724209   767061   3279 9684128  9036710.778418938  520592.6609349006
+      pin10       VARCHAR      724209   596633      -       -                  -                  -
+parcel_type        DOUBLE      722247        9    1.0     9.0    1.0576077159199 0.3641015648465946
+     in_gis        DOUBLE      722250       26 2000.0  2023.0 2000.5195901696088 2.5366453054535207
+ last_taxed        DOUBLE      722250       26 2000.0  2023.0 2022.2522561439944  3.512679557049403
