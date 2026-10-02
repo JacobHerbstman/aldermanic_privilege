@@ -7,7 +7,7 @@ all: ../output/parcel_universe_2025_city.csv
 
 download-current: ../output/parcel_universe_2025_city_native_current.csv
 
-../output/parcel_universe_2025_city.csv: rewrite_parcel_universe_schema.R ../../shared/code/save_data.R ../../shared/code/report.py ../temp/parcel_universe_2025_city_native.csv ../../setup_environment/code/packages.R | ../output ../report
+../output/parcel_universe_2025_city.csv: rewrite_parcel_universe_schema.R ../temp/parcel_universe_2025_city_native.csv | ../output ../report
 	$(R) $<
 
 ../temp/parcel_universe_2025_city_native.csv: ../../../data_raw/construction_review/parcel_universe_2025_city_native.csv parcel_universe_snapshot.sha256 Makefile | ../temp

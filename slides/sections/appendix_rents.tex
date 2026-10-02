@@ -1,0 +1,43 @@
+\begin{frame}[label=price-controls]
+    \frametitle{Housing and Location Controls in the Price Comparisons}
+    \small
+    \textbf{Listed rents}
+    \begin{itemize}[itemsep=0.3em]
+      \item Log floor area, bedroom categories, and log bathrooms.
+      \item Rental building-type and segment $\times$ month fixed effects.
+      \item Clean-location sample; median rent for each floorplan-month.
+    \end{itemize}
+    \medskip
+    \textbf{Home sale prices}
+    \begin{itemize}[itemsep=0.3em]
+      \item Log floor area, log land area, log building age, log bedrooms, log bathrooms, and garage indicator.
+      \item Assessor property-class and segment $\times$ quarter fixed effects.
+    \end{itemize}
+    \medskip
+    \textbf{Both}: distances to the nearest school, park, major road, and CTA stop, and to Lake Michigan. Outcomes are in 2022 dollars; standard errors clustered by ward pair.
+    \vfill\hfill\hyperlink{price-spec-main}{\beamerreturnbutton{Back}}
+\end{frame}
+
+\begin{frame}[label=price-rd-placebos]
+    \frametitle{Price Comparisons at Placebo Boundaries}
+    \centering
+    \includegraphics[width=0.98\textwidth,height=0.68\textheight,keepaspectratio]{../tasks/presentation_figures/output/price_boundary_placebos_slides.pdf}
+    \par\smallskip\scriptsize Shift the cutoff 1,000 feet in each direction; use a 500-foot window around each shifted cutoff.
+    \vfill\hfill\hyperlink{rental-fe-main}{\beamerreturnbutton{Back}}
+\end{frame}
+
+\begin{frame}[label=price-straight]
+    \frametitle{Price Comparisons Along Straight Boundary Segments}
+    \centering
+    \includegraphics[width=0.98\textwidth,height=0.68\textheight,keepaspectratio]{../tasks/presentation_figures/output/price_boundary_straight_slides.pdf}
+    \par\smallskip\scriptsize Restrict to straight boundary segments; retain the main housing controls and segment-by-time fixed effects.
+    \vfill\hfill\hyperlink{rental-fe-main}{\beamerreturnbutton{Back}}
+\end{frame}
+
+\begin{frame}[label=price-donuts]
+    \frametitle{Price Comparisons Excluding Locations Nearest the Boundary}
+    \centering
+    \includegraphics[width=0.98\textwidth,height=0.68\textheight,keepaspectratio]{../tasks/presentation_figures/output/price_boundary_donuts_slides.pdf}
+    \par\smallskip\scriptsize Exclude locations within 25 or 50 feet; retain the original 100-foot bands and 500-foot window.
+    \vfill\hfill\hyperlink{rental-fe-main}{\beamerreturnbutton{Back}}
+\end{frame}

@@ -6,8 +6,8 @@ An ordinary `make` in `code/` verifies the recorded source checksum and writes
 
 The preserved file, source URL, and limits of its recorded vintage are described
 in [`data_raw/replication_sources/README.md`](../../data_raw/replication_sources/README.md).
-The checksum is in `code/source_snapshot.sha256`. These preserved files still
-need inclusion in the distributed replication data bundle.
+The checksum is in `code/source_snapshot.sha256`. The file is restored from the
+recorded source archive by `make -C replication`, which the root `make` runs first.
 
 To request a deliberate candidate refresh, run `make download-current`
 in `code/`. The existing source-specific download script writes a separate

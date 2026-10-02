@@ -1,4 +1,4 @@
-# setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/download_rent_data/code")
+# setwd("tasks/download_rent_data/code")
 # start_date <- "2014-01-01"
 # end_date <- "2022-12-31"
 source("../../setup_environment/code/packages.R")
@@ -38,15 +38,18 @@ if (nrow(pending) > 0) {
   available <- available[matches, , drop = FALSE]
   stopifnot(all(as.numeric(available$file_size_bytes) == pending$file_size_bytes))
 
-  for (first in seq(1L, nrow(pending), by = 50L)) {
-    batch <- first:min(first + 49L, nrow(pending))
-    deweydatar::download_files(
-      files_df = available[batch, , drop = FALSE], dest_folder = "../temp", skip_exists = FALSE
-    )
-    received <- file.path("../temp", pending$file_name[batch])
-    stopifnot(all(file.info(received)$size == pending$file_size_bytes[batch]),
-      all(unname(tools::md5sum(received)) == pending$md5[batch]))
-    stopifnot(all(file.rename(received, file.path("../output", pending$file_name[batch]))))
+  # One request per file; Dewey's download server returns occasional transient errors, which are retried.
+  for (i in seq_len(nrow(pending))) {
+    received <- file.path("../temp", pending$file_name[i])
+    httr2::request(available$link[i]) |>
+      httr2::req_retry(
+        max_tries = 8,
+        is_transient = function(resp) httr2::resp_status(resp) %in% c(429, 500, 502, 503, 504),
+        backoff = function(attempt) 15 * attempt
+      ) |>
+      httr2::req_perform(path = received)
+    stopifnot(file.size(received) == pending$file_size_bytes[i], unname(tools::md5sum(received)) == pending$md5[i])
+    stopifnot(file.rename(received, file.path("../output", pending$file_name[i])))
   }
 }
 stopifnot(all(unname(tools::md5sum(recorded_files)) == recorded$md5))

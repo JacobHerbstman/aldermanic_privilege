@@ -1,18 +1,18 @@
 File: density_boundary_characteristics.csv
-Rows: 9493
+Rows: 11794
 Columns: 8
-SHA-256 (saved bytes): 5792d9c6cab92847369fdbcfeb11b524417f8282729e914302a683c4f75c0631
-Key: project_id
+SHA-256 (saved bytes): 132b064ae82b31f11ee8c3825a8938ce034b11b95af9c9e8c67e4a2a8e17bab9
+Key: building_id
 Types: DuckDB inference from the complete saved CSV.
 Distinct counts: exact (exact up to 100,000 rows).
 Row counts, non-missing counts, and declared-key checks: exact.
 
-                  column inferred_type non_missing distinct                    min                max                mean                  sd
-              project_id       VARCHAR        9493     9493                      -                  -                   -                   -
-       straight_boundary       BOOLEAN        9493        2                      -                  -                   -                   -
-     simple_overlap_keep       BOOLEAN        9493        2                      -                  -                   -                   -
-        share_based_keep       BOOLEAN        9493        2                      -                  -                   -                   -
-   distance_to_cbd_miles        DOUBLE        9493     9451     0.1711125905404043 15.386199400198826    4.88969052098577   2.371227587733809
-distance_to_school_miles        DOUBLE        9493     9451   0.014643882980978911 0.8213236324968652  0.2325086420783077 0.12084623381150306
-  distance_to_park_miles        DOUBLE        9493     9451 0.00036079072831213504 0.8769263426877425 0.16921153706997555 0.11842004153403916
-  distance_to_lake_miles        DOUBLE        9493     9451   0.016861019765997052  10.56219714759632   3.019324316507553   1.759370430712631
+                  column inferred_type non_missing distinct                  min                max                mean                  sd
+             building_id       VARCHAR       11794    11794                    -                  -                   -                   -
+       straight_boundary       BOOLEAN       11794        2                    -                  -                   -                   -
+     simple_overlap_keep       BOOLEAN       11794        2                    -                  -                   -                   -
+        share_based_keep       BOOLEAN       11794        2                    -                  -                   -                   -
+   distance_to_cbd_miles        DOUBLE       11794    11788   0.4948707653017476 15.386199412755913   4.688369983055744  2.2987754645447005
+distance_to_school_miles        DOUBLE       11794    11788 0.014356917632235877 0.7597570027923837 0.22415483679460027 0.11749311844947874
+  distance_to_park_miles        DOUBLE       11794    11788 0.001594181323393159 0.8769263815897217 0.16823672822074173 0.11347558305071663
+  distance_to_lake_miles        DOUBLE       11794    11788 0.020422541972422395  10.56219713879338   2.910995988988464  1.6999015644315862

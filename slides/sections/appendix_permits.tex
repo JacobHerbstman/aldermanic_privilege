@@ -1,0 +1,58 @@
+\begin{frame}[label=permit-separate-spec]
+    \frametitle{Allowing the Two Reassignment Directions to Differ}
+    \small
+    \[
+    \begin{aligned}
+      \log\mathbb E[Y_{by}\mid\cdot]&=\mu_b+\lambda_{g(b),y}\\
+       &+\sum_{t\neq-1}\left[\beta_t^{H}H_b+\beta_t^{L}L_b\right]\mathbf1\{y-2015=t\}.
+    \end{aligned}
+    \]
+    \begin{itemize}[itemsep=0.5em]
+      \item $H_b=1$ for reassignment toward greater stringency; $L_b=1$ for reassignment toward greater leniency. Both are zero for unchanged blocks, so $Z_b=H_b-L_b$.
+      \item Same 2010--2020 sample, 2014 reference year, block and ward-pair $\times$ year fixed effects, and ward-pair clustering.
+      \item Pooled estimates replace the event-time interactions with $H_b\mathbf1\{y\geq2015\}$ and $L_b\mathbf1\{y\geq2015\}$.
+      \item The combined model restricts $\beta_t^H=-\beta_t^L$. The pooled equal-and-opposite test is $H_0:\beta^H+\beta^L=0$.
+    \end{itemize}
+    \vfill\hfill\hyperlink{permit-directions-main}{\beamerreturnbutton{Back}}
+\end{frame}
+
+\begin{frame}[label=permit-pooled-appendix]
+    \frametitle{Pooled Permit Effects, 2015--2020}
+    \centering
+    \scriptsize
+    \renewcommand{\arraystretch}{0.85}
+    \input{../tasks/run_event_study_permit/output/permit_event_study_appendix_500ft.tex}
+    \par\smallskip
+    \scriptsize PPML coefficients; clustered standard errors in parentheses. Low-discretion permits exclude signs. Both columns keep blocks with positive 2010--2014 high-discretion activity. $N$ counts block-years retained by PPML. * $p<0.10$, ** $p<0.05$, *** $p<0.01$.
+    \vfill\hfill\hyperlink{permit-directions-main}{\beamerreturnbutton{Back}}
+\end{frame}
+
+\begin{frame}[label=permit-placebo]
+    \frametitle{Low-Discretion Permits: Small Pooled Effect}
+    \centering
+    \includegraphics[width=0.86\textwidth,height=0.66\textheight,keepaspectratio]{../tasks/run_event_study_permit/output/permit_event_study_low_discretion_nosigns_stable_signed_500ft.pdf}
+    \par\smallskip
+    \footnotesize Signs excluded. The pre-period evidence is less reassuring than for high-discretion permits.
+    \vfill\hfill\hyperlink{permit-result-main}{\beamerreturnbutton{Back}}
+\end{frame}
+
+\begin{frame}[label=permit-turnover]
+    \frametitle{Including Ward Pairs With Incumbent Turnover}
+    \centering
+    \includegraphics[width=0.86\textwidth,height=0.66\textheight,keepaspectratio]{../tasks/run_event_study_permit/output/permit_event_study_high_discretion_all_signed_500ft.pdf}
+    \par\smallskip
+    \footnotesize The 2014 incumbent score still defines reassignment direction, but the wider sample also includes wards where the incumbent changes in 2015.
+    \vfill\hfill\hyperlink{permit-result-main}{\beamerreturnbutton{Back}}
+\end{frame}
+
+\begin{frame}[label=permit-balance-history]
+    \frametitle{Pre-Redistricting Balance}
+    \centering\tiny
+    \let\footnotesize\tiny
+    \setbeamerfont{caption}{size=\tiny}
+    \setlength{\abovecaptionskip}{0pt}
+    \setlength{\belowcaptionskip}{0pt}
+    \renewcommand{\arraystretch}{0.85}
+    \input{../tasks/permit_itt_balance/output/permit_itt_balance_500ft.tex}
+    \vfill\hfill\hyperlink{permit-spec-main}{\beamerreturnbutton{Back}}
+\end{frame}

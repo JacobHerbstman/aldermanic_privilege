@@ -1,9 +1,8 @@
 # Density Appendix Results
 
-This task applies the paper's density specification to the two shifted
-cutoffs and the 25ft and 50ft donut samples. It reads the same generated project
-file and current alderman score as the main density task.
-
-Both outcomes use the common `density_eligible` field from the analysis-data
-producer. Within each distance restriction and building-type sample, FAR and
-DUPAC use the same projects. Sample sizes are computed from the fitted models.
+`build_density_appendix_results.R` repeats the main density specification
+(`tasks/shared/code/density_boundary_helpers.R`) at placebo cutoffs 1,000 ft
+inside either ward, keeping a 500-ft window around each cutoff, and after
+excluding buildings within 25 or 50 ft of the boundary. Each figure has the same
+three samples as the main figure and reports the first-band and average
+differences. Run `make` in `code/`.

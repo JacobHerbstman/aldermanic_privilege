@@ -1,0 +1,81 @@
+round,permit_number,lot_pin10,verdict,reason
+1,100081337,1731116035,plausible,adjacent lot on the same side (3330 vs 3336 S Damen); lot first assessed 2013
+1,100095072,1429202006,correct,corner building: 1033 W Belmont is addressed 3154 N Kenmore; demolition and elevator permits at 1033 W Belmont
+1,100096617,1310312011,plausible,adjacent lot (5079 vs 5081 N Kimberly); a 2018 permit says 5081 has no house
+1,100105991,1418300029,wrong,the permit's own lot (4336) shows a rebuilt house under the old year built; lot 4328 is a separate replacement
+1,100110602,1433300127,correct,one large house on combined lots (1926-1932 N Burling)
+1,100110967,1613115061,plausible,"same block, parcel renumbered; lot first assessed 2019"
+1,100111767,2021112030,wrong,lot is across the street (6434 vs 6427 S Normal); a 2018 demolition shows the permitted building stood at 6427
+1,100140919,2017110030,plausible,adjacent lot on the same side (5608 vs 5610 S Bishop)
+1,100148828,1336107036,correct,corner building: 2817 W Belden is addressed 2318 N Milwaukee; older buildings replaced
+1,100153762,2030118039,plausible,adjacent lot on the same side (7348 vs 7346 S Bell)
+1,100156698,1429101052,wrong,lot 1433 W Belmont has its own 2006 new-construction permit for a twin building
+1,100187667,1705308128,correct,one building on 1443-1445 W Thomas; both lots demolished in 2007
+1,100193075,1431111011,wrong,lot is across the street (2339 vs 2340 W Lyndale)
+1,100199554,1431426053,wrong,lot 1615 N Wolcott has its own 2006 new-construction permit
+1,100200395,2030219049,plausible,adjacent lot on the same side (7340 vs 7342 S Wood); the lot's 1926 house was replaced in 2007
+1,100213956,2003118041,plausible,4238 vs 4230 S Wabash; the lot's reported land area is 0
+1,100436212,1417120041,correct,"4405 vs 4401 N Greenview, same side, 9 units in both"
+1,100494111,1336302053,wrong,lot is across the street (3050 vs 3053 W Armitage)
+1,100519190,1901201018,correct,lot 3922 S Rockwell was demolished in 2013 and has no new-construction permit of its own
+1,100574550,1421307063,correct,corner building: 3423 N Broadway is addressed 597 W Hawthorne
+1,100590551,1429314057,correct,corner building: 2559 N Southport is addressed 1355 W Wrightwood
+1,100641106,1420403075,correct,same address; the parcel address lacks a direction
+1,100659622,1706440041,correct,corner building: 834 N Ashland is addressed 1601 W Pearson
+1,100681213,1428123020,correct,adjacent lot (514 vs 508 W Diversey); 56 vs 53 units
+1,100714852,1418402063,correct,corner building: 4346 N Honore is addressed 1819 W Montrose
+1,100736624,2002405121,correct,same address; the parcel address lacks a direction
+1,100738835,1314326036,plausible,the lot has no 2025 address
+1,100747964,1718316096,correct,same address; the parcel address lacks a direction
+1,100783193,1312233039,plausible,the lot has no 2025 address
+1,100785545,2010203049,correct,same address; the parcel address lacks a direction
+1,100793088,1419305033,correct,same address; the parcel address lacks a direction
+1,100795751,1336228049,correct,same address; the parcel address lacks a direction
+1,100815123,1429127056,correct,same address; the parcel address lacks a direction
+1,100833120,1336316048,correct,same address; the parcel address lacks a direction
+1,100835393,1420101058,correct,same address; the parcel address lacks a direction
+1,100839035,1418201023,correct,same address; the parcel address lacks a direction
+1,100865335,1330225041,correct,same address; the parcel address lacks a direction
+1,100867287,2003225055,plausible,adjacent lot on the same side (4233 vs 4235 S Champlain)
+1,100876765,1315424045,correct,same address; the parcel address lacks a direction
+1,100901138,2003111042,correct,same address; the parcel address lacks a direction
+2,100073900,1324100040,plausible,"same side, 20 house numbers apart (3937 vs 3917 N Kedzie); lot first assessed 2020"
+2,100083277,2002404112,correct,adjacent lot (4449 vs 4453 S Lake Park); a 2007 electrical permit at 4449 is for a new 8-unit building
+2,100085010,1419430027,correct,corner building: 1655 W School is addressed 3255 N Paulina
+2,100092942,1224210023,correct,same address; Forest Preserve AVE vs BLVD
+2,100096618,1326116075,correct,corner building: 2902 N Ridgeway is addressed 3744 W George
+2,100107481,1420407048,plausible,same side (3537 vs 3549 N Reta); a 2011 demolition at 3549 is unexplained
+2,100115423,1614109034,plausible,"adjacent lot (320 vs 322 S Hamlin); lot built the year before the permit, which was reinstated in 2010"
+2,100116692,2606415014,plausible,"same side, 22 house numbers apart (2878 vs 2900 E 94th)"
+2,100144371,2008100014,plausible,adjacent lot (1541 vs 1539 W 47th); 3 Assessor units for 2 apartments over retail
+2,100157810,2018406047,correct,corner building: 1637 W 59th is addressed 5901 S Marshfield
+2,100166388,1431105035,correct,corner building: 2255 N Western is addressed 2353 W Belden
+2,100170513,1420423063,plausible,adjacent lot (3233 vs 3237 N Seminary); demolition at 3237 in 2007
+2,100188620,1431428055,correct,one building on 1746-1748 W North; both lots demolished in 2007
+2,100216796,1314207040,correct,corner building: 4650 N Kedzie is addressed 3201 W Leland
+2,100218893,1733121103,correct,adjacent lot 3441 S Lowe demolished in 2007 with no new-construction permit of its own
+2,100489060,1429425048,correct,"adjacent lot (1122 vs 1124 W Fullerton), 3 units in both"
+2,100558170,1431414031,wrong,scope error: a garage at an existing house; lot 1836 has its own 2016 permit for a new house
+2,100604439,1419328043,correct,"adjacent lot (2312 vs 2314 W Belmont), 6 units in both"
+2,100657578,2013100020,correct,"corner building: 1616 E 56th is addressed 5532 S Cornell (land area 0, unusable)"
+2,100664972,1706114062,correct,corner building: 1301 N Western is addressed 2352 W Potomac
+2,100688057,1313307047,plausible,the lot has no 2025 address
+2,100705646,1601317039,correct,same address; the parcel address lacks a direction
+2,100709424,1406215075,correct,"adjacent lot (6135 vs 6137 N Ravenswood), 5 units in both"
+2,100712553,1706114068,correct,same address; the parcel address lacks a direction
+2,100748190,1429420069,correct,same address; the parcel address lacks a direction
+2,100760682,1420100062,plausible,the lot has no 2025 address
+2,100775272,1717309031,correct,same address; the parcel address lacks a direction
+2,100782618,1704212001,correct,corner building: 343 W Schiller is addressed 1367 N Sedgwick
+2,100786482,1418327032,correct,same address; the parcel address lacks a direction
+2,100804417,1419422052,plausible,the lot has no 2025 address
+2,100821991,1336106093,correct,same address; the parcel address lacks a direction
+2,100824309,1429206089,correct,same address; the parcel address lacks a direction
+2,100829848,1429226058,correct,same address; the parcel address lacks a direction
+2,100836302,1601214063,correct,same address; the parcel address lacks a direction
+2,100840924,1601423060,correct,same address; the parcel address lacks a direction
+2,100859881,1420215058,correct,same address; the parcel address lacks a direction
+2,100866410,1721300037,correct,one building on 718-720 W 17th; demolition at 718 in 2020
+2,100870409,1322436041,correct,"adjacent lot (3214 vs 3216 N Karlov), 8 units in both"
+2,100883900,1602414039,correct,same address; the parcel address lacks a direction
+2,100928458,1419313020,correct,adjacent lot 3450 N Hoyne demolished in 2021; 1890 building replaced in 2022

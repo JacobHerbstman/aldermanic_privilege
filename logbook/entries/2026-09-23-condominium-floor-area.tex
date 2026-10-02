@@ -1,0 +1,56 @@
+\clearpage
+\section*{Can large condominium buildings have a floor area?}
+\textit{September 23, 2026. Agent-drafted data check; keeping condominiums and reporting FAR and DUPAC as main
+estimates are Jacob's decisions.}
+
+The Assessor's condominium file covers every assessment year from 1999, but it records building and unit floor area
+only for condominium buildings of fewer than 20 units. In the permit construction data,
+171 of 205 condominium buildings of 20 or more units have a DUPAC and none has a FAR, while large rentals do (269 of
+411, from commercial valuations). Condominiums are about two thirds of new buildings of 2 to 19 units, so dropping
+them would leave a small multifamily sample of rentals; Jacob chose to keep them.
+
+The 2022 Cook County building footprints give every building's footprint area and roof height
+(\texttt{tasks/download\_building\_footprints\_2022}, 895,674 footprints over Chicago). In
+\texttt{tasks/audits/footprint\_floor\_area\_check}, buildings built through 2021 were matched to the footprints
+containing their parcels, and floor area was estimated as footprint area times height times a floor area per cubic
+foot calibrated on rentals (0.063, about one floor per 16 feet). Against the Assessor, the estimate's median absolute
+error is 13 percent for rentals under 20 units, 16 percent for condominiums under 20 units (held out of the
+calibration). For rentals of 20 or more units, calibrated on the other large rentals, it is 16 percent for 20--49
+units, 17 for 50--99 and 31 for 100 or more, where parking podiums, retail floors and setbacks break the link between
+height and floors. Of the 160 large condominium buildings matched to footprints, 44 have 100 or more units.
+
+Footprint floor area is not accurate enough to fill in the large condominium buildings alongside Assessor floor
+area. The plan, not yet built into the analysis: FAR for buildings of fewer than 20 units, condominiums and rentals
+alike, and DUPAC for all buildings, both as main estimates.
+
+\textit{Update, same day.} Jacob chose to fill floor area for condominium buildings of 20 to 99 units rather than
+drop them, marked so they can be removed. Before adopting it, the footprint estimate was examined by building height
+and by footprint area relative to the lot. It fails in three identifiable situations: towers taller than 100 feet
+(roof height misstates floors), buildings under 50 feet with 20 or more units (complexes spread over footprints not
+matched, estimates 30 percent low), and footprints more than 1.2 times the lot (outlines that include neighbors,
+estimates about 50 percent high); the first fill had put 9 W Walton at a FAR of 48. For buildings 50 to 100 feet tall
+whose footprints cover half to 1.2 times their lots, calibrated on the other large rentals, the median absolute error
+is 12 percent for rentals of 20 to 49 units and 8 percent for 50 to 99 units, against 31 to 34 percent for those
+outside the rule; held-out condominiums under 20 units within the rule are off by 16 percent. The thresholds were
+chosen on these rentals, so the held-out condominiums are the cleaner test. A summation-order error that overstated
+the volume of the 84 buildings on several footprints was fixed first.
+
+The construction data now fill floor area for 60 condominium buildings of 20 to 99 units
+(\texttt{floor\_area\_source = footprint}), with FAR 1.5 to 5.8 (median 3.6, against 3.1 for Assessor-measured
+buildings of that size). No other building changed; 13,499 buildings are eligible for both measures.
+
+\textit{Large condominium buildings, researched one by one.} Of 297 condominium buildings of 20 or more units the
+Assessor reports built 2006--2022, 78 had no row. Individual research (building records, permits and web sources,
+\texttt{tasks/audits/construction\_hand\_checks/condominium\_site\_reviews.csv}) found 67 handled correctly: 46
+represented by a later record of the same building (Trump Tower, Aqua, 1400 Museum Park), 13 completed before 2006
+and 8 conversions of older buildings (Tribune Tower). The errors came from condominium buildings the Assessor
+re-declares under new building numbers as units sell: early declarations counted as separate buildings (Zen Condos,
+225 S Sangamon, twice) or measuring a building on a partial declaration (The Legacy at Millennium Park at 177 of 355
+units; 600 N Fairbanks at 87 of 212), one row summing two towers (Lincoln Park 2550 and 2520), one separate building
+dropped as a duplicate (15 N Aberdeen) and one placeholder record for a townhouse association. A general rule would
+misfire where several towers share one land record, so the 21 sites were decided by hand in
+\texttt{adjudication/manual\_decisions.csv}: ten rows measured on the record of the whole building, seventeen
+duplicate or placeholder rows dropped, one building kept and one foundation permit joined to its building. A
+suggested merge of 1411 S Michigan and 51 E 14th Street was rejected: they are separate valuations of different floor
+area and land. Lux24 (24 S Morgan), a condominium building converted to rentals, stays unmeasured. Seven buildings
+changed units, the file has seventeen fewer rows, and no other building changed.

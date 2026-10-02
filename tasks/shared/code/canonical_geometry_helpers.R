@@ -980,3 +980,47 @@ assert_event_segment_contract <- function(points_sf, era_values, pair_values, se
     max_abs_segment_distance_gap_m = max_gap
   ))
 }
+
+# Locally straight boundaries (density and price boundary checks). For each point, a straight line of
+# 2 x half_length_m, centred on the point's nearest boundary point and perpendicular to the shortest path, must stay
+# within tolerance_m of the ward-pair boundary at both ends. points (EPSG:3435) carry era and ward_pair; boundaries
+# carry era and ward_pair_id. Also returns each point's distance to its boundary in feet, to check against the
+# recorded distance.
+boundary_straightness <- function(points, boundaries, half_length_m = 50, tolerance_m = 15) {
+  stopifnot(sf::st_crs(points) == sf::st_crs(3435), sf::st_crs(boundaries) == sf::st_crs(3435))
+  out <- tibble::tibble(
+    reconstructed_distance_ft = rep(NA_real_, nrow(points)),
+    straight_boundary = rep(NA, nrow(points))
+  )
+  groups <- interaction(points$era, points$ward_pair, drop = TRUE, lex.order = TRUE)
+  for (idx in split(seq_len(nrow(points)), groups)) {
+    boundary <- boundaries[boundaries$era == points$era[idx[1]] & boundaries$ward_pair_id == points$ward_pair[idx[1]], ]
+    if (nrow(boundary) != 1L) stop("Could not identify one ward-pair boundary for a location.", call. = FALSE)
+    boundary_geometry <- sf::st_geometry(boundary)
+    nearest_lines <- sf::st_nearest_points(
+      sf::st_geometry(points[idx, ]),
+      sf::st_sfc(rep(list(boundary_geometry[[1]]), length(idx)), crs = sf::st_crs(boundary)),
+      pairwise = TRUE
+    )
+    point_xy <- t(vapply(seq_along(idx), function(j) sf::st_coordinates(nearest_lines[j])[1, c("X", "Y")], numeric(2)))
+    boundary_xy <- t(vapply(seq_along(idx), function(j) {
+      coordinates <- sf::st_coordinates(nearest_lines[j])
+      coordinates[nrow(coordinates), c("X", "Y")]
+    }, numeric(2)))
+    normal <- boundary_xy - point_xy
+    normal_length <- sqrt(rowSums(normal^2))
+    if (any(!is.finite(normal_length) | normal_length <= 0)) {
+      stop("A location lies directly on its assigned boundary.", call. = FALSE)
+    }
+    tangent <- cbind(-normal[, 2], normal[, 1]) / normal_length
+    half_length_ft <- half_length_m / 0.3048
+    end_distance_m <- function(xy) {
+      ends <- sf::st_sfc(lapply(seq_len(nrow(xy)), function(j) sf::st_point(xy[j, ])), crs = sf::st_crs(boundary))
+      as.numeric(sf::st_distance(ends, boundary_geometry)) * 0.3048
+    }
+    out$reconstructed_distance_ft[idx] <- normal_length
+    out$straight_boundary[idx] <- end_distance_m(boundary_xy - half_length_ft * tangent) <= tolerance_m &
+      end_distance_m(boundary_xy + half_length_ft * tangent) <= tolerance_m
+  }
+  out
+}

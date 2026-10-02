@@ -1,5 +1,5 @@
 # --- Interactive Test Block ---
-# setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/permit_itt_balance/code")
+# setwd("tasks/permit_itt_balance/code")
 # bandwidth_m <- 152.4
 # bandwidth_label <- "500ft"
 # baseline_year <- 2014

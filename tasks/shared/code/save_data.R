@@ -1,8 +1,11 @@
 # Save a dataset and describe the saved file. Preserve its row order and format.
 report_program <- sub("save_data[.]R$", "report.py", sys.frame(1)$ofile)
+# Reports run in the Python environment built by tasks/setup_environment.
+report_python <- file.path(dirname(report_program), "../../setup_environment/output/python-env/bin/python")
 
 ReportData <- function(outfile, key = character()) {
-  status <- system2("python3", c(
+  if (!file.exists(report_python)) stop("Run make in tasks/setup_environment/code to build the report environment.", call. = FALSE)
+  status <- system2(report_python, c(
     shQuote(report_program), shQuote(outfile),
     shQuote(paste0("../report/", basename(outfile), ".log")), shQuote(key)))
   if (status != 0L) stop("Could not report saved data: ", outfile, call. = FALSE)

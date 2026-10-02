@@ -1,5 +1,5 @@
 # --- Interactive Test Block ---
-# setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/clean_building_permits/code")
+# setwd("tasks/clean_building_permits/code")
 # start_year <- 2006
 # end_year <- 2022
 
@@ -98,42 +98,13 @@ high_discretion_permits <- c(
   "PERMIT - REINSTATE REVOKED PMT"
 )
 
-minor_permits <- c(
-  "PERMIT - EASY PERMIT PROCESS",
-  "PERMIT – EXPRESS PERMIT PROGRAM",
-  "PERMIT - SIGNS",
-  "PERMIT - SCAFFOLDING"
-)
-
-building_permits_clean2 <- building_permits_clean %>%
-  mutate(high_discretion = ifelse(permit_type %in% high_discretion_permits, 1, 0)) %>% 
-  mutate(minor_permit = ifelse(permit_type %in% minor_permits, 1, 0))
-
-
-building_permits_clean2 <- building_permits_clean2 %>% 
-  dplyr::filter(processing_time >= 0) 
-
-building_permits_final <- building_permits_clean2 %>%
-  mutate(
-    permit_issued = case_when(
-      permit_status %in% c("COMPLETE", "ACTIVE", "PHASED PERMITTING") ~ 1,
-      permit_status %in% c("EXPIRED", "CANCELLED", "REVOKED", "SUSPENDED") ~ 0,
-      TRUE ~ NA_integer_
-    ),
-    corporate_applicant = as.integer(
-      if_any(
-        starts_with("contact_") & ends_with("_name"),
-        ~ str_detect(
-          str_to_upper(coalesce(.x, "")), 
-          "IN|SERVICE|CO|LLC|INC|CORP|LTD|LLP|PC|ASSOCIATE|GROUP|COMPANY|CONSTRUCTION|DEVELOPMENT|PROPERTY|PROPERTIES"
-        )
-      )
-    )
-  ) %>% 
+building_permits_final <- building_permits_clean %>%
+  mutate(high_discretion = ifelse(permit_type %in% high_discretion_permits, 1, 0)) %>%
+  dplyr::filter(processing_time >= 0) %>%
   dplyr::select(
     id, pin, ward, application_start_date_ym, issue_date_ym,
     processing_time, reported_cost, total_fee,
-    high_discretion, permit_issued, corporate_applicant,
+    high_discretion,
     everything(), -contains("contact_")
   )
 

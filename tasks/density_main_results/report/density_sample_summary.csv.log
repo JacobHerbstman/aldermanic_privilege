@@ -1,18 +1,17 @@
 File: density_sample_summary.csv
-Rows: 2
-Columns: 8
-SHA-256 (saved bytes): d4352d21098a090d73d3ac869afbc27bd1c0c7e61beed95cd3d965ef9d4606aa
+Rows: 3
+Columns: 7
+SHA-256 (saved bytes): acde5648a57f055fb1cd18bd13e7dcc267d25fd08fdc0afecd78b2d1d67c7ae5
 Key: sample
 Types: DuckDB inference from the complete saved CSV.
 Distinct counts: exact (exact up to 100,000 rows).
 Row counts, non-missing counts, and declared-key checks: exact.
 
          column inferred_type non_missing distinct                min                max               mean                 sd
-         sample       VARCHAR           2        2                  -                  -                  -                  -
-       mean_far        DOUBLE           2        2 1.1583562909514276 2.0894101830930762 1.6238832370222518 0.6583545207834882
-  average_units        DOUBLE           2        2  5.733676092544154 25.805447470816333 15.769561781680244 14.192885652002314
-     mean_dupac        DOUBLE           2        2 26.850144413425227  64.85782671309131  45.85398556325827 26.875489891277805
-median_distance        DOUBLE           2        2  823.7638469223298  914.9396748628052  869.3517608925674  64.47104621700802
-     ward_pairs        BIGINT           2        2                112                139              125.5 19.091883092036785
-       segments        BIGINT           2        2                806               1387             1096.5 410.82903986938413
-              n        BIGINT           2        2               2570              13615             8092.5  7809.994398205417
+         sample       VARCHAR           3        3                  -                  -                  -                  -
+  average_units        DOUBLE           3        3   5.96814332247548 36.157309054122436  19.14453573520314 15.455898412459094
+     mean_dupac        DOUBLE           3        3 30.751030882901986  83.06300015037556  56.48798426176628  26.16605231474467
+median_distance        DOUBLE           3        3  668.7674319211236  858.3585741805864  740.2484444031555  103.0383726609802
+     ward_pairs        BIGINT           3        3                 94                140 116.66666666666667 23.007245235649865
+       segments        BIGINT           3        3                661               1446 1026.3333333333333 395.31042654265184
+              n        BIGINT           3        3               1977              15350  7549.666666666667 6959.2496961478055

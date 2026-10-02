@@ -8,7 +8,7 @@ all: ../output/permit_processing_time_high_vs_low_alderman_summary.tex \
 
 ../%/permit_processing_time_high_vs_low_alderman_summary.tex \
 	../%/alderman_mean_processing_time_high_vs_low_density.pdf \
-	../%/permit_processing_time_volume_correlation.tex: build_permit_summary_stats.R ../../shared/code/canonical_geometry_helpers.R ../input/building_permits_clean.gpkg ../input/ward_panel.gpkg ../input/chicago_alderman_terms.csv Makefile ../../setup_environment/code/packages.R | ../output
+	../%/permit_processing_time_volume_correlation.tex: build_permit_summary_stats.R ../input/building_permits_clean.gpkg ../input/ward_panel.gpkg ../input/chicago_alderman_terms.csv Makefile | ../output
 	$(R) $< $(MAX_APPLICATION_YM)
 
 ../input/building_permits_clean.gpkg: ../../clean_building_permits/output/building_permits_clean.gpkg | ../input

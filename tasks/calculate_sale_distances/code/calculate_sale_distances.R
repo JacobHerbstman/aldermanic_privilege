@@ -1,5 +1,5 @@
 # --- Interactive Test Block ---
-# setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/calculate_sale_distances/code")
+# setwd("tasks/calculate_sale_distances/code")
 
 source("../../setup_environment/code/packages.R")
 source("../../shared/code/save_data.R")
@@ -314,7 +314,8 @@ final_output <- final_df %>%
         class, coordinate_source, coordinate_year,
         latitude, longitude, ward, neighbor_ward, ward_pair_id,
         dist_m,
-        alderman_own, alderman_neighbor
+        alderman_own, alderman_neighbor,
+        same_party_names, resale_within_365, days_since_previous_sale
     )
 
 SaveData(final_output, c("row_id"), "../output/sales_pre_scores.csv")

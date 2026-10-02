@@ -90,23 +90,29 @@ logbook.pdf: logbook.tex \
 	entries/2026-09-15-construction-measurement-review.tex \
 	entries/2026-09-15-construction-source-rules.tex \
 	entries/2026-09-16-density-fixed-effects.tex \
-	../tasks/audits/density_fixed_effects/output/density_fixed_effects.tex \
-	../tasks/audits/score_pair_reliability/output/split_agreement.pdf \
-	../tasks/audits/multifamily_score_uncertainty/output/multifamily_score_draws.pdf \
-	../tasks/audits/permit_score_uncertainty/output/permit_score_events.pdf \
-	../tasks/audits/permit_score_uncertainty/output/permit_fragile_events.pdf \
-	../tasks/audits/price_score_uncertainty/output/price_score_draws.pdf \
-	../tasks/audits/score_robustness_review/output/raw_processing_comparison.pdf \
-	../tasks/audits/raw_log_score_sensitivity/output/raw_log_effects.pdf \
-	../tasks/audits/raw_log_score_sensitivity/records/raw_log_effects_before_corrections.pdf \
-	../tasks/audits/density_ordering_drivers/output/density_drivers.pdf \
-	../tasks/audits/construction_review_history/records/natchez_parcel_coverage.pdf \
-	../tasks/audits/density_window_comparison/output/density_windows.pdf \
-	../tasks/audits/density_window_comparison/output/density_windows_levels.pdf \
-	../tasks/audits/main_results_levels/output/density_levels.pdf \
-	../tasks/audits/main_results_levels/output/price_levels.pdf \
-	../tasks/audits/main_results_levels/output/permit_levels.pdf \
-	../tasks/audits/score_construction_checks/output/score_stability.png \
+	entries/2026-09-23-permit-construction-coverage.tex \
+	entries/2026-09-23-construction-validation-buildings.tex \
+	entries/2026-09-23-condominium-floor-area.tex \
+	entries/2026-09-27-stringency-orderings.tex \
+	entries/2026-09-27-event-study-turnover.tex \
+	entries/2026-09-27-alderman-characteristics.tex \
+	records/density_fixed_effects/density_fixed_effects.tex \
+	records/score_pair_reliability/split_agreement.pdf \
+	records/multifamily_score_uncertainty/multifamily_score_draws.pdf \
+	records/permit_score_uncertainty/permit_score_events.pdf \
+	records/permit_score_uncertainty/permit_fragile_events.pdf \
+	records/price_score_uncertainty/price_score_draws.pdf \
+	records/score_robustness_review/raw_processing_comparison.pdf \
+	records/raw_log_score_sensitivity/raw_log_effects.pdf \
+	records/raw_log_score_sensitivity/raw_log_effects_before_corrections.pdf \
+	records/density_ordering_drivers/density_drivers.pdf \
+	records/construction_review_history/natchez_parcel_coverage.pdf \
+	records/density_window_comparison/density_windows.pdf \
+	records/density_window_comparison/density_windows_levels.pdf \
+	records/main_results_levels/density_levels.pdf \
+	records/main_results_levels/price_levels.pdf \
+	records/main_results_levels/permit_levels.pdf \
+	records/score_construction_checks/score_stability.png \
 	Makefile
 	pdflatex -halt-on-error -interaction=nonstopmode logbook.tex
 	pdflatex -halt-on-error -interaction=nonstopmode logbook.tex

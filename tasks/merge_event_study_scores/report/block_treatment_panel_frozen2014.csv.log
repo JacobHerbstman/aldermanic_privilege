@@ -1,7 +1,7 @@
 File: block_treatment_panel_frozen2014.csv
 Rows: 46311
-Columns: 28
-SHA-256 (saved bytes): 4ee15adb2ec17e81b136d77bdb1860449291391dc94102b44897aabdd11abb11
+Columns: 23
+SHA-256 (saved bytes): 7b472e63ac780e6f382d67f9b234e88ce57fd9829877241c306adc1173c76736
 Key: block_id
 Types: DuckDB inference from the complete saved CSV.
 Distinct counts: exact (exact up to 100,000 rows).
@@ -17,7 +17,6 @@ Row counts, non-missing counts, and declared-key checks: exact.
          ward_origin_n_wards        BIGINT       46311        4                      1                  4     1.144242188680875    0.363185544278266
            ward_dest_n_wards        BIGINT       46311        4                      1                  4    1.1647772667400833  0.38357512770000735
                     switched       BOOLEAN       46311        2                      -                  -                     -                    -
-           ward_had_turnover       BOOLEAN       46311        2                      -                  -                     -                    -
                        valid       BOOLEAN       46311        1                      -                  -                     -                    -
 has_complete_ward_assignment       BOOLEAN       46311        1                      -                  -                     -                    -
                       cohort        BIGINT       46311        1                   2015               2015                2015.0                  0.0
@@ -26,13 +25,9 @@ has_complete_ward_assignment       BOOLEAN       46311        1                 
         alderman_origin_2015       VARCHAR       46311       50                      -                  -                     -                    -
           alderman_dest_2014       VARCHAR       46311       50                      -                  -                     -                    -
           alderman_dest_2015       VARCHAR       46311       50                      -                  -                     -                    -
-    strictness_origin_frozen        DOUBLE       46311       50    -2.6261282212235035 1.5587271875761726   0.10184299275814897   0.8740176700526081
-      strictness_dest_frozen        DOUBLE       46311       50    -2.6261282212235035 1.5587271875761726   0.08273425097896257   0.8719021575214955
+    strictness_origin_frozen        DOUBLE       46311       50     -2.626220074885348 1.5587681397802318   0.10183841721230708   0.8740290102937527
+      strictness_dest_frozen        DOUBLE       46311       50     -2.626220074885348 1.5587681397802318    0.0827230892325579   0.8719174957559055
                stable_origin       BOOLEAN       46311        2                      -                  -                     -                    -
                  stable_dest       BOOLEAN       46311        2                      -                  -                     -                    -
                  stable_both       BOOLEAN       46311        2                      -                  -                     -                    -
-           strictness_origin        DOUBLE       46311       50    -2.6261282212235035 1.5587271875761726   0.10184299275814897   0.8740176700526081
-             strictness_dest        DOUBLE       46311       50    -2.6261282212235035 1.5587271875761726   0.08273425097896257   0.8719021575214955
-           strictness_change        DOUBLE       46311      158    -3.5030069859942428  3.212869198514254 -0.019108741779197295   0.6249821709757273
-    strictness_change_frozen        DOUBLE       46311      158    -3.5030069859942428  3.212869198514254 -0.019108741779197295   0.6249821709757273
-                 switch_type       VARCHAR       46311        3                      -                  -                     -                    -
+    strictness_change_frozen        DOUBLE       46311      158    -3.5029305643741093 3.2130541265384394 -0.019115327979741522   0.6249785265443232

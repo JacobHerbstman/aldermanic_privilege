@@ -1,7 +1,7 @@
 File: building_permits_clean.gpkg
 Rows: 716345
-Columns: 48
-SHA-256 (saved bytes): 83da04ceca616c3fbbe68141539d7d117615abcf2102b3b8293bfe481e905b5a
+Columns: 45
+SHA-256 (saved bytes): 5bb9a09096e84aa9580454acda3d59c5a596e735e8d0398d14cf7d90582e44fe
 Key: id
 Types: SQLite attributes read through pandas; geometry excluded.
 Distinct counts: approximate (exact up to 100,000 rows).
@@ -18,8 +18,6 @@ application_start_date_ym       VARCHAR      716345      173                  - 
             reported_cost        DOUBLE      692815    41786            -1000.0       9999999999.0  146890.52542087794   18596544.25830512
                 total_fee        DOUBLE      716345    57098                0.0          5772092.0    939.232625606364  11215.793481864297
           high_discretion        DOUBLE      716345        2                0.0                1.0 0.27584055168947924 0.44693715507121357
-            permit_issued        DOUBLE      419802        2                0.0                1.0   0.968394624132329 0.17494727488886538
-      corporate_applicant        BIGINT      716345        2                  0                  1  0.8730178894247883  0.3329531632585161
                    permit       VARCHAR      716345   870760                  -                  -                   -                   -
             permit_status       VARCHAR      419802        7                  -                  -                   -                   -
          permit_milestone       VARCHAR      419802        9                  -                  -                   -                   -
@@ -55,4 +53,3 @@ application_start_date_ym       VARCHAR      716345      173                  - 
                  latitude        DOUBLE      716345   302363  41.64467013219805  42.02281295956641  41.869170998844815  0.0833160362283446
                 longitude        DOUBLE      716345   291922 -87.94022499291826 -87.52467708496278  -87.67147123323797 0.05669760008498395
                  location       VARCHAR      706353   222059                  -                  -                   -                   -
-             minor_permit        DOUBLE      716345        2                0.0                1.0  0.6990081594762301 0.45868948774697865

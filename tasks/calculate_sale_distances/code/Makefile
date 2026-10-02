@@ -2,7 +2,7 @@ include ../../shared/code/shell_functions.make
 
 all: ../output/sales_pre_scores.csv
 
-../output/sales_pre_scores.csv: calculate_sale_distances.R ../../shared/code/canonical_geometry_helpers.R ../input/residential_sales_clean.parquet ../input/parcel_universe_2025_city.csv ../input/historical_sale_parcel_coordinates_2006_2022.csv ../input/ward_panel.gpkg ../input/ward_pair_boundaries.gpkg ../input/chicago_alderman_terms.csv ../input/fred_cpi_cuura207sa0.csv ../../setup_environment/code/packages.R Makefile ../../shared/code/save_data.R ../../shared/code/report.py | ../output ../report
+../output/sales_pre_scores.csv: calculate_sale_distances.R ../input/residential_sales_clean.parquet ../input/parcel_universe_2025_city.csv ../input/historical_sale_parcel_coordinates_2006_2022.csv ../input/ward_panel.gpkg ../input/ward_pair_boundaries.gpkg ../input/chicago_alderman_terms.csv ../input/fred_cpi_cuura207sa0.csv Makefile | ../output ../report
 	$(R) $<
 
 ../input/residential_sales_clean.parquet: ../../clean_residential_sales/output/residential_sales_clean.parquet | ../input

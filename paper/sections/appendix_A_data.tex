@@ -56,33 +56,44 @@ The estimation sample requires at least one high-discretion permit during event 
 \subsection{New Construction}
 \label{subsec:new_construction_sample}
 
-The construction sample combines Cook County residential improvement records with the separate Assessor records used for larger multifamily properties.
-I link records across parcel divisions, replacement PINs, and the two Assessor sources so that each project enters once.
-I then compare the resulting sample with every issued residential new-construction permit, adding completed projects absent from the Assessor files when units, building area, and lot area can be measured consistently.
+The construction sample starts from every City of Chicago new-construction permit issued from 2006 through 2022.
+I keep permits whose description erects dwellings, or a new building whose use it does not state, and drop revisions, temporary structures, additions and conversions (including misspelled descriptions), accessory structures such as garages, and work on existing buildings.
+A permit at the same address for the same number of dwellings within three years of an earlier one is treated as a repeat of that permit.
 
-Projects must have positive lot area, positive building area, at least one dwelling unit, and a construction year from 2006 through 2022.
-Assessor histories sometimes report different years or repeat whole-building characteristics across assessment cards.
-I use permit and completion dates to select the year that best matches completion, combine cards that clearly describe one building, and remove later PINs representing the same project.
-Where construction years or lot and building areas appear inconsistent in the Assessor files, I supplement these records with manual research using permits, property records, and other documented sources.
-The replication files record these decisions and their supporting evidence.
+Each permit is matched to the Cook County Assessor records describing its building: residential improvement cards, condominium records, and, from 2021, commercial apartment valuations.
+A permit reaches the records on the parcels it lists, on the parcels that replaced them after a subdivision or condominium declaration, and on the parcels at its address.
+A record describes a new building when its reported year built falls between two years before and four years after the permit's issue year.
+Because first-year records are often partial, each building is measured on the characteristics its records report most often in their first three assessment years; when different characteristics are reported equally often, the earliest are used, except for condominium buildings, whose units are declared over several years, where later assessment years break the tie.
+When a permit's own parcels show no new building, it takes the unclaimed new building within 150~ft of its geocoded point (300~ft for buildings of 20 or more units) that first appears after the permit with a matching dwelling count, provided each is the other's only such match.
+A permit for several townhouses or houses that reaches fewer homes than it authorizes takes the adjacent new homes on its block that complete its count.
+Permits reaching the same building are combined, so each building enters once.
+The permit file begins in January 2006, so buildings completed in 2006 and 2007 were often authorized by earlier permits; new buildings in the Assessor records reported built in those two years enter without a permit, while later buildings require one.
 
-Locations first come from the Historical Parcel Universe in the construction year.
-When the original PIN is unavailable there, I use the current location of that PIN or a verified historical address.
-Each project retains one location, preventing predecessor and successor PINs from entering separately.
-Multifamily status primarily follows Assessor property class.
-When the reported unit count does not plausibly describe the whole building, permit descriptions and other property records determine the whole-building count, with these decisions also documented in the replication files.
+Each building is one observation, and townhouses and houses built under one permit enter as one observation per home, each measured on its own parcel.
+Condominium buildings are included.
+Hand research, recorded with its evidence in the replication files, resolves matches the rules leave ambiguous, corrects matches found wrong in validation reviews, and measures condominium buildings that the Assessor re-declared under several records.
 
-Each project receives the broad zoning group in force on June 15 of its construction year.
-I combine official City zoning maps from 2012, 2014, and 2016 with passed map amendments dating to 2006, use annual parcel maps to follow sites whose PINs change, and retain planned developments as a separate zoning group.
-The reconstruction covers every project in the main and placebo boundary samples and reproduces the classifications observed in later official zoning maps.
-Floor-area ratio (FAR) is total building area divided by lot area; dwelling units per acre (DUPAC) is the number of units divided by lot acreage.
-Projects are assigned to the ward map and alderman in office on June 15 of the reported construction year because the Assessor does not provide an exact completion date.
+Density measurements are withheld when the Assessor's dwelling count disagrees with the permit (exactly for a single house, by more than 20\% or one unit for multifamily buildings), when a building reports less than 300~sq~ft of floor area per unit, more than one acre of land per unit, or less than 100~sq~ft of land, when an older building remains on the parcel, and, for buildings without a permit, when a permit on the parcel records work on an existing building or the first assessment comes more than four years after the reported year built.
+They are also withheld when the land recorded for a building of 20 or more units is the shared site of a larger development: another such building within 1,000~ft reports the same land area, or a building at least 80~ft tall covers less than a quarter of its land with its 2022 footprint.
+Dwelling units per acre (DUPAC) is the number of dwelling units divided by lot acreage.
+It requires a recorded dwelling count and lot area but not floor area, so condominium buildings the Assessor records without floor area remain in the sample.
+
+Buildings linked to permits are dated by their first permit's issue date, and buildings without a permit by June 15 of their reported year built.
+Ward, neighboring-ward, and alderman assignments use the ward map and aldermen in office on that date.
+Each building is located at the centroid of its parcels, or at the permit's geocoded point when no parcel centroid is recorded.
 I calculate ward assignments and distances in the Illinois State Plane coordinate system used for Chicago (EPSG:3435) and report distances in feet.
+
+Each building receives the broad zoning group in force when it was built.
+When the building's parcel was last rezoned before construction, the group comes from the current (2025) zoning map.
+Otherwise it comes from the most recent official map before construction: a reconstruction of the 2006 map from passed map amendments for buildings dated through 2012, the 2012 map through 2014, the 2014 map in 2015, and the 2016 map afterward.
+Where the 2006 reconstruction has no polygon, the 2012 map applies when the 2012, 2014, and 2016 maps agree.
+Planned developments form a separate zoning group.
 
 \subsection{New-Construction Summary Statistics}
 \label{subsec:new_construction_summary_stats}
 
-Table~\ref{tab:summary_stats} describes the citywide sample of 13,635 projects with both FAR and DUPAC available, including 2,582 multifamily projects.
+Table~\ref{tab:summary_stats} describes the citywide sample of 15,350 buildings completed from 2006 through 2022 with a recorded dwelling count and lot area, including 5,322 multifamily buildings and 1,977 buildings with five or more units.
+Of these, 3,404 are condominium buildings and 2,141 are buildings reported built in 2006 or 2007 without a matching permit.
 
 \subsection{Home Sales}
 \label{subsec:sales_sample}
@@ -91,24 +102,28 @@ The raw file contains 902,830 parcel-sale records in Chicago's eight townships f
 The transaction sample includes Assessor classes 202--210, 234, 278, and 295, which cover detached houses and townhouses, and class 211, which covers apartment buildings with two to six units.
 I exclude mixed-use class 212, condominiums, cooperatives, larger apartment buildings, residential land, and all other property classes.
 
-Transactions must have a nominal price above \$10,000, not be explicitly identified as land-only, involve one parcel, use a warranty or trustee deed, and pass all three Assessor sale-quality flags: no duplicate sale of the same property within 365 days, no low-price flag, and no excluded-deed flag.
-When buyer and seller names are available, I exclude transfers with matching names.
-These transaction rules leave 238,705 sales with valid months and full 14-digit property identification numbers (PINs).
+Transactions must be market sales: a nominal price above \$10,000, not explicitly identified as land-only, one parcel, and passing all three Assessor sale-quality flags (no sale of the same property at the same price within 365 days, no low-price flag, and no excluded-deed flag).
+Of the 296,779 such sales, I remove 6,405 foreclosure auctions and 1,208 transfers to a lender, federal agency, or land bank, identified by party names and, for sales without a seller name, by the deed type recorded from 2013 onward.
+I also remove 47,824 resales of foreclosed homes by lenders, loan servicers, securitization trustees, federal housing agencies, or the land bank, whose prices reflect the distress of the sale rather than the location.
+Banks acting as Chicago land trustees convey ordinary sales and are not treated as lenders.
+Finally, I keep only warranty and trustee deeds, removing 14,067 further sales recorded under special warranty, administrator's, or other deeds, many of them foreclosure resales whose sellers the party names do not identify.
+These rules leave 227,275 sales with valid months and full 14-digit property identification numbers (PINs).
+Sales with identical buyer and seller names other than land trustees, and resales at a different price within 365 days of an earlier market sale of the same parcel, remain in the sample.
 
 Some older records without an IDOR-refined date report the first day of the month even though the exact day is unavailable.
 I exclude these sales when either adjoining ward changes aldermen during that month, or when the ward map changes during the month, because the record does not identify the relevant alderman or ward map.
-This removes 1,289 transactions citywide and leaves 237,416.
+This removes 1,194 transactions citywide and leaves 226,081.
 I retain records with precise IDOR dates and unrefined dates that are not recorded on the first of the month.
 
 I measure property characteristics using the Assessor record for the same property and tax year as the sale.
 I keep properties with one recorded building, positive building area, and an Assessor proration rate of one, which indicates that the record describes the entire property rather than a fractional share.
-These restrictions leave 233,744 sales.
-I then exclude 45 sales whose property records report more bedrooms than total rooms, leaving 233,699 sales.
+These restrictions leave 222,549 sales.
+I then exclude 40 sales whose property records report more bedrooms than total rooms and 4 sales priced above \$5,000 per square foot of building area, which indicate recording errors, leaving 222,505 sales.
 Missing apartment counts do not disqualify class-211 buildings because unit counts are not required by the price specification.
 When the sale and improvement files report different residential subclasses, I use the class recorded in the sale file for the property-class fixed effect.
-I express prices in 2022 dollars using the monthly Chicago CPI-U, with the mean 2022 index as the base, and do not trim or cap the price distribution.
+I express prices in 2022 dollars using the monthly Chicago CPI-U, with the mean 2022 index as the base, and do not otherwise trim or cap the price distribution.
 
-I locate each transaction by matching its PIN to the parcel map for the year of sale; all 238,705 sales meeting the transaction-quality criteria receive an exact historical location.
+I locate each transaction by matching its PIN to the parcel map for the year of sale; all 227,275 sales meeting the transaction-quality criteria receive an exact historical location.
 For retained transactions, ward, neighboring ward, and alderman assignments use the recorded sale date: transactions before May 18, 2015, use the 2003 ward map, and those on or after that date use the 2015 map.
 I calculate distance to the nearest boundary of the property's ward in the Illinois State Plane coordinate system.
 Distance is positive on the side represented by the more-stringent alderman and negative on the other side.
@@ -118,7 +133,7 @@ For the boundary-price design, I split ward-pair boundaries into approximately 1
 To compare similar homes in similar locations, the regression controls for log building area, log land area, log building age, log bedrooms, log bathrooms, a garage indicator, and distances to the nearest school, park, major road, CTA station open on the sale date, and Lake Michigan.
 Building age is sale year minus reported year built, and total bathrooms equal full bathrooms plus one-half of half bathrooms.
 The logged property characteristics must be positive, so properties sold in their reported construction year are excluded because their measured age is zero.
-The preferred 500-ft sample contains 58,468 sales.
+The preferred 500-ft sample contains 55,864 sales.
 Property-class fixed effects compare sales within the same Assessor class, while segment-by-sale-quarter fixed effects compare sales near the same short stretch of boundary in the same three-month period.
 Standard errors are clustered by ward pair.
 

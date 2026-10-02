@@ -1,0 +1,21 @@
+File: permit_event_study_high_discretion_stable_signed_500ft.csv
+Rows: 1
+Columns: 11
+SHA-256 (saved bytes): 70a6a0c1ea1c9925fd4840d909db8f36d8aa6775a8794d0d73f64e1827c8dd11
+Key: not declared in this report
+Types: DuckDB inference from the complete saved CSV.
+Distinct counts: exact (exact up to 100,000 rows).
+Row counts, non-missing counts, and declared-key checks: exact.
+
+               column inferred_type non_missing distinct                  min                  max                 mean sd
+       outcome_family       VARCHAR           1        1                    -                    -                    -  -
+          sample_rule       VARCHAR           1        1                    -                    -                    -  -
+       direction_rule       VARCHAR           1        1                    -                    -                    -  -
+      bandwidth_label       VARCHAR           1        1                    -                    -                    -  -
+      pooled_estimate        DOUBLE           1        1  -0.1265187638095459  -0.1265187638095459  -0.1265187638095459  -
+            pooled_se        DOUBLE           1        1  0.04878576795601039  0.04878576795601039  0.04878576795601039  -
+       pooled_p_value        DOUBLE           1        1 0.011023524657580436 0.011023524657580436 0.011023524657580436  -
+pooled_percent_change        DOUBLE           1        1  -11.884238448528217  -11.884238448528217  -11.884238448528217  -
+           pretrend_f        DOUBLE           1        1    1.021938845112431    1.021938845112431    1.021938845112431  -
+     pretrend_p_value        DOUBLE           1        1  0.40014246877746007  0.40014246877746007  0.40014246877746007  -
+         observations        BIGINT           1        1                36830                36830              36830.0  -

@@ -1,5 +1,9 @@
-# --- Interactive Test Block ---
-# setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/data_for_alderman_uncertainty_index/code")
+# setwd("tasks/data_for_alderman_uncertainty_index/code")
+# Place controls for each permit: distances to a downtown reference point and Lake Michigan, and the number of CTA
+# rail stations open on the application date within walking distance, measured in EPSG:3435.
+metric_crs <- 3435
+cbd_lon_lat <- c(-87.6313, 41.8837)
+rail_station_radius_m <- 800
 
 source("../../setup_environment/code/packages.R")
 source("../../shared/code/save_data.R")
@@ -260,36 +264,34 @@ permit_points <- permits_high_discretion %>%
   transmute(id, application_date = as.Date(application_start_date)) %>%
   semi_join(permits_with_controls %>% select(id), by = "id")
 
-metric_crs <- 26916
-permit_points_m <- st_transform(permit_points, metric_crs)
-cta_stations_m <- st_transform(cta_stations, metric_crs)
-water_osm_m <- st_transform(water_osm, metric_crs)
-assert_expected_crs(permit_points_m, metric_crs, "Permit points for place controls")
-assert_expected_crs(cta_stations_m, metric_crs, "CTA stations for place controls")
-assert_expected_crs(water_osm_m, metric_crs, "OSM water for place controls")
+permit_points_3435 <- st_transform(permit_points, metric_crs)
+cta_stations_3435 <- st_transform(cta_stations, metric_crs)
+water_osm_3435 <- st_transform(water_osm, metric_crs)
+assert_expected_crs(permit_points_3435, metric_crs, "Permit points for place controls")
+assert_expected_crs(cta_stations_3435, metric_crs, "CTA stations for place controls")
+assert_expected_crs(water_osm_3435, metric_crs, "OSM water for place controls")
 
-# CBD reference point (downtown Chicago)
-cbd_m <- st_sfc(st_point(c(-87.6313, 41.8837)), crs = 4326) %>%
+cbd_3435 <- st_sfc(st_point(cbd_lon_lat), crs = 4326) %>%
   st_transform(metric_crs)
 
-dist_cbd_km <- as.numeric(units::set_units(st_distance(permit_points_m, cbd_m), "m")) / 1000
+dist_cbd_km <- as.numeric(units::set_units(st_distance(permit_points_3435, cbd_3435), "m")) / 1000
 
 network_change_dates <- sort(unique(c(
-  cta_stations_m$active_from_date,
-  cta_stations_m$active_to_date + 1
+  cta_stations_3435$active_from_date,
+  cta_stations_3435$active_to_date + 1
 )))
 network_change_dates <- network_change_dates[!is.na(network_change_dates)]
 network_group <- findInterval(
-  as.numeric(permit_points_m$application_date),
+  as.numeric(permit_points_3435$application_date),
   as.numeric(network_change_dates)
 )
-permit_rows <- split(seq_len(nrow(permit_points_m)), network_group)
-n_rail_stations_800m <- integer(nrow(permit_points_m))
+permit_rows <- split(seq_len(nrow(permit_points_3435)), network_group)
+n_rail_stations_800m <- integer(nrow(permit_points_3435))
 
 for (network_i in names(permit_rows)) {
   row_i <- permit_rows[[network_i]]
-  application_date_i <- permit_points_m$application_date[row_i[1]]
-  active_cta <- cta_stations_m %>%
+  application_date_i <- permit_points_3435$application_date[row_i[1]]
+  active_cta <- cta_stations_3435 %>%
     filter(
       active_from_date <= application_date_i,
       is.na(active_to_date) | active_to_date >= application_date_i
@@ -298,21 +300,21 @@ for (network_i in names(permit_rows)) {
     stop(sprintf("No active CTA stations on %s.", application_date_i), call. = FALSE)
   }
   n_rail_stations_800m[row_i] <- lengths(st_is_within_distance(
-    permit_points_m[row_i, ],
+    permit_points_3435[row_i, ],
     active_cta,
-    dist = 800
+    dist = units::set_units(rail_station_radius_m, "m")
   ))
 }
 
-lake_michigan_features <- water_osm_m %>%
+lake_michigan_features <- water_osm_3435 %>%
   filter(!is.na(name) & tolower(name) == "lake michigan") %>%
   st_make_valid()
 if (nrow(lake_michigan_features) == 0) {
   stop("Could not construct Lake Michigan geometry for distance calculation.", call. = FALSE)
 }
-lake_michigan_m <- st_union(lake_michigan_features)
+lake_michigan_3435 <- st_union(lake_michigan_features)
 
-dist_lake_km <- as.numeric(units::set_units(st_distance(permit_points_m, lake_michigan_m), "m")) / 1000
+dist_lake_km <- as.numeric(units::set_units(st_distance(permit_points_3435, lake_michigan_3435), "m")) / 1000
 
 permit_place_controls <- tibble(
   id = permit_points$id,

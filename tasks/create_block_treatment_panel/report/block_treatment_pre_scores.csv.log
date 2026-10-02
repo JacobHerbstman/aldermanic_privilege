@@ -1,7 +1,7 @@
 File: block_treatment_pre_scores.csv
 Rows: 46311
-Columns: 14
-SHA-256 (saved bytes): 14a08ff735946448ec76993af7d53942f97a668a21af6e4d6344a50cc28cb348
+Columns: 13
+SHA-256 (saved bytes): b66e6b730af1dba4fb84cd9c67b085e6ea3e20c2dbee254a5e49a08a2d20806a
 Key: block_id
 Types: DuckDB inference from the complete saved CSV.
 Distinct counts: exact (exact up to 100,000 rows).
@@ -17,7 +17,6 @@ Row counts, non-missing counts, and declared-key checks: exact.
          ward_origin_n_wards        BIGINT       46311        4                      1                  4  1.144242188680875   0.363185544278266
            ward_dest_n_wards        BIGINT       46311        4                      1                  4 1.1647772667400833 0.38357512770000735
                     switched       BOOLEAN       46311        2                      -                  -                  -                   -
-           ward_had_turnover       BOOLEAN       46311        2                      -                  -                  -                   -
                        valid       BOOLEAN       46311        1                      -                  -                  -                   -
 has_complete_ward_assignment       BOOLEAN       46311        1                      -                  -                  -                   -
                       cohort        BIGINT       46311        1                   2015               2015             2015.0                 0.0

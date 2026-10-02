@@ -1,7 +1,11 @@
 # Recorded sale-parcel coordinates
 
-The gzip archive preserves the existing 2006–2022 coordinate response, captured
-unchanged on September 12, 2026. It contains parcel numbers, source years and
+The gzip archive preserves the 2006–2022 coordinate response queried on
+September 24, 2026, when the sales cleaning began following the school-closures
+project's rules (county sale-quality flags without a separate deed-type
+restriction; foreclosure auctions and transfers to lenders removed). That added
+46,360 parcel-years; the 231,210 parcel-years shared with the September 12
+response have identical coordinates. It contains parcel numbers, source years and
 coordinates from Cook County's Parcel Universe endpoint:
 https://datacatalog.cookcountyil.gov/resource/nj4t-kc8j.json.
 

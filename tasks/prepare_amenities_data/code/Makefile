@@ -5,7 +5,7 @@ all: ../output/schools_2015.gpkg \
 	../output/major_streets.gpkg \
 	../output/cta_stops.gpkg
 
-../%/cta_stops.gpkg ../%/major_streets.gpkg ../%/parks.gpkg ../%/schools_2015.gpkg: prepare_amenities_data.R ../input/cta_opening_dates.csv ../input/cta_historical_stations.csv ../input/major_streets.geojson ../input/cta_stations.geojson ../input/cpd_park_boundaries.geojson ../input/cps_school_locations_sy1415.geojson ../../setup_environment/code/packages.R Makefile ../../shared/code/save_data.R ../../shared/code/report.py | ../output ../report
+../%/cta_stops.gpkg ../%/major_streets.gpkg ../%/parks.gpkg ../%/schools_2015.gpkg: prepare_amenities_data.R ../input/cta_opening_dates.csv ../input/cta_historical_stations.csv ../input/major_streets.geojson ../input/cta_stations.geojson ../input/cpd_park_boundaries.geojson ../input/cps_school_locations_sy1415.geojson Makefile | ../output ../report
 	$(R) $<
 
 ../input/major_streets.geojson: ../../download_chicago_spatial_data/output/major_streets.geojson | ../input

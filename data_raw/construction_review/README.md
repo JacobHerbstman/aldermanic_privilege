@@ -1,5 +1,12 @@
 # Construction review source snapshots
 
+The paper build reads only `building_permits_full.csv`, `commercial_valuation_data.csv`,
+`residential_improvement_characteristics_full.csv`, `parcel_addresses_2025_chicago_20260710.csv`,
+`parcel_universe_2025_city_native.csv` and the zoning maps (`zoning_nov2012.zip`, `zoning_sep2014.zip`,
+`zoning_jan2016.zip`, `zoning_sep2025.geojson`). The other files support the construction audits. Tasks named
+below that are no longer on this branch (such as `download_construction_assessor_history`) remain in the Git
+history.
+
 These are preserved source records used to restore the construction-review
 pipeline. They are separate from the 2006–2022 sales and permit analysis inputs:
 pre-period sales and later permits provide evidence about building histories.

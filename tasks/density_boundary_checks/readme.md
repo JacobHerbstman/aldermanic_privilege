@@ -1,11 +1,13 @@
 # Density and location checks at ward boundaries
 
-This task produces the appendix tables for alternative boundary types and
-continuity in location characteristics. It reads the construction analysis
-data, through-2022 alderman scores and recorded boundary characteristics.
+`build_density_boundary_checks.R` produces two Appendix D tables from the main
+density specification (`tasks/shared/code/density_boundary_helpers.R`):
 
-All checks retain the analysis-data producer's common `density_eligible` sample,
-with usable, positive FAR and DUPAC. The existing 500-foot window, boundary
-restrictions, distance bands, controls, fixed effects and clustering apply.
+- `density_boundary_robustness.tex` restricts the sample by the geometry of the
+  assigned boundary segment, using the classifications from
+  `density_boundary_characteristics`.
+- `density_location_continuity.tex` uses distances to downtown, the nearest
+  school, the nearest park and Lake Michigan as outcomes, with distance bands and
+  boundary-segment-by-joint-service fixed effects only.
 
-Run Make in code/ to rebuild both tables.
+Run `make` in `code/`.

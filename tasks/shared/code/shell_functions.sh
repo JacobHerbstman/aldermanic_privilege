@@ -82,7 +82,7 @@ python_pc_and_slurm() {
 		sbatch -W --export=ALL,command1,command2 --job-name="$jobname1$jobname2" run.sbatch;
 	else
 		print_info Python $@;
-		python3 "$@";
+		../../setup_environment/output/python-env/bin/python "$@";
 	fi;
 } ;
 

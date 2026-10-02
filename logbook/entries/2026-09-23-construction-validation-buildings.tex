@@ -1,0 +1,110 @@
+\clearpage
+\section*{How accurate is the permit construction data, and what is one row?}
+\textit{September 23, 2026. Agent-drafted data review; the unit-of-observation choice is Jacob's.}
+
+A stratified random sample of 225 cases from the permit-based construction data (dataset at commit
+\texttt{9736e3c8}; \texttt{tasks/audits/construction\_hand\_checks}) was reviewed case by case against permit text
+and Assessor histories by agent reviewers, with the main claims checked against the data. Weighted by stratum
+population, 90.7 percent of density-eligible buildings were correct. Buildings measured on the permit's own parcels,
+three quarters of the sample, were right in 24 of 25 cases, as were lot links; the weakest group was the
+Assessor-only 2006--2007 buildings (17 of 25). Among withheld cases, 18 of 25 ``no permit found'' buildings were
+genuine new construction, 14 of them with a permit that should have linked; 21 of 25 unit disagreements were
+recoverable; and of permits that reached no building, 13 of 25 were never built, 5 were tax-exempt housing without
+Assessor characteristics, and only 2 were missed links.
+
+One mechanism explained the largest error in four strata: when a condominium declaration or subdivision retires a
+parcel number, the building reappears on new parcels. The permit kept its parent lot's record while the finished
+homes sat unlinked, or an Assessor-only parent card duplicated its children. On the Cleveland--Hobbie--Oak site,
+eight permits for rowhome rows and two condominium buildings all listed one parent lot; the Assessor recorded a
+39-unit card on it in 2014 and about 48 child parcels from 2016. The paper's data counts this site 40 times (the
+parent card and 39 homes); ours had counted it zero times in the density sample. Jacob chose one row per building.
+Each permit's parcels now include the successors of its listed parcels (each new parcel descends from the nearest
+retired parcel on its block), a record reached by several permits belongs to the permit at its address, and
+hand-named lots and homes join their permit's parcels. That site is now eight building rows; six match their
+permits' dwelling counts exactly, and two (449 W Hobbie, 1001 N Cleveland) reach only one of their homes and are
+withheld. Allowing several parents per new parcel recovered one more row but broke others (94 fewer eligible
+buildings) and was not adopted. Two hand decisions that had assigned a whole divided site to one permit were retired.
+
+The file now has 18,051 rows (18,875 before) and 14,053 density-eligible buildings (14,033): 11,776 permitted
+(11,564) and 2,277 Assessor-only (2,469; the difference is mostly parent cards removed as duplicates). Counted as
+the paper does, by completion year 2006--2022, there are 13,022 eligible buildings against the paper's roughly
+13,600, part of which is the paper's double counting of divided sites. ``No permit found'' buildings fell from
+1,776 to 1,077; flagged measured buildings rose from 842 to 959, mostly divided sites whose successors include a
+neighbor built without its own permit.
+
+\textit{Update, same day.} A second review round on the rebuilt data (commit \texttt{667f19d4}, a new stratified
+sample of 225) found 97.5 percent of eligible buildings correct, weighted by stratum population (90.7 before).
+Buildings on the permit's own parcels, parcel successors and added homes were 25 of 25 each; Assessor-only
+2006--2007 buildings rose to 22 of 25, the round-one duplicates gone. The weakest groups are small: floor-area
+rebuilds (19 of 25: a wrong listed parcel, two repairs of existing buildings classified as new construction, two
+transient measurement years) and lot or hand links (21 of 25). Among withheld cases, 14 of 25 ``no permit found''
+buildings still have a permit that should link (new buildings filed as renovations, successors not traced, permits
+listing an address range without parcels); 10 of 25 unit disagreements combine twin buildings on one Assessor record,
+which cannot be split. Buildings are now measured on the record they hold most often in their first three assessment
+years rather than the first year alone, keeping the first year's proration: 261 floor areas and 52 unit counts
+changed, 69 buildings became eligible and 4 were withheld. The file has 14,129 eligible buildings (13,093 by
+completion year 2006--2022) and 914 flagged measured buildings (959).
+
+\textit{Second update.} Two more rules link withheld buildings to permits: about 30 new buildings filed as renovation,
+easy or express permits (a first sentence that erects a new building of stated height with dwellings, and no work on
+an existing one; a looser version admitted about 400 dormers, porches and build-outs and was rejected), and house
+numbers a multi-dwelling permit lists on its street (``329, 335, 337, 339 EAST 25TH PLACE''; used by single-house
+permits these named neighbors and took their homes, so they are not). Land below 100 square feet is now treated as a
+recording error (one 73-unit building recorded on 1 square foot had put the multifamily mean FAR at 12.7; it is now
+2.0, median 1.65). A building-by-building comparison with the previous version finds four eligible buildings lost:
+that one, two single homes now correctly part of 7- and 8-home townhouse permits whose other homes were not found, and
+one 6-unit condominium that a neighboring permit takes by address and then discards; two reorderings of the rules
+that would keep it lost 7 and 81 buildings and were not adopted. A third review round (commit \texttt{3b438336}, a
+new sample) found 96.5 percent of eligible buildings correct (97.5 in round two, within sampling error): permit
+parcels, successors and added homes 25 of 25 again, lot and hand links 24, Assessor-only 20, floor-area rebuilds 20.
+The file has 14,143 eligible buildings (11,846 permitted, 2,297 Assessor-only, 4,937 multifamily), 13,100 by
+completion year 2006--2022, 1,042 ``no permit found'' buildings and 909 flagged. No regressions have been run on these
+data.
+
+\textit{Third update.} Assessor-only townhouses are now counted as permitted ones are: class 295 homes on consecutive
+parcel numbers of a block (or alternating with garage parcels), first assessed in the same year with the same year
+built, on the same side of the same street, are one building. Before, each of 877 such homes was a row, while a
+townhouse permit is one row; 58 percent of Assessor-only single-family 2006--2007 buildings were townhouse homes,
+against 6 percent of permitted ones. The rows are not multifamily, as permitted townhouse rows are not, and their
+density is unchanged because the homes' floor area and land are summed. A permit erecting eight townhouses ``an
+addition to'' four existing ones now counts as new construction (three permits gained, removing two fragments). A
+fourth review round (dataset at commit \texttt{2ad05afb}) covered 50 random Assessor-only buildings and two groups
+flagged by candidate precision rules, reviewers not told which case came from which group. Of 15 buildings at an
+address with a permit for work on an existing building by the reported year built and no new-construction or wrecking
+permit, 3 were correct and 10 were condominium conversions or rehabs given a new year built; of 12 first assessed five
+or more years after the reported year built, 1 was correct (three were real buildings finished around 2012 under
+permits, six could not be dated). Both are now flags that withhold density (57, 206 and 2 formerly eligible buildings).
+The 50 unflagged buildings were 38 correct, 2 unsure, 3 not new, 4 mismeasured and 3 fragments, two of them of one
+Monroe Street row now grouped. Assessor-only buildings remain the least accurate group (about 80 percent correct across rounds, against 96.5
+for the data as a whole in round three). The file has 13,391 eligible buildings (11,849 permitted, 1,542
+Assessor-only, 4,798 multifamily), 12,347 by completion year 2006--2022; a building-by-building comparison with the
+previous version finds no eligible building lost except those the two new flags withhold.
+
+\textit{Fourth update.} Three of the long-assessment-lag buildings reviewers found built around 2012 led to a new rule:
+a permit reaching no building takes the Assessor-only building on a parcel it lists that was created after the permit,
+first assessed within the construction lag, with a matching dwelling count, when the match is one-to-one. Nineteen
+permits qualify, twelve of them the whole Lake Park Crescent development (2012 permits, parcels from 2014, reported built
+2006), each matching its permit's dwelling count exactly. No other building changed. The file has 13,410 eligible
+buildings (11,868 permitted, 1,542 Assessor-only, 4,815 multifamily).
+
+\textit{Final review round.} A fifth round (dataset at commit \texttt{79e65b54}, a new stratified sample of 225) found
+97.4 percent of eligible buildings correct, weighted by stratum population (standard error 1.0): permit parcels and
+added homes 25 of 25, parcel successors 24, lot and new-parcel links 23, Assessor-only 22 (88 percent, against 68--88 in
+earlier rounds), floor-area rebuilds 18 (a parcel on the street behind the permit's address, additions and one garage
+permit). Among withheld cases, 8 of 25 ``no permit found'' buildings have a permit that should link, five of them new
+houses filed as renovation permits whose first sentence the renovation filter rejects; 12 of 25 permits without a
+building were never built; unit disagreements are split between a correct Assessor count (7), a partial record (5) and
+a neighbor included (5). One lot link takes the eighth home of a neighboring townhouse permit because a permit reading
+``ERECT TWELEVE TOWNHOUSE'' was read as a single house.
+
+\textit{After the final round.} Two fixes from its findings. The renovation-permit filter rejected new houses whose
+first sentence also mentions a garage, deck or porch (``ERECT NEW 2 1/2 STORY SINGLE FAMILY FRAME RESIDENCE WITH REAR
+OPEN DECK AND DETACHED FRAME GARAGE''), opens with a label or with removing the old building, or states no height
+(``ERECT NEW SINGLE FAMILY RESIDENCE''). It now requires the dwelling to be the verb's direct object, with accessory
+structures, trade work and places checked only before it, and rejects trade permits for new buildings (``NEW TWO STORY
+SINGLE FAMILY HOUSE WITH 200A SERVICE''); 83 renovation-type permits pass (41 before), losing only a sunroom addition,
+and 38 enter the permit file. ``TWELEVE'' is read as twelve, which returns the eighth home of the neighboring 1130 S
+Troy permit. A building-by-building comparison finds no eligible building lost and 34 newly eligible, all new houses
+or small multifamily buildings matching their permits' counts. The file has 13,439 eligible buildings (11,899
+permitted, 1,540 Assessor-only, 4,819 multifamily), 12,394 by completion year 2006--2022, and 870 ``no permit found''
+buildings.

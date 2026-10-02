@@ -1,7 +1,7 @@
 File: residential_improvements_panel.parquet
 Rows: 7387056
 Columns: 19
-SHA-256 (saved bytes): c9acdda06900f5c939a67f466717c60a602b63be65ccd2193f441bc3be4244d5
+SHA-256 (saved bytes): f699fe6ecae43a0c3efad1ad627270f9e32520494f6d34a1ec0ef50ce5a81fd6
 Key: pin, tax_year
 Types: Stored Parquet schema.
 Distinct counts: approximate (exact up to 100,000 rows).

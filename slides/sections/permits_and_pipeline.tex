@@ -1,0 +1,58 @@
+% ==============================================================================
+% PART 3: INSTITUTIONAL SETTING + PERMIT DATA
+% ==============================================================================
+
+% ==============================================================================
+% SLIDE: HOW ALDERMEN INFLUENCE DEVELOPMENT (Pipeline - 4 overlays)
+% ==============================================================================
+\begin{frame}[label=permits-pipeline]
+   \frametitle{How Aldermen Influence the Development Process}
+   \vspace{-0.3em}
+   \centering
+   \resizebox{\textwidth}{!}{\input{figures/pipeline_tikz.tex}}
+\end{frame}
+
+% ==============================================================================
+% SLIDE: DATA
+% ==============================================================================
+\begin{frame}[label=data-main]
+    \frametitle{Data}
+    \small
+    \renewcommand{\arraystretch}{1.6}
+    \begin{tabular}{@{}>{\raggedright\arraybackslash}p{0.23\textwidth}>{\raggedright\arraybackslash}p{0.72\textwidth}@{}}
+      \toprule
+      \textbf{Building permits} & City of Chicago Dept.\ of Buildings, 2006--2022: Permits with application and issue dates \\
+      \textbf{New construction} & New-construction permits linked to Cook County Assessor records: New residential buildings with dwelling units and lot area \\
+      \textbf{Rents} & RentHub listings, 2014--2022: Asking rents by floorplan and month \\
+      \textbf{Home sales} & Cook County Assessor, 2006--2022: Market sales of houses, townhouses and 2--6 unit buildings \\
+      \bottomrule
+    \end{tabular}
+    \par\smallskip
+    \footnotesize Geography: 2003 and 2015 ward maps, alderman terms, and ward boundaries split into quarter-mile segments. Prices in 2022 dollars.
+    \par\smallskip\hfill\hyperlink{construction-data-appendix}{\beamergotobutton{New-construction data}}
+\end{frame}
+
+% ==============================================================================
+% SLIDE: WHY PERMIT PROCESSING TIMES? (New summary stats slide)
+% ==============================================================================
+\begin{frame}[label=permit-stats-main]
+    \frametitle{Why Permit Processing Times?}
+    \begin{columns}[c]
+    \begin{column}{0.46\textwidth}
+        \small
+        \begin{itemize}[itemsep=0.2em, topsep=0.25em]
+            \item Permitting frictions are a key driver of housing supply elasticities \cite{soltas_how_2026}
+            \item Focus on \textbf{high-discretion} permits: new construction, renovation, demolition
+            \item High-discretion ward-month mean processing times are \textbf{negatively} correlated with volume; the low-discretion relationship is weakly positive
+        \end{itemize}
+        \vspace{0.05em}
+        \hyperlink{permit-vol-corr-appendix}{\beamergotobutton{Permit Volume}}
+        \hspace{0.1em}
+        \hyperlink{permit-summary-stats-appendix}{\beamergotobutton{More Summary Stats}}
+    \end{column}
+    \begin{column}{0.52\textwidth}
+        \centering
+        \includegraphics[width=\textwidth,height=0.67\textheight,keepaspectratio,trim=0.15cm 0.35cm 0.15cm 0.18cm,clip]{../tasks/permit_summary_stats/output/alderman_mean_processing_time_high_vs_low_density.pdf}
+    \end{column}
+    \end{columns}
+\end{frame}

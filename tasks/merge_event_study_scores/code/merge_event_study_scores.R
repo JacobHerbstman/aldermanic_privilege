@@ -1,5 +1,5 @@
 # --- Interactive Test Block ---
-# setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/merge_event_study_scores/code")
+# setwd("tasks/merge_event_study_scores/code")
 
 source("../../setup_environment/code/packages.R")
 
@@ -70,18 +70,10 @@ treatment <- treatment %>%
     stable_origin = alderman_origin_2014 == alderman_origin_2015,
     stable_dest = alderman_dest_2014 == alderman_dest_2015,
     stable_both = stable_origin & stable_dest,
-    strictness_origin = strictness_origin_frozen,
-    strictness_dest = strictness_dest_frozen,
-    strictness_change = strictness_dest - strictness_origin,
-    strictness_change_frozen = strictness_change,
-    switch_type = case_when(
-      strictness_change > 0 ~ "Moved to Stricter",
-      strictness_change < 0 ~ "Moved to More Lenient",
-      TRUE ~ "No Change"
-    )
+    strictness_change_frozen = strictness_dest_frozen - strictness_origin_frozen
   )
 
-if (any(treatment$valid & (is.na(treatment$strictness_change) | is.na(treatment$stable_both)))) {
+if (any(treatment$valid & (is.na(treatment$strictness_change_frozen) | is.na(treatment$stable_both)))) {
   stop("Valid treatment rows must have complete frozen scores and incumbent status.", call. = FALSE)
 }
 

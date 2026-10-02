@@ -1,7 +1,7 @@
 File: schools_2015.gpkg
 Rows: 680
 Columns: 6
-SHA-256 (saved bytes): a461aad260e90be322077e4f900a07ad22b4e45e0aaa2ddc8bcb646e114f0840
+SHA-256 (saved bytes): 5d86adbe2bc2746d6ad239d6b17e1c1aeb2497ad6e078504da48aef9f0c7b9ec
 Key: fid
 Types: SQLite attributes read through pandas; geometry excluded.
 Distinct counts: exact (exact up to 100,000 rows).

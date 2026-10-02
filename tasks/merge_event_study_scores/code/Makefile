@@ -2,7 +2,7 @@ include ../../shared/code/shell_functions.make
 
 all: ../output/block_treatment_panel_frozen2014.csv
 
-../output/block_treatment_panel_frozen2014.csv: merge_event_study_scores.R ../input/block_treatment_pre_scores.csv ../input/chicago_alderman_panel.csv ../input/aldermen_uncertainty_scores_through2014.csv ../../setup_environment/code/packages.R Makefile ../../shared/code/save_data.R ../../shared/code/report.py | ../output ../report
+../output/block_treatment_panel_frozen2014.csv: merge_event_study_scores.R ../input/block_treatment_pre_scores.csv ../input/chicago_alderman_panel.csv ../input/aldermen_uncertainty_scores_through2014.csv Makefile | ../output ../report
 	$(R) $<
 
 ../input/block_treatment_pre_scores.csv: ../../create_block_treatment_panel/output/block_treatment_pre_scores.csv | ../input

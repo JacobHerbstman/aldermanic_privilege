@@ -1,5 +1,5 @@
 # --- Interactive Test Block ---
-# setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/create_block_group_controls/code")
+# setwd("tasks/create_block_group_controls/code")
 # acs_year <- 2014
 # geometry_year <- 2019
 

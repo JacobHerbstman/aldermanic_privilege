@@ -1,49 +1,25 @@
-# --- Interactive Test Block ---
-# setwd("/Users/jacobherbstman/Desktop/aldermanic_privilege/tasks/run_event_study_permit/code")
+# setwd("tasks/run_event_study_permit/code")
 # outcome_family <- "high_discretion"
 # sample_rule <- "stable"
 # direction_rule <- "signed"
-# bandwidth_m <- 152.4
-# bandwidth_label <- "500ft"
+# Blocks within 500 ft (152.4 m) of the ward boundary.
+bandwidth_m <- 152.4
+bandwidth_label <- "500ft"
 
 source("../../setup_environment/code/packages.R")
+source("../../shared/code/save_data.R")
 
 cli_args <- commandArgs(trailingOnly = TRUE)
-if (length(cli_args) == 0L) {
-  cli_args <- c(
-    outcome_family,
-    sample_rule,
-    direction_rule,
-    bandwidth_m,
-    bandwidth_label
-  )
-}
-if (length(cli_args) != 5L) {
-  stop(
-    "Expected outcome, sample rule, direction rule, bandwidth, and label.",
-    call. = FALSE
-  )
-}
-
+if (interactive()) cli_args <- c(outcome_family, sample_rule, direction_rule)
+stopifnot(length(cli_args) == 3L)
 outcome_family <- cli_args[1]
 sample_rule <- cli_args[2]
 direction_rule <- cli_args[3]
-bandwidth_m <- as.numeric(cli_args[4])
-bandwidth_label <- cli_args[5]
-
-if (
-  !outcome_family %in% c(
-    "high_discretion",
-    "low_discretion_nosigns"
-  ) ||
-    !sample_rule %in% c("stable", "all") ||
-    !direction_rule %in% c("signed", "separate") ||
-    !is.finite(bandwidth_m) ||
-    bandwidth_m <= 0 ||
-    !grepl("^[A-Za-z0-9_-]+$", bandwidth_label)
-) {
-  stop("Invalid event-study argument.", call. = FALSE)
-}
+stopifnot(
+  outcome_family %in% c("high_discretion", "low_discretion_nosigns"),
+  sample_rule %in% c("stable", "all"),
+  direction_rule %in% c("signed", "separate")
+)
 
 outcome_variable <- if (outcome_family == "high_discretion") {
   "n_high_discretion_application"
@@ -308,6 +284,31 @@ event_results <- event_results |>
     ci_high = estimate_log + critical_value * se
   )
 
+output_stem <- sprintf("../output/permit_event_study_%s_%s_%s_%s", outcome_family, sample_rule, direction_rule,
+  bandwidth_label)
+# Event-time coefficients and 95% confidence intervals, as plotted, with the pooled estimates in the subtitles (for
+# each direction when estimated separately), for the slide figures (tasks/presentation_figures).
+event_coefficients_out <- event_results |>
+  dplyr::select(dplyr::any_of("direction"), event_time, estimate, se, ci_low, ci_high)
+if (direction_rule == "signed") {
+  event_coefficients_out <- event_coefficients_out |>
+    dplyr::mutate(pooled_estimate = unname(pooled_estimate), pooled_se = unname(pooled_se),
+      pooled_p_value = unname(pooled_p_value))
+} else {
+  event_coefficients_out <- event_coefficients_out |>
+    dplyr::left_join(
+      direction_pooled_results |> dplyr::transmute(direction, pooled_estimate = estimate, pooled_se = se,
+        pooled_p_value = 2 * stats::pt(-abs(estimate / se), df = pooled_df)),
+      by = "direction",
+      relationship = "many-to-one"
+    )
+}
+SaveData(
+  event_coefficients_out,
+  if (direction_rule == "signed") "event_time" else c("direction", "event_time"),
+  paste0(output_stem, "_coefficients.csv")
+)
+
 if (direction_rule == "signed") {
   plot_title <- if (
     outcome_family == "high_discretion" &&
@@ -452,14 +453,24 @@ if (direction_rule == "signed") {
   plot_height <- 4.3
 }
 
-ggplot2::ggsave(
-  sprintf(
-    "../output/permit_event_study_%s_%s_%s_%s.pdf",
-    outcome_family,
-    sample_rule,
-    direction_rule,
-    bandwidth_label
+# The pooled 2015-2020 effect, its percent change in annual permits, and the joint test that the pre-2015 effects are
+# zero, as quoted in the paper.
+SaveData(
+  tibble::tibble(
+    outcome_family, sample_rule, direction_rule, bandwidth_label,
+    pooled_estimate = unname(pooled_estimate),
+    pooled_se = unname(pooled_se),
+    pooled_p_value = unname(pooled_p_value),
+    pooled_percent_change = 100 * (exp(unname(pooled_estimate)) - 1),
+    pretrend_f = pretrend_f,
+    pretrend_p_value = pretrend_p_value,
+    observations = stats::nobs(event_model)
   ),
+  outfile = paste0(output_stem, ".csv")
+)
+
+ggplot2::ggsave(
+  paste0(output_stem, ".pdf"),
   plot,
   width = plot_width,
   height = plot_height,

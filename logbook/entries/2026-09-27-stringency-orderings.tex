@@ -1,0 +1,50 @@
+\clearpage
+\section*{Which side is stricter: the main estimates under other stringency measures}
+\textit{September 27, 2026. Agent-drafted exploratory checks requested by Jacob, on the current permit-based
+construction data and joint-service specification; no production or manuscript result was changed.}
+
+The boundary designs use only which alderman of a facing pair is stricter, so the relevant agreement between two
+stringency measures is the share of facing pairs they order the same way. Re-estimating the 2006--2022 index with
+different estimation choices keeps most orderings: without shrinkage, as a one-stage mean residual, with an
+unweighted second stage, or without the volume control, 91 to 99 percent of facing multifamily pairs keep their
+order. Without the permit- and review-type fixed effects, or in days rather than log days, agreement weighted by
+buildings falls to about 80 percent. Developer, real-estate and land-use-professional donation shares order facing
+pairs the same way as the index only 35 to 47 percent of the time, so donations provide no validation of the index.
+
+The two main results respond differently. The pooled permit effect of $-0.127$ stays between $-0.09$ and $-0.18$
+under every alternative ordering except the index without the volume control ($-0.067$), and is $-0.181$ when the
+reassigned blocks that any estimation variant classifies differently are dropped. The multifamily density average of
+$-0.061$ survives the three smallest changes ($-0.059$ to $-0.069$) but is $-0.017$ to $-0.043$ under the other
+three, slightly positive when pairs are ordered by raw processing times, and $-0.033$ (0.034) when the third of
+buildings on boundaries some variant flips are dropped. All-construction density stays near zero throughout.
+
+The multifamily estimate is not carried by one boundary: leaving out one ward pair at a time keeps it between
+$-0.077$ and $-0.054$. It is carried by the boundaries whose ordering is least certain. On the 695 buildings where at
+least one variant disagrees (median index gap 0.22 SD) the average difference is $-0.091$ (0.060); on the 1,456
+where every variant agrees (median gap 0.98 SD) it is $-0.033$ (0.034). It shows no dose response: by index gap it is
+$-0.093$, $-0.126$, $-0.011$ and $-0.053$ for gaps of 0--0.25, 0.25--0.5, 0.5--1 and over 1 SD, and a linear
+interaction with the gap is $+0.007$ (0.046). By the raw mean log processing-time gap it is largest where the index's
+stricter alderman is faster in raw terms ($-0.12$ to $-0.13$, 656 buildings) and smallest where that alderman is
+slower ($-0.03$ to $-0.05$, 1,495 buildings).
+
+Raw processing times and the index agree much more closely in the event study than at the density boundaries. For
+reassigned blocks, the index's stricter alderman is slower in raw days for 76 percent of blocks, with a median gap of
+5.0 days, and the index and raw log gaps correlate at 0.64. For multifamily buildings the figures are 59 percent, 1.2
+days and 0.22, so the density ordering rests mostly on the index's adjustments. Across aldermen, the score change
+without the type fixed effects correlates 0.33 with the share of demolition permits and 0.18 with the share of
+standard-plan reviews; the change in days correlates 0.25 with the share of permits taking over 180 days and 0.33
+with the demolition share.
+
+These results replace the ordering diagnostics of September 14--15, which used the earlier Assessor-based
+construction data and a different specification; the qualitative conclusion is the same, that the multifamily
+density estimate is more sensitive to the ordering than the permit estimate. The absence of a gap gradient is new.
+The agent's reading is that the density difference should not be presented as evidence that stricter aldermen, as
+measured, build less densely; how to describe it is Jacob's decision.
+
+\textit{Reproduction.} Run \texttt{make} in \path{tasks/audits/stringency_measurement_sensitivity/code/}. The audit
+re-estimates the index from permits through 2014 and 2022 with the production index code, checks each baseline
+against the published index to $10^{-8}$, and reproduces the main density and permit estimates before changing any
+ordering. Estimates are in \texttt{ordering\_check\_estimates.csv}, agreement shares in
+\texttt{ordering\_agreement.csv} and \texttt{pair\_ordering\_summary.csv}, raw gaps in
+\texttt{raw\_gap\_summary.csv}, and the density diagnostics in the four \texttt{density\_*} and
+\texttt{score\_changes\_and\_permit\_mix} files.

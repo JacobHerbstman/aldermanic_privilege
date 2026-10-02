@@ -1,6 +1,9 @@
 source("../../setup_environment/code/packages.R")
 library(fixest)
 
+# Aldermen enter the score only if their permits span more than this many distinct months.
+min_alderman_months <- 3L
+
 standardize_uncertainty <- function(x) {
   x_sd <- sd(x, na.rm = TRUE)
   if (!is.finite(x_sd) || x_sd == 0) {
@@ -104,7 +107,7 @@ prepare_uncertainty_sample <- function(
   keep_aldermen <- permits_prepared %>%
     group_by(alderman) %>%
     summarise(n_months = n_distinct(month), .groups = "drop") %>%
-    filter(n_months > 3) %>%
+    filter(n_months > min_alderman_months) %>%
     pull(alderman)
 
   permits_prepared <- permits_prepared %>%
@@ -551,7 +554,7 @@ write_stage1_regression_table <- function(model, output_path, stage1_outcome) {
   }
   table_tex <- sub(
     "^\\s*month\\s*&",
-    "   Calendar Month Fixed Effects    &",
+    "   Year-Month Fixed Effects        &",
     table_tex
   )
   table_tex <- sub(

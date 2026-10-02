@@ -1,0 +1,27 @@
+% Housing costs after permits and density
+\begin{frame}[label=price-spec-main]
+    \frametitle{Price Comparisons Within Boundary Segments and Time Periods}
+    \small
+    \[
+      \log Y_{isp}=\beta\,\mathbf{1}\{\text{more-stringent side}\}_{i}
+      +X_i'\theta+\lambda_{t(i)}+\delta_{sp}+\varepsilon_{isp}.
+    \]
+    \begin{itemize}[itemsep=0.5em]
+      \item $\beta$ is the average difference within 500 feet
+      \item Segment $\times$ month FEs for rents; segment $\times$ quarter FEs for sales.
+      \item Property-type FEs $\lambda_{t(i)}$: rental building type or Assessor property class.
+      \item $X_i$: housing characteristics and distances to schools, parks, major roads, CTA stops, and Lake Michigan.
+      \item Standard errors clustered by ward pair.
+    \end{itemize}
+    \vfill\hfill\hyperlink{price-controls}{\beamergotobutton{Control details}}
+\end{frame}
+
+\begin{frame}[label=rental-fe-main]
+    \frametitle{Price Differences Across Ward Boundaries}
+    \centering
+    \includegraphics[width=\textwidth,height=0.65\textheight,keepaspectratio]{../tasks/presentation_figures/output/price_boundary_main_slides.pdf}
+    \par\medskip
+    \vfill\hfill\hyperlink{price-rd-placebos}{\beamergotobutton{Placebos}}
+    \hyperlink{price-straight}{\beamergotobutton{Straight boundaries}}
+    \hyperlink{price-donuts}{\beamergotobutton{Donuts}}
+\end{frame}
