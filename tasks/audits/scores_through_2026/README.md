@@ -14,7 +14,8 @@ Nothing here feeds the paper or slides. Run `make` in `code/`.
   and the score through 2026 without self-certification permits, by alderman pair, and the change in the paper's
   estimate from flipping each pair alone.
 - `density_without_near_ties.R`: the density result without the ward 1/32 boundary and without alderman pairs whose
-  scores nearly tie (gap under 0.10, 0.25 or 0.50 SD by each score, or by either score), with both scores.
+  scores nearly tie (gap under 0.10, 0.25 or 0.50 SD by each score, or by either score), with both scores, each with
+  the more-stringent-side indicator and with the indicator times the score gap (continuous).
 - `results_with_scores_through_2026.R`: the density, rent and sales boundary results with each score version,
   re-deciding the more-stringent side of each boundary. The event study is unaffected (2006-2014 score).
 
@@ -50,3 +51,8 @@ Nothing here feeds the paper or slides. Run `make` in `code/`.
   is under 0.50 SD under either score (994 buildings) -0.040 (0.030) with both scores, and -0.040 (0.028) and -0.016
   (0.042) at 0.25 SD. All construction on those boundaries (gap of 0.50 SD under both): -0.071 (0.039) and -0.073
   (0.040).
+- **With the continuous treatment the two scores largely agree.** Multifamily, difference per SD of score gap: -0.045
+  (0.022) published and -0.027 (0.030) through 2026 on all boundaries, against -0.061 and +0.001 with the indicator;
+  across the near-tie restrictions it stays between -0.025 and -0.039 (published) and -0.024 and -0.039 (through
+  2026), none significant. All construction is near zero except on boundaries with a gap of 0.50 SD under both scores
+  (-0.049 and -0.070, p < 0.1).

@@ -4,7 +4,9 @@
 # scores nearly tie. Near ties are judged by each score's own gap, or by either score's gap so that both scores use
 # the same buildings. Paper's 2006-2022 construction data and density specification
 # (tasks/shared/code/density_boundary_helpers.R), published score and the score through June 2026 without
-# self-certification permits.
+# self-certification permits. Each is estimated with the more-stringent-side indicator and with that indicator times
+# the score gap between the two sides (the difference across a boundary per standard deviation of gap), which gives
+# near ties little weight without a cutoff.
 dropped_ward_pair <- "1_32"
 gap_cutoffs <- c(0.10, 0.25, 0.50)
 new_version <- "through_2026_no_self_cert"
@@ -37,18 +39,24 @@ for (version in names(score_versions)) {
     setNames(lapply(gap_cutoffs, \(g) own_gap >= g), sprintf("gap_this_score_at_least_%.2f", gap_cutoffs)))
   for (r in names(version_restrictions)) {
     d <- buildings[version_restrictions[[r]], ] |>
-      mutate(running_distance_ft = abs(distance_to_boundary_ft) * sign(score[alderman_own] - score[alderman_neighbor])) |>
+      mutate(running_distance_ft = abs(distance_to_boundary_ft) * sign(score[alderman_own] - score[alderman_neighbor]),
+        score_gap = abs(score[alderman_own] - score[alderman_neighbor])) |>
       filter(running_distance_ft != 0) |>
-      bin_running_distance()
+      bin_running_distance() |>
+      mutate(stricter_side_gap = stricter_side * score_gap)
     for (i in seq_len(nrow(density_samples))) {
       ds <- filter_density_sample(d, density_samples$sample[i])
       fit <- fit_density_boundary(ds)
+      continuous <- fixest::feols(as.formula(sprintf("log(density_dupac) ~ stricter_side_gap + %s | %s", density_controls,
+        density_fixed_effects)), data = ds, cluster = ~ward_pair, warn = FALSE, notes = FALSE)
       results[[length(results) + 1]] <- bind_rows(
         mutate(fit$average, statistic = "average_difference"),
-        transmute(fit$first_bin, estimate, std_error, p_value, statistic = "first_band_difference")
+        transmute(fit$first_bin, estimate, std_error, p_value, statistic = "first_band_difference"),
+        tibble(estimate = coef(continuous)[["stricter_side_gap"]], std_error = fixest::se(continuous)[["stricter_side_gap"]],
+          p_value = fixest::pvalue(continuous)[["stricter_side_gap"]], statistic = "difference_per_sd_of_gap")
       ) |>
         mutate(score_version = version, restriction = r, sample = density_samples$sample[i],
-          observations = fit$observations, ward_pairs = fit$ward_pairs, .before = 1)
+          observations = fit$observations, ward_pairs = fit$ward_pairs, mean_gap = mean(ds$score_gap), .before = 1)
     }
   }
 }
