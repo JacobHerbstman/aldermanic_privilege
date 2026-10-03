@@ -5,7 +5,7 @@ all: ../output/processing_time_event_study.csv ../output/processing_time_event_s
 	../output/continuous_stringency.csv ../output/lenient_size_by_size_group.csv ../output/lenient_size_by_move.csv \
 	../output/density_continuous_suite.csv ../output/reassignment_cost_pooled.csv ../output/reassignment_cost_event_study.pdf \
 	../output/reassignment_cost_binary_event_study.pdf ../output/reassignment_by_direction_pooled.csv \
-	../output/reassignment_by_direction_event_study.pdf
+	../output/reassignment_by_direction_event_study.pdf ../output/event_study_segment_fe.csv
 
 ../%/processing_time_event_study.csv ../%/processing_time_event_study.pdf: processing_time_event_study.R \
 	../input/permit_block_year_panel_2015.parquet ../input/building_permits_clean.gpkg ../input/census_blocks_2010.csv \
@@ -39,9 +39,15 @@ all: ../output/processing_time_event_study.csv ../output/processing_time_event_s
 	../%/reassignment_by_direction_event_study.pdf: reassignment_by_direction.R ../input/permit_block_year_panel_2015.parquet | ../output
 	$(R) $<
 
+../%/event_study_segment_fe.csv ../%/event_study_segment_fe.pdf: event_study_segment_fe.R \
+	../input/permit_block_year_panel_2015.parquet ../input/census_blocks_2010.csv ../input/boundary_segments_1320ft.gpkg | ../output
+	$(R) $<
+
 ../input/permit_block_year_panel_2015.parquet: ../../../create_event_study_permit_data/output/permit_block_year_panel_2015.parquet | ../input
 	ln -sf $< $@
 ../input/building_permits_clean.gpkg: ../../../clean_building_permits/output/building_permits_clean_2006_2022.gpkg | ../input
+	ln -sf $< $@
+../input/boundary_segments_1320ft.gpkg: ../../../border_segment_creation/output/boundary_segments_1320ft.gpkg | ../input
 	ln -sf $< $@
 ../input/census_blocks_2010.csv: ../../../download_chicago_spatial_data/output/census_blocks_2010.csv | ../input
 	ln -sf $< $@
@@ -56,7 +62,7 @@ all: ../output/processing_time_event_study.csv ../output/processing_time_event_s
 ../input/sales_with_hedonics_amenities.parquet: ../../../sales_border_pair_fe/output/sales_with_hedonics_amenities.parquet | ../input
 	ln -sf $< $@
 
-link-inputs: ../input/permit_block_year_panel_2015.parquet ../input/building_permits_clean.gpkg \
+link-inputs: ../input/permit_block_year_panel_2015.parquet ../input/building_permits_clean.gpkg ../input/boundary_segments_1320ft.gpkg \
 	../input/census_blocks_2010.csv ../input/manual_permit_block_assignments.csv \
 	../input/new_construction_analysis_data.csv ../input/density_boundary_characteristics.csv \
 	../input/rental_rd_characteristics_panel_bw1500.parquet ../input/sales_with_hedonics_amenities.parquet

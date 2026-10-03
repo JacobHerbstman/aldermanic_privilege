@@ -14,6 +14,8 @@ old boundary, 2010-2020) and the same-side one (unchanged blocks in the ward the
   study.
 - `lenient_size_by_boundary.R`: effects by size of move, and the continuous lenient effect leaving out each move.
 - `reassignment_cost.R`: a term for being reassigned at all plus the continuous score change (or its sign).
+- `event_study_segment_fe.R`: the paper's event study with boundary-segment-by-year in place of ward-pair-by-year
+  fixed effects (each block on the nearest 2003-map segment of its ward pair).
 - `reassignment_by_direction.R`: reassignment plus separate stricter and lenient indicators, with moves under a
   score-change cutoff counting as reassignment without a change in stringency.
 
@@ -38,3 +40,8 @@ old boundary, 2010-2020) and the same-side one (unchanged blocks in the ward the
   moves toward clearly more lenient aldermen by +0.149 (0.059) and +0.178 (0.103); cutoffs of 0.10 and 0.50 SD give
   similar totals. The split into a reassignment cost and direction effects rests on 11 near-zero moves whose
   pre-period is not flat (same-side pre-trend p = 0.04), so only the totals are reliable.
+- **Segment-by-year fixed effects roughly halve the event-study estimates.** Combined -0.076 (0.047) against -0.127
+  (0.049); moves toward more stringent aldermen -0.110 (0.094, pre-trend p = 0.03) against -0.231 (0.096), with the
+  2015 drop unchanged (-0.40); toward more lenient +0.058 against +0.067. 618 of the 687 reassigned blocks share a
+  segment with unchanged blocks, but 517 of 752 segments hold only unchanged blocks, and 19 percent of block-years drop
+  out (segment-years without permits).
