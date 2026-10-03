@@ -1,6 +1,7 @@
 include ../../../shared/code/shell_functions.make
 
-all: ../output/scores_through_2026.csv ../output/score_comparison.csv ../output/results_with_scores_through_2026.csv
+all: ../output/scores_through_2026.csv ../output/score_comparison.csv ../output/results_with_scores_through_2026.csv \
+	../output/density_side_flips_by_pair.csv
 
 ../output/permits_2023_2026_for_index.csv: prepare_permits_2023_2026.R ../input/building_permits_clean_2023_2026.gpkg \
 	../input/ward_panel.gpkg ../input/Wards_2024.geojson ../sources/alderman_terms_through_2026.csv ../input/ward_controls.csv \
@@ -17,6 +18,11 @@ all: ../output/scores_through_2026.csv ../output/score_comparison.csv ../output/
 ../output/results_with_scores_through_2026.csv: results_with_scores_through_2026.R ../output/scores_through_2026.csv \
 	../input/alderman_uncertainty_index_through2022.csv ../input/new_construction_analysis_data.csv \
 	../input/rental_rd_characteristics_panel_bw1500.parquet ../input/sales_with_hedonics_amenities.parquet | ../output
+	$(R) $<
+
+../%/density_side_flips_summary.csv ../%/density_side_flips_by_pair.csv ../%/density_side_flips_by_alderman.csv: \
+	density_side_flips.R ../output/scores_through_2026.csv ../input/alderman_uncertainty_index_through2022.csv \
+	../input/new_construction_analysis_data.csv | ../output
 	$(R) $<
 
 ../input/building_permits_clean_2023_2026.gpkg: ../../../clean_building_permits/output/building_permits_clean_2023_2026.gpkg | ../input
