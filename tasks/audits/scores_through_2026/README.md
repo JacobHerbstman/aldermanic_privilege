@@ -13,6 +13,8 @@ Nothing here feeds the paper or slides. Run `make` in `code/`.
 - `density_side_flips.R`: the multifamily buildings whose more-stringent side differs between the published score
   and the score through 2026 without self-certification permits, by alderman pair, and the change in the paper's
   estimate from flipping each pair alone.
+- `density_without_near_ties.R`: the density result without the ward 1/32 boundary and without alderman pairs whose
+  scores nearly tie (gap under 0.10, 0.25 or 0.50 SD by each score, or by either score), with both scores.
 - `results_with_scores_through_2026.R`: the density, rent and sales boundary results with each score version,
   re-deciding the more-stringent side of each boundary. The event study is unaffected (2006-2014 score).
 
@@ -43,3 +45,8 @@ Nothing here feeds the paper or slides. Run `make` in `code/`.
   (0.82 and 0.88). Wards 2 and 27 (Madeline Haithcock and Walter Burnett, Jr., 30 buildings, 2006-2007) moves it by
   +0.019, because dropping self-certification permits raises Haithcock's score from 0.05 to 0.89; the next largest
   are Ariel Reboyras and Felix Cardona Jr. (+0.009) and Theodore Matlak and Tom Tunney (+0.006).
+- **Without the near ties the two scores agree, at a smaller and imprecise effect.** Multifamily, average difference:
+  without the ward 1/32 boundary -0.057 (0.027) published and -0.014 (0.029) through 2026; dropping pairs whose gap
+  is under 0.50 SD under either score (994 buildings) -0.040 (0.030) with both scores, and -0.040 (0.028) and -0.016
+  (0.042) at 0.25 SD. All construction on those boundaries (gap of 0.50 SD under both): -0.071 (0.039) and -0.073
+  (0.040).
